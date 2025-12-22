@@ -1,0 +1,90 @@
+.filter-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.filter-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-panel__label {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.filter-panel__select {
+  padding: 10px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.filter-panel__select:hover {
+  border-color: #4a90e2;
+}
+
+.filter-panel__select:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.filter-panel__date-range {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-panel__date-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.filter-panel__date-input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.filter-panel__date-separator {
+  color: #666;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .filter-panel {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .filter-panel__section {
+    min-width: 100%;
+  }
+  
+  .filter-panel__date-range {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-panel__date-separator {
+    text-align: center;
+  }
+}
+

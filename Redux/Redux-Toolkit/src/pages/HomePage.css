@@ -1,0 +1,64 @@
+.home-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.home-page__header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 0;
+  color: white;
+  margin-bottom: 32px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.home-page__title {
+  font-size: 36px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+.home-page__main {
+  padding-bottom: 40px;
+}
+
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 18px;
+  color: #666;
+}
+
+.error-message {
+  text-align: center;
+  padding: 20px;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  color: #c33;
+  margin-bottom: 24px;
+}
+
+.error-message p {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .home-page__header {
+    padding: 30px 0;
+  }
+
+  .home-page__title {
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+}
