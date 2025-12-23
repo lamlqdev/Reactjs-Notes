@@ -1,60 +1,43 @@
 # React Behind The Scenes
 
-Dự án này giúp bạn hiểu sâu hơn về cách React hoạt động bên trong, bao gồm các khái niệm quan trọng về hiệu suất, Virtual DOM, và cơ chế quản lý state.
+This project helps you understand deeper how React works internally, including important concepts about performance, Virtual DOM, and state management mechanisms.
 
 ---
 
-## 1. Tối ưu hóa Re-render Component
+## 1. Optimizing Component Re-renders
 
-React re-render một component khi:
+React re-renders a component when:
 
-- State của component đó thay đổi
-- Props của component đó thay đổi
-- Component cha re-render, theo mặc định, tất cả component con cũng re-render
+- The component's state changes
+- The component's props change
+- The parent component re-renders, by default, all child components also re-render
 
-Việc re-render không cần thiết có thể làm giảm hiệu suất ứng dụng. Dưới đây là các kỹ thuật để tối ưu hóa.
+Unnecessary re-renders can reduce application performance. Below are techniques to optimize.
 
 ### React.memo
 
-**Mục đích**: Ngăn component re-render khi props không thay đổi.
+**Purpose**: Prevent component re-render when props don't change.
 
-#### Đầu vào (Input)
+![React.memo](./public/memo-syntax.png)
+
+**How it works:**
+
+1. React.memo wraps the component and creates a "memoized version"
+2. When the parent component re-renders, React checks the props of the memoized component
+3. If props don't change (according to shallow comparison or the `arePropsEqual` function), React skips re-rendering and uses the previous render result
+4. If props change, the component will re-render normally
+
+**When to use:**
+
+| ✅ Use when                                                                            | ❌ Don't use when                                                               |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Component renders frequently with the same props                                       | Component always receives new props (e.g., object/array created on each render) |
+| Component has complex or expensive render logic                                        | Component is simple, renders quickly                                            |
+| Component receives props from parent that re-renders frequently but props don't change | Component receives callback functions that aren't memoized (useCallback)        |
+
+**Example in project:**
 
 ```javascript
-React.memo(Component, arePropsEqual?)
-```
-
-- **Component**: Component cần được memoize.
-- **arePropsEqual** (tùy chọn): Hàm so sánh tùy chỉnh `(prevProps, nextProps) => boolean`. Mặc định React sử dụng shallow comparison.
-
-**Cơ chế hoạt động:**
-
-1. React.memo bọc component và tạo một "memoized version"
-2. Khi component cha re-render, React kiểm tra props của component được memo
-3. Nếu props không thay đổi (theo shallow comparison hoặc hàm `arePropsEqual`), React bỏ qua việc re-render và sử dụng kết quả render trước đó
-4. Nếu props thay đổi, component sẽ được re-render bình thường
-
-**Đầu ra (Output):**
-
-- Component được memoize, chỉ re-render khi props thay đổi
-
-**Khi nào nên dùng:**
-
-✅ **Nên dùng khi:**
-
-- Component render thường xuyên với cùng props
-- Component có logic render phức tạp hoặc tốn kém
-- Component nhận props từ component cha thường xuyên re-render nhưng props không đổi
-
-❌ **Không nên dùng khi:**
-
-- Component luôn nhận props mới (ví dụ: object/array được tạo mới mỗi lần render)
-- Component đơn giản, render nhanh
-- Component nhận hàm callback không được memoize (useCallback)
-
-**Ví dụ trong project:**
-
-```1:14:src/components/UI/IconButton.jsx
 import { memo } from "react";
 import { log } from "../../log.js";
 
@@ -72,169 +55,101 @@ const IconButton = memo(function IconButton({ children, icon, ...props }) {
 export default IconButton;
 ```
 
-`IconButton` được wrap bằng `memo` để tránh re-render không cần thiết khi component cha (`Counter`) re-render nhưng props của `IconButton` không thay đổi.
+`IconButton` is wrapped with `memo` to avoid unnecessary re-renders when the parent component (`Counter`) re-renders but `IconButton`'s props don't change.
 
 ---
 
 ### Component Composition
 
-**Mục đích**: Giảm re-render bằng cách di chuyển state xuống component con, tránh truyền props không cần thiết.
+**Purpose**: Reduce re-renders by moving state down to child components, avoiding unnecessary prop passing.
 
-**Cơ chế hoạt động:**
+**How it works:**
 
-Thay vì truyền nhiều props xuống component con, bạn có thể:
+Instead of passing many props down to child components, you can:
 
-1. **Di chuyển state xuống component con**: State chỉ ảnh hưởng đến component con, không làm component cha re-render
-2. **Sử dụng children prop**: Component cha chỉ render phần không thay đổi, phần động được truyền qua `children`
-3. **Tách component**: Tách phần thường thay đổi thành component riêng
+1. **Move state down to child components**: State only affects the child component, doesn't cause parent to re-render
+2. **Use children prop**: Parent component only renders the unchanged part, dynamic parts are passed via `children`
+3. **Split components**: Separate frequently changing parts into separate components
 
-**Khi nào nên dùng:**
+**When to use:**
 
-✅ **Nên dùng khi:**
+- Parent component re-renders frequently but only part of UI needs updating
+- Want to reduce the number of props passed down
+- Need to separate logic and UI
 
-- Component cha re-render thường xuyên nhưng chỉ một phần UI cần cập nhật
-- Muốn giảm số lượng props truyền xuống
-- Cần tách biệt logic và UI
+**Example:**
 
-**Ví dụ:**
-
-**Cách không tối ưu:**
-
-```javascript
-function App() {
-  const [count, setCount] = useState(0);
-  const [user, setUser] = useState({ name: "John" });
-
-  return (
-    <div>
-      <Header user={user} /> {/* Header re-render khi count thay đổi */}
-      <Counter count={count} />
-    </div>
-  );
-}
-```
-
-**Cách tối ưu với Component Composition:**
-
-```javascript
-function App() {
-  return (
-    <div>
-      <Header /> {/* Header không re-render khi Counter thay đổi */}
-      <CounterWrapper />
-    </div>
-  );
-}
-
-function CounterWrapper() {
-  const [count, setCount] = useState(0);
-  return <Counter count={count} />;
-}
-```
+![Component Composition](./public/component-composition.png)
 
 ---
 
 ### useCallback
 
-**Mục đích**: Memoize hàm callback để tránh tạo hàm mới mỗi lần render, giúp `React.memo` hoạt động đúng.
+**Purpose**: Memoize callback functions to avoid creating new functions on each render, helping `React.memo` work correctly.
 
-**Đầu vào (Input):**
+![useCallback](./public/useCallback-syntax.png)
+
+**How it works:**
+
+1. First render: `useCallback` returns the `fn` function and stores it in memory
+2. Subsequent renders:
+   - If dependencies don't change: Returns the stored function (same reference)
+   - If dependencies change: Creates a new function and stores it
+
+**When to use:**
+
+| ✅ Use when                                                           | ❌ Don't use when                                      |
+| --------------------------------------------------------------------- | ------------------------------------------------------ |
+| Passing callback function to component wrapped with `React.memo`      | Callback function is not passed to memoized component  |
+| Callback function is a dependency of other hooks (useEffect, useMemo) | Callback function is simple, not expensive to recreate |
+| Callback function is passed down to many child components             | Dependencies change frequently (no benefit)            |
+
+**Example in project:**
 
 ```javascript
-useCallback(fn, dependencies);
+const handleDecrement = useCallback(function handleDecrement() {
+  setCounterChangers((prevCounter) => [
+    { value: -1, id: Math.random() * 1000 },
+    ...prevCounter,
+  ]);
+}, []);
+
+const handleIncrement = useCallback(function handleIncrement() {
+  setCounterChangers((prevCounter) => [
+    { value: 1, id: Math.random() * 1000 },
+    ...prevCounter,
+  ]);
+}, []);
 ```
 
-- **fn**: Hàm cần được memoize
-- **dependencies**: Mảng các dependencies. Hàm sẽ được tạo lại khi bất kỳ dependency nào thay đổi
-
-**Cơ chế hoạt động:**
-
-1. Lần render đầu tiên: `useCallback` trả về hàm `fn` và lưu vào memory
-2. Các lần render tiếp theo:
-   - Nếu dependencies không thay đổi: Trả về hàm đã lưu (cùng reference)
-   - Nếu dependencies thay đổi: Tạo hàm mới và lưu lại
-
-**Đầu ra (Output):**
-
-- Hàm callback được memoize với cùng reference nếu dependencies không đổi
-
-**Khi nào nên dùng:**
-
-✅ **Nên dùng khi:**
-
-- Truyền hàm callback vào component được wrap bằng `React.memo`
-- Hàm callback là dependency của hook khác (useEffect, useMemo)
-- Hàm callback được truyền xuống nhiều component con
-
-❌ **Không nên dùng khi:**
-
-- Hàm callback không được truyền vào component được memoize
-- Hàm callback đơn giản, không tốn kém để tạo lại
-- Dependencies thay đổi thường xuyên (không có lợi ích)
-
-**Ví dụ trong project:**
-
-```43:55:src/components/Counter/Counter.jsx
-  const handleDecrement = useCallback(function handleDecrement() {
-    setCounterChangers((prevCounter) => [
-      { value: -1, id: Math.random() * 1000 },
-      ...prevCounter,
-    ]);
-  }, []);
-
-  const handleIncrement = useCallback(function handleIncrement() {
-    setCounterChangers((prevCounter) => [
-      { value: 1, id: Math.random() * 1000 },
-      ...prevCounter,
-    ]);
-  }, []);
-```
-
-`handleDecrement` và `handleIncrement` được memoize với `useCallback` và dependency array rỗng `[]`, nghĩa là chúng chỉ được tạo một lần và không bao giờ thay đổi. Điều này đảm bảo `IconButton` (được wrap bằng `memo`) không re-render không cần thiết.
+`handleDecrement` and `handleIncrement` are memoized with `useCallback` and an empty dependency array `[]`, meaning they are only created once and never change. This ensures `IconButton` (wrapped with `memo`) doesn't re-render unnecessarily.
 
 ---
 
 ### useMemo
 
-**Mục đích**: Memoize kết quả tính toán phức tạp để tránh tính toán lại mỗi lần render.
+**Purpose**: Memoize the result of complex calculations to avoid recalculating on each render.
 
-**Đầu vào (Input):**
+![useMemo](./public/useMemo-syntax.png)
+
+**How it works:**
+
+1. First render: Executes `calculateValue()`, stores result in memory
+2. Subsequent renders:
+   - If dependencies don't change: Returns stored value (no recalculation)
+   - If dependencies change: Executes `calculateValue()` again and stores new result
+
+**When to use:**
+
+| ✅ Use when                                                               | ❌ Don't use when                                               |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Complex, expensive calculations (e.g., filter, sort, map on large arrays) | Simple, fast calculations (no benefit, only wastes memory)      |
+| Value is used as dependency of other hooks (useEffect, other useMemo)     | Dependencies change frequently (always recalculates)            |
+| Value is passed to memoized component and needs reference comparison      | Primitive values (string, number, boolean) - no need to memoize |
+
+**Example in project:**
 
 ```javascript
-useMemo(calculateValue, dependencies);
-```
-
-- **calculateValue**: Hàm tính toán trả về giá trị cần memoize
-- **dependencies**: Mảng các dependencies. Giá trị sẽ được tính lại khi bất kỳ dependency nào thay đổi
-
-**Cơ chế hoạt động:**
-
-1. Lần render đầu tiên: Thực thi `calculateValue()`, lưu kết quả vào memory
-2. Các lần render tiếp theo:
-   - Nếu dependencies không thay đổi: Trả về giá trị đã lưu (không tính toán lại)
-   - Nếu dependencies thay đổi: Thực thi lại `calculateValue()` và lưu kết quả mới
-
-**Đầu ra (Output):**
-
-- Giá trị được memoize, chỉ tính toán lại khi dependencies thay đổi
-
-**Khi nào nên dùng:**
-
-✅ **Nên dùng khi:**
-
-- Tính toán phức tạp, tốn kém (ví dụ: filter, sort, map trên mảng lớn)
-- Giá trị được sử dụng làm dependency của hook khác (useEffect, useMemo khác)
-- Giá trị được truyền vào component được memoize và cần so sánh reference
-
-❌ **Không nên dùng khi:**
-
-- Tính toán đơn giản, nhanh (không có lợi ích, chỉ tốn memory)
-- Dependencies thay đổi thường xuyên (luôn phải tính lại)
-- Giá trị primitive (string, number, boolean) - không cần memoize
-
-**Ví dụ trong project:**
-
-```10:32:src/components/Counter/Counter.jsx
 function isPrime(number) {
   log("Calculating if is prime number", 2, "other");
   if (number <= 1) {
@@ -258,118 +173,134 @@ const Counter = function Counter({ initialCount }) {
     () => isPrime(initialCount),
     [initialCount]
   );
+};
 ```
 
-Hàm `isPrime` là một tính toán phức tạp. `useMemo` đảm bảo `isPrime(initialCount)` chỉ được tính toán khi `initialCount` thay đổi, không phải mỗi lần component re-render.
+The `isPrime` function is a complex calculation. `useMemo` ensures `isPrime(initialCount)` is only calculated when `initialCount` changes, not on every component re-render.
 
 ---
 
 ## 2. Virtual DOM
 
-### Khái niệm
+### Observations When Working with React
 
-**Virtual DOM** là một bản sao JavaScript của DOM thật, được React sử dụng để tối ưu hóa việc cập nhật UI.
+When working with React, you may notice:
 
-### Cơ chế hoạt động
+- Component functions are executed every time state or props change.
+- JSX is recreated every time a component re-renders.
+- But the real DOM is not updated entirely—only the parts that changed are updated.
 
-#### Bước 1: Render Phase (Giai đoạn Render)
+**Why this matters:**
 
-Khi state hoặc props thay đổi:
+If React updated the entire real DOM every time a change occurred, this would cause poor performance, because the real DOM is a heavy structure, and manipulating it is very slow.
 
-1. React tạo một Virtual DOM tree mới (mô tả UI mong muốn)
-2. So sánh Virtual DOM mới với Virtual DOM cũ (quá trình gọi là **Diffing**)
+### How React Efficiently Handles Updates with Virtual DOM
 
-#### Bước 2: Commit Phase (Giai đoạn Commit)
+**Virtual DOM** is a lightweight representation (copy) of the real DOM, stored in memory.
 
-Sau khi diffing:
+**Goal**: Compare changes between the new version and the previous version to decide what needs to be changed in the real DOM.
 
-1. React xác định những thay đổi cần thiết (diff)
-2. Cập nhật DOM thật một cách hiệu quả nhất (chỉ cập nhật những phần thay đổi)
-3. Gọi các lifecycle methods và effects nếu cần
+![React uses Virtual DOM](./public/virtual-dom-overview.png)
 
-### Diffing Algorithm (Thuật toán So sánh)
+### React's Workflow with Virtual DOM
 
-React sử dụng các quy tắc sau khi so sánh:
+#### Initial Render
 
-1. **So sánh theo element type**:
+When a React application is loaded for the first time:
 
-   - Nếu type khác nhau → Unmount component cũ, mount component mới
-   - Nếu type giống nhau → Chỉ cập nhật props/attributes
+1. **React creates the component tree from JSX**
 
-2. **So sánh theo key** (xem phần Key trong React):
+   ![Create component tree from JSX](./public/initial-render-component-tree.png)
 
-   - Key giúp React xác định element nào tương ứng với element nào
+2. **Creates a Virtual DOM snapshot**—representing the state of the DOM
 
-3. **So sánh theo level**:
-   - React so sánh từng level của tree, không so sánh toàn bộ
+   ![Create Virtual DOM snapshot](./public/initial-render-virtual-dom.png)
 
-### Lợi ích của Virtual DOM
+3. **From Virtual DOM, compares the new snapshot with the old snapshot**
 
-**Hiệu suất**: Chỉ cập nhật những phần DOM thật sự thay đổi
+   ![Compare snapshots](./public/initial-render-compare.png)
 
-**Tối ưu batch updates**: React có thể batch nhiều state updates thành một lần cập nhật DOM
+4. **Then, identifies and performs necessary changes to the Real DOM**
 
-**Đơn giản hóa logic**: Developer không cần quan tâm đến việc cập nhật DOM thủ công
+   ![Apply changes to Real DOM](./public/initial-render-real-dom.png)
 
-### Ví dụ minh họa
+#### Updates
 
-```javascript
-// Virtual DOM cũ
-<div>
-  <h1>Hello</h1>
-  <p>World</p>
-</div>
+When users interact or state/props change:
 
-// Virtual DOM mới (sau khi state thay đổi)
-<div>
-  <h1>Hello</h1>
-  <p>React</p>  {/* Chỉ phần này thay đổi */}
-</div>
+1. **React re-runs component functions to create new JSX**
 
-// React chỉ cập nhật text content của <p> trong DOM thật
-```
+   ![Create component tree](./public/update-component-tree.png)
+
+2. **Creates a new Virtual DOM snapshot from that JSX**
+
+   ![Create new Virtual DOM snapshot](./public/update-virtual-dom.png)
+
+3. **Compares the new Virtual DOM with the old snapshot**
+
+   ![Compare two snapshots](./public/update-compare.png)
+
+4. **Identifies what changed using the Diffing algorithm. Only changes the corresponding parts in the real DOM**
+
+   ![Apply changes to Real DOM](./public/update-real-dom.png)
+
+### Diffing Algorithm
+
+React uses the Diffing algorithm to efficiently compare Virtual DOM trees:
+
+1. **Compare by element type**:
+
+   - If types differ → Unmount old component, mount new component
+   - If types are the same → Only update props/attributes
+
+2. **Compare by key** (see Keys in React section):
+
+   - Key helps React identify which element corresponds to which element
+
+3. **Compare by level**:
+   - React compares each level of the tree, doesn't compare the entire tree
+
+### Benefits of Virtual DOM
+
+- **Performance**: Only updates parts of the DOM that actually changed
+- **Optimize batch updates**: React can batch multiple state updates into a single DOM update
+- **Simplify logic**: Developers don't need to worry about manually updating the DOM
 
 ---
 
-## 3. Key trong React
+## 3. Keys in React
 
-### Key là gì?
+### What are Keys?
 
-**Key** là một prop đặc biệt mà React sử dụng để xác định các element trong danh sách. Key giúp React biết element nào đã thay đổi, được thêm, hoặc bị xóa.
+**Key** is a special prop that React uses to identify elements in a list. Keys help React know which element has changed, been added, or removed.
 
-### Tại sao cần Key?
+### Why are Keys needed?
 
-Khi render danh sách, React cần cách để phân biệt các element. Nếu không có key, React sẽ sử dụng index làm key mặc định, điều này có thể gây ra các vấn đề:
+When rendering lists, React needs a way to distinguish elements. Without keys, React will use index as the default key, which can cause problems:
 
-1. **Re-render không hiệu quả**: React có thể re-render toàn bộ danh sách
-2. **State bị nhầm lẫn**: State của component có thể được giữ lại ở element sai
-3. **Hiệu suất kém**: Không thể tối ưu hóa việc cập nhật
+1. **Inefficient re-renders**: React may re-render the entire list
+2. **State confusion**: Component state may be preserved on the wrong element
+3. **Poor performance**: Cannot optimize updates
 
-**Cơ chế hoạt động:**
+**How it works:**
 
-1. **Render lần đầu**: React tạo mapping giữa key và element
-2. **Re-render**: React so sánh keys:
-   - Key mới → Tạo element mới
-   - Key cũ không còn → Unmount element
-   - Key giữ nguyên → Chỉ cập nhật props nếu cần
+1. **First render**: React creates a mapping between keys and elements
+2. **Re-render**: React compares keys:
+   - New key → Create new element
+   - Old key no longer exists → Unmount element
+   - Key remains → Only update props if needed
 
-### Quy tắc sử dụng Key
+### Key Usage Rules
 
-✅ **Nên:**
+| ✅ **Should**                                         | ❌ **Shouldn't**                               |
+| ----------------------------------------------------- | ---------------------------------------------- |
+| Use unique IDs from data (e.g., `user.id`, `post.id`) | Use index as key when list can change order    |
+| Key must be stable (doesn't change between renders)   | Use random values (created new on each render) |
+| Key must be unique within the same list               | Use duplicate keys in the same list            |
 
-- Sử dụng ID duy nhất từ data (ví dụ: `user.id`, `post.id`)
-- Key phải stable (không thay đổi giữa các lần render)
-- Key phải unique trong cùng một danh sách
+**Example in project:**
 
-❌ **Không nên:**
-
-- Sử dụng index làm key khi danh sách có thể thay đổi thứ tự
-- Sử dụng random values (tạo mới mỗi lần render)
-- Sử dụng key trùng lặp trong cùng danh sách
-
-**Ví dụ trong project:**
-
-```24:30:src/components/Counter/CounterHistory.jsx
+```javascript
 export default function CounterHistory({ history }) {
   log("<CounterHistory /> rendered", 2);
 
@@ -383,147 +314,64 @@ export default function CounterHistory({ history }) {
 }
 ```
 
-`CounterHistory` sử dụng `count.id` làm key. Mỗi item trong `history` có một `id` duy nhất được tạo khi thêm vào:
+`CounterHistory` uses `count.id` as the key. Each item in `history` has a unique `id` created when added.
 
-```43:47:src/components/Counter/Counter.jsx
-  const handleDecrement = useCallback(function handleDecrement() {
-    setCounterChangers((prevCounter) => [
-      { value: -1, id: Math.random() * 1000 },
-      ...prevCounter,
-    ]);
-  }, []);
-```
+![Index as key problem](./public/index-as-key-problem.png)
 
-### Ví dụ về vấn đề khi dùng index làm key
+### Keys and Component Reset
 
-```javascript
-// ❌ KHÔNG NÊN: Dùng index làm key khi có thể xóa/sắp xếp lại
-{
-  items.map((item, index) => <Item key={index} data={item} />);
-}
-
-// ✅ NÊN: Dùng ID duy nhất
-{
-  items.map((item) => <Item key={item.id} data={item} />);
-}
-```
-
-**Vấn đề với index:**
-
-- Khi xóa item đầu tiên, tất cả items sau đó sẽ có key mới
-- React sẽ re-render toàn bộ danh sách thay vì chỉ xóa item đầu tiên
-- State của component có thể bị nhầm lẫn
-
-### Key và Component Reset
-
-Key cũng có thể được sử dụng để reset component:
-
-```24:24:src/App.jsx
-        <Counter key={chosenCount} initialCount={chosenCount} />
-```
-
-Khi `chosenCount` thay đổi, `key` của `Counter` cũng thay đổi. React sẽ:
-
-1. Unmount `Counter` cũ (key cũ)
-2. Mount `Counter` mới (key mới)
-3. Component được reset hoàn toàn về trạng thái ban đầu
+![Key and Component Reset](./public/key-and-component.png)
 
 ---
 
-## 4. Cơ chế Lên lịch và Thực thi State Update
+## 4. State Update Scheduling and Execution Mechanism
 
-### Batching (Nhóm các Updates)
+### Batching
 
-React tự động nhóm (batch) nhiều state updates thành một lần re-render để tối ưu hiệu suất.
-
-**Automatic Batching (React 18+):**
-
-Trong React 18, tất cả state updates được tự động batch, kể cả trong:
+React automatically batches multiple state updates into a single re-render to optimize performance. In React 18, all state updates are automatically batched, even in:
 
 - Event handlers
 - Promises
 - setTimeout
 - Native event handlers
 
-**Ví dụ:**
+**Example:**
 
 ```javascript
 function handleClick() {
-  setCount1((c) => c + 1); // Không trigger re-render ngay
-  setCount2((c) => c + 1); // Không trigger re-render ngay
-  setCount3((c) => c + 1); // Không trigger re-render ngay
-  // Tất cả 3 updates được batch thành 1 lần re-render
+  setCount1((c) => c + 1); // Doesn't trigger re-render immediately
+  setCount2((c) => c + 1); // Doesn't trigger re-render immediately
+  setCount3((c) => c + 1); // Doesn't trigger re-render immediately
+  // All 3 updates are batched into 1 re-render
 }
 ```
 
-### State Update Queue (Hàng đợi State Updates)
+### State Update Queue
 
-React duy trì một hàng đợi cho mỗi component để xử lý các state updates.
+React maintains a queue for each component to process state updates.
 
-**Cơ chế hoạt động:**
+![State Update Queue](./public/state-updates-scheduling.png)
 
-1. **Khi gọi setState**: Update được thêm vào queue
-2. **Sau khi event handler kết thúc**: React xử lý tất cả updates trong queue
-3. **Re-render**: Component được re-render với state mới
+**How it works:**
 
-### Functional Updates (Cập nhật dạng Hàm)
+1. **When calling setState**: Update is added to queue
+2. **After event handler ends**: React processes all updates in queue
+3. **Re-render**: Component re-renders with new state
 
-Khi state update phụ thuộc vào state trước đó, nên sử dụng functional form:
+### Functional Updates
 
-```javascript
-// ❌ Có thể không chính xác nếu có nhiều updates
-setCount(count + 1);
-setCount(count + 1); // count vẫn là giá trị cũ
+When state update depends on previous state, should use functional form:
 
-// ✅ Luôn chính xác
-setCount((prevCount) => prevCount + 1);
-setCount((prevCount) => prevCount + 1); // Sử dụng giá trị mới nhất
-```
+![Functional Updates](./public/functional-updates.png)
 
-**Ví dụ trong project:**
+### Execution Order
 
-```13:17:src/App.jsx
-  function handleSetCount(newCount) {
-    setChosenCount(newCount);
-    // Function form will ensure that we always get the latest value
-    setChosenCount((prevCount) => prevCount + 1);
-  }
-```
+1. **Synchronous code**: Runs immediately
+2. **State updates**: Queued and processed later
+3. **Re-render**: Occurs after all updates are processed
+4. **Effects**: Run after render completes
 
-`handleSetCount` sử dụng functional update `(prevCount) => prevCount + 1` để đảm bảo luôn sử dụng giá trị mới nhất của `chosenCount`, ngay cả khi có nhiều updates được batch.
-
-### Update Priority (Ưu tiên Updates)
-
-React 18 giới thiệu **Concurrent Features** với các mức độ ưu tiên:
-
-1. **Urgent updates**: User input, clicks (cần phản hồi ngay)
-2. **Transition updates**: Navigation, data fetching (có thể trì hoãn)
-
-**useTransition:**
-
-```javascript
-import { useTransition } from "react";
-
-function App() {
-  const [isPending, startTransition] = useTransition();
-
-  function handleClick() {
-    startTransition(() => {
-      // Updates trong đây có độ ưu tiên thấp
-      setNonUrgentState(newValue);
-    });
-  }
-}
-```
-
-### Thứ tự thực thi
-
-1. **Synchronous code**: Chạy ngay lập tức
-2. **State updates**: Được queue và xử lý sau
-3. **Re-render**: Xảy ra sau khi tất cả updates được xử lý
-4. **Effects**: Chạy sau khi render hoàn tất
-
-### Ví dụ minh họa thứ tự
+### Example illustrating execution order
 
 ```javascript
 function Component() {
@@ -539,14 +387,14 @@ function Component() {
     console.log("2. Before update:", count);
     setCount((c) => c + 1);
     console.log("2. After update (still old):", count);
-    // count vẫn là giá trị cũ vì update chưa được xử lý
+    // count is still the old value because update hasn't been processed
   }
 
   return <button onClick={handleClick}>Count: {count}</button>;
 }
 ```
 
-**Output khi click:**
+**Output when clicked:**
 
 ```text
 2. Before update: 0
@@ -555,23 +403,15 @@ function Component() {
 3. Effect: 1
 ```
 
-### Tóm tắt
-
-- ✅ React tự động batch các state updates
-- ✅ Sử dụng functional updates khi phụ thuộc vào state trước đó
-- ✅ State updates không đồng bộ - giá trị không thay đổi ngay lập tức
-- ✅ Re-render xảy ra sau khi tất cả updates được xử lý
-- ✅ Effects chạy sau khi render hoàn tất
-
 ---
 
-## Tổng kết
+## Conclusion
 
-Hiểu rõ các khái niệm trên giúp bạn:
+Understanding these concepts helps you:
 
-1. **Tối ưu hiệu suất**: Giảm re-render không cần thiết với `memo`, `useCallback`, `useMemo`
-2. **Hiểu cách React hoạt động**: Virtual DOM và diffing algorithm
-3. **Sử dụng Key đúng cách**: Tránh bugs và tối ưu hiệu suất
-4. **Quản lý State hiệu quả**: Hiểu batching và thứ tự thực thi
+1. **Optimize performance**: Reduce unnecessary re-renders with `memo`, `useCallback`, `useMemo`
+2. **Understand how React works**: Virtual DOM and diffing algorithm
+3. **Use Keys correctly**: Avoid bugs and optimize performance
+4. **Manage State effectively**: Understand batching and execution order
 
-Hãy mở DevTools và quan sát console logs trong project này để thấy rõ các component nào được re-render và khi nào!
+Open DevTools and observe console logs in this project to see clearly which components are re-rendered and when!
