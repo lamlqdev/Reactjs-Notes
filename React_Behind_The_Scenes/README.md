@@ -27,13 +27,7 @@ Unnecessary re-renders can reduce application performance. Below are techniques 
 3. If props don't change (according to shallow comparison or the `arePropsEqual` function), React skips re-rendering and uses the previous render result
 4. If props change, the component will re-render normally
 
-**When to use:**
-
-| ✅ Use when                                                                            | ❌ Don't use when                                                               |
-| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Component renders frequently with the same props                                       | Component always receives new props (e.g., object/array created on each render) |
-| Component has complex or expensive render logic                                        | Component is simple, renders quickly                                            |
-| Component receives props from parent that re-renders frequently but props don't change | Component receives callback functions that aren't memoized (useCallback)        |
+![When to use React.memo](./public/when-to-use-memo.png)
 
 **Example in project:**
 
@@ -204,9 +198,7 @@ If React updated the entire real DOM every time a change occurred, this would ca
 
 ### React's Workflow with Virtual DOM
 
-#### Initial Render
-
-When a React application is loaded for the first time:
+**Initial Render**: When a React application is loaded for the first time:
 
 1. **React creates the component tree from JSX**
 
@@ -224,9 +216,7 @@ When a React application is loaded for the first time:
 
    ![Apply changes to Real DOM](./public/initial-render-real-dom.png)
 
-#### Updates
-
-When users interact or state/props change:
+**Updates**: When users interact or state/props change:
 
 1. **React re-runs component functions to create new JSX**
 
@@ -253,7 +243,7 @@ React uses the Diffing algorithm to efficiently compare Virtual DOM trees:
    - If types differ → Unmount old component, mount new component
    - If types are the same → Only update props/attributes
 
-2. **Compare by key** (see Keys in React section):
+2. **Compare by key**:
 
    - Key helps React identify which element corresponds to which element
 
@@ -272,11 +262,7 @@ React uses the Diffing algorithm to efficiently compare Virtual DOM trees:
 
 ### What are Keys?
 
-**Key** is a special prop that React uses to identify elements in a list. Keys help React know which element has changed, been added, or removed.
-
-### Why are Keys needed?
-
-When rendering lists, React needs a way to distinguish elements. Without keys, React will use index as the default key, which can cause problems:
+**Key** is a special prop that React uses to identify elements in a list. Keys help React know which element has changed, been added, or removed. When rendering lists, React needs a way to distinguish elements. Without keys, React will use index as the default key, which can cause problems:
 
 1. **Inefficient re-renders**: React may re-render the entire list
 2. **State confusion**: Component state may be preserved on the wrong element
