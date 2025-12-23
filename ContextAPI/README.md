@@ -6,21 +6,21 @@
 
 ### Context API
 
-**Context API** là một tính năng của React cho phép chia sẻ dữ liệu (state) giữa các components mà không cần truyền props qua nhiều cấp (prop drilling).
+**Context API** là một tính năng của React cho phép chia sẻ state giữa các components mà không cần truyền props qua nhiều cấp (prop drilling).
 
 #### Các khái niệm cốt lõi
 
-##### 1. **Context (Ngữ cảnh)**
+##### 1. Context
 
-- Một object đặc biệt trong React dùng để chia sẻ dữ liệu
+- Một object đặc biệt trong React dùng để chia sẻ state
 - Được tạo bằng `createContext()`
-- Mỗi Context có một **Provider** và **Consumer**
+- Mỗi Context có một **Provider** và nhiều **Consumer**
 
 ```typescript
 const AppContext = createContext<AppContextValue | undefined>(undefined);
 ```
 
-##### 2. **Provider**
+##### 2. Provider
 
 - Component cung cấp giá trị cho Context
 - Wrap các components con cần access vào Context
@@ -30,7 +30,7 @@ const AppContext = createContext<AppContextValue | undefined>(undefined);
 <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
 ```
 
-##### 3. **Consumer**
+##### 3. Consumer
 
 - Component hoặc Hook sử dụng giá trị từ Context
 - Có 2 cách:
@@ -41,7 +41,7 @@ const AppContext = createContext<AppContextValue | undefined>(undefined);
 const { state, dispatch } = useContext(AppContext);
 ```
 
-##### 4. **Context Value**
+##### 4. Context Value
 
 - Giá trị được cung cấp bởi Provider
 - Có thể là bất kỳ kiểu dữ liệu nào (object, array, function, etc.)
@@ -70,7 +70,7 @@ const [state, dispatch] = useReducer(reducer, initialState);
 
 #### Các thành phần
 
-##### 1. **State (Trạng thái)**
+##### 1. State
 
 - Dữ liệu hiện tại của component
 - Được khởi tạo từ `initialState`
@@ -84,7 +84,7 @@ const initialState: AppState = {
 };
 ```
 
-##### 2. **Dispatch (Gửi hành động)**
+##### 2. Dispatch
 
 - Function để trigger state update
 - Nhận một **action object** làm tham số
@@ -94,7 +94,7 @@ const initialState: AppState = {
 dispatch({ type: AppActionType.SET_THEME, payload: "dark" });
 ```
 
-##### 3. **Reducer (Hàm xử lý)**
+##### 3. Reducer
 
 - Pure function nhận `(state, action)` và return state mới
 - **KHÔNG** mutate state cũ, luôn return state mới
@@ -112,7 +112,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
 }
 ```
 
-##### 4. **Action (Hành động)**
+##### 4. Action object
 
 - Object mô tả "điều gì đã xảy ra"
 - Có 2 phần:
@@ -144,33 +144,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
 | Logic tập trung trong reducer | Logic rải rác trong component |
 | Dễ test và debug              | Khó test khi logic phức tạp   |
 | Có thể tối ưu performance     | Đơn giản hơn cho state nhỏ    |
-
----
-
-## Hướng dẫn sử dụng
-
-### Cài đặt
-
-1. **Clone hoặc download project**
-
-2. **Cài đặt dependencies:**
-
-   ```bash
-   cd ContextAPI
-   npm install
-   ```
-
-3. **Chạy development server:**
-
-   ```bash
-   npm run dev
-   ```
-
-4. **Build production:**
-
-   ```bash
-   npm run build
-   ```
 
 ---
 
@@ -248,12 +221,6 @@ export type AppAction = SetThemeAction | SetPrimaryColorAction | ...;
 Tạo reducer function xử lý state updates:
 
 ```typescript
-export const initialState: AppState = {
-  theme: "light",
-  primaryColor: "#3b82f6",
-  // ...
-};
-
 export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case AppActionType.SET_THEME:
@@ -270,9 +237,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
 **Nguyên tắc quan trọng:**
 
-- ✅ **Pure function**: Không có side effects
-- ✅ **Immutable**: Không mutate state cũ, luôn return state mới
-- ✅ **Exhaustive**: Handle tất cả action types
+- **Pure function**: Không có side effects
+- **Immutable**: Không mutate state cũ, luôn return state mới
+- **Exhaustive**: Handle tất cả action types
 
 ---
 
@@ -329,9 +296,9 @@ export function useAppContext(): AppContextValue {
 
 **Lợi ích:**
 
-- ✅ Type-safe access
-- ✅ Error handling nếu dùng ngoài Provider
-- ✅ Code ngắn gọn hơn `useContext(AppContext)`
+- Type-safe access
+- Error handling nếu dùng ngoài Provider
+- Code ngắn gọn hơn `useContext(AppContext)`
 
 ---
 
@@ -394,23 +361,6 @@ export function Header() {
 3. **Render**: Dùng state để hiển thị UI
 
 ---
-
-#### Bước 7: Implement Reducer Logic
-
-**File: `src/context/appReducer.ts`**
-
-Thay thế các TODO comments bằng logic thực sự:
-
-```typescript
-case AppActionType.SET_THEME:
-  return { ...state, theme: action.payload };
-
-case AppActionType.TOGGLE_SIDEBAR:
-  return { ...state, sidebarCollapsed: !state.sidebarCollapsed };
-
-case AppActionType.SET_PRIMARY_COLOR:
-  return { ...state, primaryColor: action.payload };
-```
 
 **Best practices:**
 

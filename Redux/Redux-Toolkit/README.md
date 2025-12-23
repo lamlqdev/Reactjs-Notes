@@ -685,16 +685,10 @@ const articlesReducer = await import("./features/articles/articlesSlice");
 - **Normalized state**: Sử dụng entities pattern
 - **Async patterns**: Xử lý loading, error, success states
 
-### 10. Tài liệu chính thức và Cộng đồng
+---
 
-**Tài liệu chính thức**:
+**Tài liệu tham khảo**:
 
 - [Redux Toolkit Documentation](https://redux-toolkit.js.org/)
 - [Redux Essentials Tutorial](https://redux.js.org/tutorials/essentials/part-1-overview-concepts)
 - [Redux Style Guide](https://redux.js.org/style-guide/)
-
-**Cộng đồng**:
-
-- [Redux GitHub](https://github.com/reduxjs/redux-toolkit)
-- [Redux Discord](https://discord.gg/redux)
-- [Stack Overflow - Redux tag](https://stackoverflow.com/questions/tagged/redux)
