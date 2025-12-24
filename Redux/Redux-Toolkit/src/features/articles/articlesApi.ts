@@ -17,7 +17,6 @@ export const fetchArticles = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      // Gọi API
       const response: ArticlesResponse = await newsApi.fetchArticles(
         params.page,
         params.pageSize,

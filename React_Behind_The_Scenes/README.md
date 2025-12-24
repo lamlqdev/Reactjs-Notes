@@ -90,13 +90,7 @@ Instead of passing many props down to child components, you can:
    - If dependencies don't change: Returns the stored function (same reference)
    - If dependencies change: Creates a new function and stores it
 
-**When to use:**
-
-| ✅ Use when                                                           | ❌ Don't use when                                      |
-| --------------------------------------------------------------------- | ------------------------------------------------------ |
-| Passing callback function to component wrapped with `React.memo`      | Callback function is not passed to memoized component  |
-| Callback function is a dependency of other hooks (useEffect, useMemo) | Callback function is simple, not expensive to recreate |
-| Callback function is passed down to many child components             | Dependencies change frequently (no benefit)            |
+![When to use useCallback](./public/when-to-use-useCallback.png)
 
 **Example in project:**
 
@@ -133,13 +127,7 @@ const handleIncrement = useCallback(function handleIncrement() {
    - If dependencies don't change: Returns stored value (no recalculation)
    - If dependencies change: Executes `calculateValue()` again and stores new result
 
-**When to use:**
-
-| ✅ Use when                                                               | ❌ Don't use when                                               |
-| ------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| Complex, expensive calculations (e.g., filter, sort, map on large arrays) | Simple, fast calculations (no benefit, only wastes memory)      |
-| Value is used as dependency of other hooks (useEffect, other useMemo)     | Dependencies change frequently (always recalculates)            |
-| Value is passed to memoized component and needs reference comparison      | Primitive values (string, number, boolean) - no need to memoize |
+![When to use useMemo](./public/when-to-use-useMemo.png)
 
 **Example in project:**
 
@@ -184,9 +172,7 @@ When working with React, you may notice:
 - JSX is recreated every time a component re-renders.
 - But the real DOM is not updated entirely—only the parts that changed are updated.
 
-**Why this matters:**
-
-If React updated the entire real DOM every time a change occurred, this would cause poor performance, because the real DOM is a heavy structure, and manipulating it is very slow.
+**Why this matters:** If React updated the entire real DOM every time a change occurred, this would cause poor performance, because the real DOM is a heavy structure, and manipulating it is very slow.
 
 ### How React Efficiently Handles Updates with Virtual DOM
 
@@ -278,11 +264,7 @@ React uses the Diffing algorithm to efficiently compare Virtual DOM trees:
 
 ### Key Usage Rules
 
-| ✅ **Should**                                         | ❌ **Shouldn't**                               |
-| ----------------------------------------------------- | ---------------------------------------------- |
-| Use unique IDs from data (e.g., `user.id`, `post.id`) | Use index as key when list can change order    |
-| Key must be stable (doesn't change between renders)   | Use random values (created new on each render) |
-| Key must be unique within the same list               | Use duplicate keys in the same list            |
+![Key Usage Rules](./public/key-usage-rules.png)
 
 **Example in project:**
 

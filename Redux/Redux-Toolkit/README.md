@@ -29,28 +29,22 @@
 
 **Immer**:
 
-- Library that lets you writte "mutating" logic while create immutable updates.
+- Library that lets you write "mutating" logic while creating immutable updates.
 - Redux Toolkit uses Immer automatically.
 
 ---
 
 ## Basic: Implement Auth Feature
 
-Phần này hướng dẫn cách implement một feature đơn giản với Redux Toolkit, không có async operations.
+This section guides you through implementing a simple feature with Redux Toolkit, without async operations.
 
-### Bước 1: Setup Store
+### Step 1: Setup Store
 
-#### 1.1. Tạo Root Reducer với `combineReducers`
+#### 1.1. Create Root Reducer with `combineReducers`
 
-**Hàm**: `combineReducers(reducers)`
+![combineReducers](./public/combineReducers.png)
 
-**Tham số**:
-
-- `reducers`: Object chứa các reducer, key là tên slice trong state, value là reducer function
-
-**Đầu ra**: Một reducer function duy nhất kết hợp tất cả các reducer
-
-**Ví dụ**:
+**Example**:
 
 ```typescript
 import { combineReducers } from "@reduxjs/toolkit";
@@ -63,25 +57,17 @@ export const rootReducer = combineReducers({
 });
 ```
 
-**Giải thích**:
+**Explanation**:
 
-- `combineReducers` gộp nhiều reducer thành một reducer duy nhất
-- State sẽ có cấu trúc: `{ auth: {...}, articles: {...} }`
-- Mỗi reducer chỉ quản lý phần state của nó
+- `combineReducers` combines multiple reducers into a single reducer
+- State will have the structure: `{ auth: {...}, articles: {...} }`
+- Each reducer only manages its own part of the state
 
-#### 1.2. Tạo Store với `configureStore`
+#### 1.2. Create Store with `configureStore`
 
-**Hàm**: `configureStore(options)`
+![configureStore](./public/configureStore.png)
 
-**Tham số**:
-
-- `options.reducer`: Root reducer (có thể là reducer function hoặc object với combineReducers)
-- `options.middleware`: (Optional) Custom middleware
-- `options.devTools`: (Optional) Enable/disable Redux DevTools
-
-**Đầu ra**: Redux store object với các methods: `getState()`, `dispatch()`, `subscribe()`
-
-**Ví dụ**:
+**Example**:
 
 ```typescript
 import { configureStore } from "@reduxjs/toolkit";
@@ -95,21 +81,17 @@ export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 ```
 
-**Giải thích**:
+**Explanation**:
 
-- `configureStore` tự động setup Redux DevTools, thunk middleware
-- `RootState` type giúp TypeScript biết cấu trúc state
-- `AppDispatch` type giúp TypeScript biết các action có thể dispatch
+- `configureStore` automatically sets up Redux DevTools and thunk middleware
+- `RootState` type helps TypeScript know the state structure
+- `AppDispatch` type helps TypeScript know which actions can be dispatched
 
-#### 1.3. Setup Provider trong App
+#### 1.3. Setup Provider in App
 
-**Component**: `<Provider store={store}>`
+![Provider](./public/setup-provider.png)
 
-**Tham số**:
-
-- `store`: Store object đã tạo từ `configureStore`
-
-**Ví dụ**:
+**Example**:
 
 ```typescript
 import { Provider } from "react-redux";
@@ -122,17 +104,13 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 );
 ```
 
-**Giải thích**: Provider làm cho store có thể truy cập từ mọi component con
+**Explanation**: Provider makes the store accessible from all child components
 
-#### 1.4. Tạo Typed Hooks
+#### 1.4. Create Typed Hooks
 
-**Hàm**: `useDispatch.withTypes<AppDispatch>()` và `useSelector.withTypes<RootState>()`
+![Typed Hooks](./public/typed-hooks.png)
 
-**Tham số**: Type parameters cho TypeScript
-
-**Đầu ra**: Typed hooks với TypeScript support
-
-**Ví dụ**:
+**Example**:
 
 ```typescript
 import { useDispatch, useSelector } from "react-redux";
@@ -142,29 +120,16 @@ export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
 export const useAppSelector = useSelector.withTypes<RootState>();
 ```
 
-**Giải thích**:
+**Explanation**:
 
-- Giúp TypeScript tự động gợi ý và kiểm tra type khi sử dụng
-- Tránh lỗi type khi dispatch action hoặc select state
+- Helps TypeScript automatically suggest and check types when used
+- Prevents type errors when dispatching actions or selecting state
 
-### Bước 2: Tạo Auth Slice với `createSlice`
+### Step 2: Create Auth Slice with `createSlice`
 
-**Hàm**: `createSlice(options)`
+![createSlice](./public/createSlice.png)
 
-**Tham số**:
-
-- `options.name`: Tên slice (dùng làm prefix cho action types)
-- `options.initialState`: State ban đầu của slice
-- `options.reducers`: Object chứa các reducer functions
-- `options.extraReducers`: (Optional) Xử lý actions từ bên ngoài (như async thunks)
-
-**Đầu ra**: Object chứa:
-
-- `actions`: Object chứa các action creators
-- `reducer`: Reducer function để đưa vào store
-- `caseReducers`: Các reducer functions riêng lẻ
-
-**Ví dụ**:
+**Example**:
 
 ```typescript
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
@@ -199,27 +164,20 @@ export const { login, logout } = authSlice.actions;
 export default authSlice.reducer;
 ```
 
-**Giải thích**:
+**Explanation**:
 
-- `createSlice` tự động tạo action types: `"auth/login"`, `"auth/logout"`
-- Tự động tạo action creators: `login(user)`, `logout()`
-- Tự động tạo reducer xử lý các actions đó
-- **Tác dụng**: Thay vì phải viết riêng action types, action creators và reducer, giờ chỉ cần định nghĩa reducers trong một object
-- `PayloadAction<T>` giúp TypeScript biết type của `action.payload`
-- Có thể viết "mutating" logic (như `state.isAuthenticated = true`) nhờ Immer tự động convert thành immutable update
+- `createSlice` automatically creates action types: `"auth/login"`, `"auth/logout"`
+- Automatically creates action creators: `login(user)`, `logout()`
+- Automatically creates reducer to handle those actions
+- **Benefit**: Instead of writing separate action types, action creators, and reducer, you only need to define reducers in an object
+- `PayloadAction<T>` helps TypeScript know the type of `action.payload`
+- Can write "mutating" logic (like `state.isAuthenticated = true`) thanks to Immer automatically converting to immutable update
 
-### Bước 3: Tạo Selectors với `createSelector`
+### Step 3: Create Selectors with `createSelector`
 
-**Hàm**: `createSelector(...inputSelectors, resultFunc)`
+![createSelector](./public/createSelector.png)
 
-**Tham số**:
-
-- `inputSelectors`: Mảng các selector functions hoặc một selector function
-- `resultFunc`: Function nhận kết quả từ inputSelectors và trả về giá trị cuối cùng
-
-**Đầu ra**: Memoized selector function
-
-**Ví dụ**:
+**Example**:
 
 ```typescript
 import { createSelector } from "@reduxjs/toolkit";
@@ -236,22 +194,20 @@ export const selectUser = createSelector(
 );
 ```
 
-**Giải thích**:
+**Explanation**:
 
-- `createSelector` tạo memoized selector: chỉ tính toán lại khi input thay đổi
-- Tham số đầu: selector lấy giá trị từ state
-- Tham số thứ hai: hàm transform (ở đây là identity function, không thay đổi giá trị)
-- **Tác dụng**: Tối ưu performance, tránh re-render không cần thiết
+- `createSelector` creates a memoized selector: only recalculates when input changes
+- First parameter: selector that gets value from state
+- Second parameter: transform function (here it's an identity function, doesn't change the value)
+- **Benefit**: Optimizes performance, prevents unnecessary re-renders
 
-### Bước 4: Sử dụng trong Component
+### Step 4: Use in Component
 
 #### 4.1. Dispatch Actions
 
-**Hook**: `useAppDispatch()`
+![useAppDispatch](./public/useAppDispatch.png)
 
-**Đầu ra**: Dispatch function với TypeScript support
-
-**Ví dụ**:
+**Example**:
 
 ```typescript
 import { useAppDispatch } from "../store/hooks";
@@ -273,20 +229,16 @@ const LoginPage = () => {
 };
 ```
 
-**Giải thích**:
+**Explanation**:
 
-- `dispatch(action)` gửi action đến store
-- Action creator `login(user)` tự động tạo action object với type `"auth/login"` và payload là user
+- `dispatch(action)` sends action to store
+- Action creator `login(user)` automatically creates action object with type `"auth/login"` and payload is user
 
 #### 4.2. Select State
 
-**Hook**: `useAppSelector(selector)`
+![useAppSelector](./public/useAppSelector.png)
 
-**Tham số**: Selector function
-
-**Đầu ra**: Giá trị từ state
-
-**Ví dụ**:
+**Example**:
 
 ```typescript
 import { useAppSelector } from "../store/hooks";
@@ -303,37 +255,23 @@ const Component = () => {
 };
 ```
 
-**Giải thích**:
+**Explanation**:
 
-- `useAppSelector` tự động subscribe vào state changes
-- Component sẽ re-render khi giá trị từ selector thay đổi
-- Sử dụng memoized selector giúp tránh re-render khi giá trị không đổi
+- `useAppSelector` automatically subscribes to state changes
+- Component will re-render when value from selector changes
+- Using memoized selector helps prevent re-render when value doesn't change
 
 ---
 
 ## Advanced: Implement Articles Feature
 
-Phần này hướng dẫn cách implement feature phức tạp hơn với async operations và selectors nâng cao.
+This section guides you through implementing a more complex feature with async operations and advanced selectors.
 
-### Bước 1: Tạo Async Thunks với `createAsyncThunk`
+### Step 1: Create Async Thunks with `createAsyncThunk`
 
-**Hàm**: `createAsyncThunk(typePrefix, payloadCreator, options?)`
+![createAsyncThunk](./public/createAsyncThunk.png)
 
-**Tham số**:
-
-- `typePrefix`: String prefix cho action types (ví dụ: `"articles/fetchArticles"`)
-- `payloadCreator`: Async function nhận tham số và trả về Promise
-  - Tham số đầu: Payload được truyền vào khi dispatch
-  - Tham số thứ hai: Object chứa `{ dispatch, getState, rejectWithValue, ... }`
-- `options`: (Optional) Các tùy chọn bổ sung
-
-**Đầu ra**: Async thunk function tự động tạo 3 action types:
-
-- `typePrefix + "/pending"`: Khi bắt đầu async operation
-- `typePrefix + "/fulfilled"`: Khi thành công (payload là giá trị return)
-- `typePrefix + "/rejected"`: Khi thất bại (payload là giá trị từ `rejectWithValue`)
-
-**Ví dụ**:
+**Example**:
 
 ```typescript
 import { createAsyncThunk } from "@reduxjs/toolkit";
@@ -359,30 +297,26 @@ export const fetchArticles = createAsyncThunk(
         params.pageSize,
         params.filters
       );
-      return response; // Trả về data → sẽ là action.payload trong fulfilled
+      return response; // Return data → will be action.payload in fulfilled
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to fetch articles");
-      // rejectWithValue → sẽ là action.payload trong rejected
+      // rejectWithValue → will be action.payload in rejected
     }
   }
 );
 ```
 
-**Giải thích**:
+**Explanation**:
 
-- `createAsyncThunk` tự động tạo 3 actions: `fetchArticles.pending`, `fetchArticles.fulfilled`, `fetchArticles.rejected`
-- **Tác dụng**: Không cần tự viết action types và action creators cho async operations
-- `rejectWithValue` giúp truyền error message vào action.payload thay vì throw error
+- `createAsyncThunk` automatically creates 3 actions: `fetchArticles.pending`, `fetchArticles.fulfilled`, `fetchArticles.rejected`
+- **Benefit**: No need to manually write action types and action creators for async operations
+- `rejectWithValue` helps pass error message into action.payload instead of throwing error
 
-### Bước 2: Tạo Articles Slice với `extraReducers`
+### Step 2: Create Articles Slice with `extraReducers`
 
-**Hàm**: `createSlice` (giống Basic, nhưng thêm `extraReducers`)
+![extraReducers](./public/extraReducers.png)
 
-**Tham số bổ sung**:
-
-- `options.extraReducers`: Function nhận `builder` để xử lý actions từ bên ngoài (như async thunks)
-
-**Ví dụ**:
+**Example**:
 
 ```typescript
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
@@ -392,59 +326,45 @@ const articlesSlice = createSlice({
   name: "articles",
   initialState,
   reducers: {
-    // Synchronous reducers (giống Basic)
+    // Synchronous reducers (same as Basic)
     setArticles: (state, action: PayloadAction<Article[]>) => {
       state.items = action.payload;
     },
-    // ... các reducers khác
+    // ... other reducers
   },
   extraReducers: (builder) => {
     builder
-      // Xử lý khi fetchArticles.pending
+      // Handle when fetchArticles.pending
       .addCase(fetchArticles.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      // Xử lý khi fetchArticles.fulfilled
+      // Handle when fetchArticles.fulfilled
       .addCase(fetchArticles.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload.articles; // action.payload là giá trị return từ async function
+        state.items = action.payload.articles; // action.payload is the return value from async function
         state.pagination = action.payload.pagination;
         state.error = null;
       })
-      // Xử lý khi fetchArticles.rejected
+      // Handle when fetchArticles.rejected
       .addCase(fetchArticles.rejected, (state, action) => {
         state.loading = false;
         state.error = (action.payload as string) || "Failed to fetch articles";
-        // action.payload là giá trị từ rejectWithValue
-      })
-      // Tương tự cho các async thunks khác
-      .addCase(fetchArticleById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchArticleById.fulfilled, (state, action) => {
-        state.loading = false;
-        state.items.push(action.payload);
-        state.error = null;
-      })
-      .addCase(fetchArticleById.rejected, (state, action) => {
-        state.loading = false;
-        state.error = (action.payload as string) || "Failed to fetch article";
+        // action.payload is the value from rejectWithValue
       });
   },
 });
 ```
 
-**Giải thích**:
+**Explanation**:
 
-- `extraReducers` dùng để xử lý actions không được tạo từ `reducers` của slice này
-- `builder.addCase(action, reducer)` thêm case xử lý cho một action cụ thể
-- **Tác dụng**: Tập trung logic xử lý async states (loading, error) vào một nơi
+- `extraReducers` is used to handle actions not created from `reducers` of this slice
+- `builder.addCase(action, reducer)` adds a case handler for a specific action
+- **Benefit**: Centralizes logic for handling async states (loading, error) in one place
 
-### Bước 3: Tạo Advanced Selectors
+### Step 3: Create Advanced Selectors
 
-**Ví dụ với nhiều input selectors**:
+**Example with multiple input selectors**:
 
 ```typescript
 import { createSelector } from "@reduxjs/toolkit";
@@ -453,37 +373,37 @@ import type { RootState } from "../../store";
 // Base selector
 const selectArticlesState = (state: RootState) => state.articles;
 
-// Selector với 1 input
+// Selector with 1 input
 export const selectAllArticles = createSelector(
   [selectArticlesState],
   (articlesState) => articlesState.items
 );
 
-// Selector với nhiều inputs (có tham số)
+// Selector with multiple inputs (with parameters)
 export const selectArticleById = createSelector(
   [selectAllArticles, (_state: RootState, id: number) => id],
   (articles, id) => articles.find((article) => article.id === id)
 );
 
-// Selector với filter
+// Selector with filter
 export const selectArticlesByCategory = createSelector(
   [selectAllArticles, (_state: RootState, category: string) => category],
   (articles, category) =>
-    category === "Tất cả"
+    category === "All"
       ? articles
       : articles.filter((article) => article.category === category)
 );
 ```
 
-**Giải thích**:
+**Explanation**:
 
-- Selector có thể nhận nhiều inputs: `[selector1, selector2, ...]`
-- Selector có thể nhận tham số: thêm function `(state, param) => param` vào mảng inputs
-- **Tác dụng**: Tạo các selector phức tạp với memoization tự động
+- Selector can receive multiple inputs: `[selector1, selector2, ...]`
+- Selector can receive parameters: add function `(state, param) => param` to the inputs array
+- **Benefit**: Create complex selectors with automatic memoization
 
-### Bước 4: Sử dụng Async Thunks trong Component
+### Step 4: Use Async Thunks in Component
 
-**Ví dụ**:
+**Example**:
 
 ```typescript
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -512,83 +432,83 @@ const HomePage = () => {
     );
   }, [dispatch]);
 
-  if (loading) return <div>Đang tải...</div>;
+  if (loading) return <div>Loading...</div>;
   return <div>{/* Render articles */}</div>;
 };
 ```
 
-**Giải thích**:
+**Explanation**:
 
-- Dispatch async thunk giống như dispatch action thường
-- Redux Toolkit tự động dispatch `pending` → `fulfilled`/`rejected`
-- Component tự động re-render khi state thay đổi (loading, articles, error)
-
----
-
-## Tóm tắt lợi ích của Redux Toolkit
-
-1. **createSlice**: Giảm boilerplate bằng cách gộp action types, action creators và reducer vào một nơi
-2. **createAsyncThunk**: Tự động tạo 3 action types cho async operations (pending/fulfilled/rejected)
-3. **configureStore**: Tự động setup middleware và DevTools
-4. **createSelector**: Tự động memoize selectors để tối ưu performance
-5. **Immer**: Cho phép viết "mutating" logic mà vẫn đảm bảo immutability
+- Dispatch async thunk is the same as dispatching a regular action
+- Redux Toolkit automatically dispatches `pending` → `fulfilled`/`rejected`
+- Component automatically re-renders when state changes (loading, articles, error)
 
 ---
 
-## Tìm hiểu thêm
+## Summary of Redux Toolkit Benefits
 
-Sau khi nắm vững các khái niệm cơ bản và nâng cao ở trên, bạn có thể tiếp tục học các chủ đề sau:
+1. **createSlice**: Reduces boilerplate by combining action types, action creators, and reducer in one place
+2. **createAsyncThunk**: Automatically creates 3 action types for async operations (pending/fulfilled/rejected)
+3. **configureStore**: Automatically sets up middleware and DevTools
+4. **createSelector**: Automatically memoizes selectors to optimize performance
+5. **Immer**: Allows writing "mutating" logic while ensuring immutability
 
-### 1. RTK Query - Data Fetching và Caching
+---
 
-**RTK Query** là giải pháp data fetching và caching được xây dựng trên Redux Toolkit, giúp đơn giản hóa việc fetch data từ API.
+## Learn More
 
-**Tính năng chính**:
+After mastering the basic and advanced concepts above, you can continue learning the following topics:
 
-- Tự động generate API endpoints và hooks
-- Tự động cache và refetch data
-- Tự động quản lý loading và error states
-- Hỗ trợ optimistic updates
-- Hỗ trợ pagination, infinite scroll
+### 1. RTK Query - Data Fetching and Caching
 
-**Khi nào sử dụng**:
+**RTK Query** is a data fetching and caching solution built on Redux Toolkit that simplifies fetching data from APIs.
 
-- Khi bạn có nhiều API calls
-- Cần cache và sync data giữa các components
-- Muốn giảm boilerplate code cho data fetching
+**Key Features**:
 
-**Tài liệu**: [RTK Query Documentation](https://redux-toolkit.js.org/rtk-query/overview)
+- Automatically generates API endpoints and hooks
+- Automatically caches and refetches data
+- Automatically manages loading and error states
+- Supports optimistic updates
+- Supports pagination, infinite scroll
 
-### 2. Middleware và Custom Middleware
+**When to Use**:
 
-**Middleware** là các functions chạy giữa dispatch action và reducer, cho phép bạn:
+- When you have many API calls
+- Need to cache and sync data between components
+- Want to reduce boilerplate code for data fetching
 
-- Log actions và state changes
-- Thực hiện async operations
-- Transform actions trước khi đến reducer
-- Cancel hoặc delay actions
+**Documentation**: [RTK Query Documentation](https://redux-toolkit.js.org/rtk-query/overview)
 
-**Ví dụ middleware phổ biến**:
+### 2. Middleware and Custom Middleware
 
-- `redux-logger`: Log mọi action và state changes
-- `redux-persist`: Lưu state vào localStorage
-- Custom middleware cho authentication, error handling
+**Middleware** are functions that run between dispatching actions and reducers, allowing you to:
 
-**Tài liệu**: [Redux Middleware](https://redux.js.org/tutorials/fundamentals/part-4-store#middleware)
+- Log actions and state changes
+- Perform async operations
+- Transform actions before they reach the reducer
+- Cancel or delay actions
+
+**Common Middleware Examples**:
+
+- `redux-logger`: Logs all actions and state changes
+- `redux-persist`: Saves state to localStorage
+- Custom middleware for authentication, error handling
+
+**Documentation**: [Redux Middleware](https://redux.js.org/tutorials/fundamentals/part-4-store#middleware)
 
 ### 3. Normalizing State Shape
 
-**Normalization** là kỹ thuật tổ chức state dạng nested thành dạng flat, giúp:
+**Normalization** is a technique for organizing nested state into flat structure, helping to:
 
-- Tránh duplicate data
-- Dễ dàng update và delete items
-- Tối ưu performance khi select data
-- Dễ dàng cache và sync data
+- Avoid duplicate data
+- Easily update and delete items
+- Optimize performance when selecting data
+- Easily cache and sync data
 
-**Ví dụ**:
+**Example**:
 
 ```typescript
-// ❌ Không normalized (nested)
+// ❌ Not normalized (nested)
 {
   articles: [
     { id: 1, author: { id: 1, name: "John" } },
@@ -609,46 +529,46 @@ Sau khi nắm vững các khái niệm cơ bản và nâng cao ở trên, bạn 
 }
 ```
 
-**Tài liệu**: [Normalizing State Shape](https://redux.js.org/usage/structuring-reducers/normalizing-state-shape)
+**Documentation**: [Normalizing State Shape](https://redux.js.org/usage/structuring-reducers/normalizing-state-shape)
 
 ### 4. Redux DevTools Extension
 
-**Redux DevTools** là browser extension giúp debug Redux applications:
+**Redux DevTools** is a browser extension that helps debug Redux applications:
 
-- Xem toàn bộ action history
-- Time-travel debugging (quay lại state trước đó)
-- Inspect state tại mọi thời điểm
-- Export/import state để test
+- View entire action history
+- Time-travel debugging (go back to previous state)
+- Inspect state at any point in time
+- Export/import state for testing
 - Monitor performance
 
-**Cài đặt**: [Redux DevTools Extension](https://github.com/reduxjs/redux-devtools-extension)
+**Installation**: [Redux DevTools Extension](https://github.com/reduxjs/redux-devtools-extension)
 
 ### 5. Testing Redux Code
 
-**Testing** Redux code bao gồm:
+**Testing** Redux code includes:
 
-- **Unit test** cho reducers: Test logic xử lý state
-- **Unit test** cho selectors: Test tính toán từ state
-- **Integration test** cho async thunks: Test API calls và error handling
-- **Component test**: Test component sử dụng Redux hooks
+- **Unit test** for reducers: Test state handling logic
+- **Unit test** for selectors: Test calculations from state
+- **Integration test** for async thunks: Test API calls and error handling
+- **Component test**: Test components using Redux hooks
 
-**Công cụ hỗ trợ**:
+**Supporting Tools**:
 
 - `@testing-library/react`: Test React components
 - `@reduxjs/toolkit/query/react`: Test RTK Query
-- Mock store cho testing
+- Mock store for testing
 
-**Tài liệu**: [Testing Redux](https://redux.js.org/usage/writing-tests)
+**Documentation**: [Testing Redux](https://redux.js.org/usage/writing-tests)
 
-### 6. Code Splitting và Lazy Loading
+### 6. Code Splitting and Lazy Loading
 
-**Code splitting** giúp tối ưu bundle size bằng cách:
+**Code splitting** helps optimize bundle size by:
 
-- Chia Redux code thành các chunks nhỏ
-- Load reducer và middleware khi cần
-- Sử dụng dynamic imports cho features lớn
+- Splitting Redux code into small chunks
+- Loading reducer and middleware when needed
+- Using dynamic imports for large features
 
-**Ví dụ**:
+**Example**:
 
 ```typescript
 // Lazy load reducer
@@ -657,37 +577,37 @@ const articlesReducer = await import("./features/articles/articlesSlice");
 
 ### 7. TypeScript Best Practices
 
-**TypeScript** với Redux Toolkit:
+**TypeScript** with Redux Toolkit:
 
-- Sử dụng `PayloadAction<T>` cho typed actions
-- Tạo typed hooks với `useAppDispatch` và `useAppSelector`
-- Sử dụng `ReturnType` để infer types từ store
-- Tạo utility types cho complex state shapes
+- Use `PayloadAction<T>` for typed actions
+- Create typed hooks with `useAppDispatch` and `useAppSelector`
+- Use `ReturnType` to infer types from store
+- Create utility types for complex state shapes
 
-**Tài liệu**: [TypeScript Quick Start](https://redux-toolkit.js.org/usage/usage-with-typescript)
+**Documentation**: [TypeScript Quick Start](https://redux-toolkit.js.org/usage/usage-with-typescript)
 
 ### 8. Performance Optimization
 
-**Tối ưu performance** trong Redux:
+**Performance optimization** in Redux:
 
-- Sử dụng `createSelector` để memoize expensive calculations
-- Tránh re-render không cần thiết với `React.memo`
-- Sử dụng `useMemo` và `useCallback` khi cần
-- Normalize state để tránh deep nesting
-- Sử dụng RTK Query cho automatic caching
+- Use `createSelector` to memoize expensive calculations
+- Avoid unnecessary re-renders with `React.memo`
+- Use `useMemo` and `useCallback` when needed
+- Normalize state to avoid deep nesting
+- Use RTK Query for automatic caching
 
 ### 9. Redux Toolkit Patterns
 
-**Các patterns phổ biến**:
+**Common Patterns**:
 
-- **Feature-based folder structure**: Tổ chức code theo features
-- **Ducks pattern**: Gộp actions, reducers, selectors vào một file
-- **Normalized state**: Sử dụng entities pattern
-- **Async patterns**: Xử lý loading, error, success states
+- **Feature-based folder structure**: Organize code by features
+- **Ducks pattern**: Combine actions, reducers, selectors in one file
+- **Normalized state**: Use entities pattern
+- **Async patterns**: Handle loading, error, success states
 
 ---
 
-**Tài liệu tham khảo**:
+**References**:
 
 - [Redux Toolkit Documentation](https://redux-toolkit.js.org/)
 - [Redux Essentials Tutorial](https://redux.js.org/tutorials/essentials/part-1-overview-concepts)
