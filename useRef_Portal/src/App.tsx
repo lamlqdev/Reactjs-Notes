@@ -1,5 +1,5 @@
-import Player from "./components/Player.jsx";
-import TimeChallenge from "./components/TimeChallenge.jsx";
+import Player from "./components/Player";
+import TimeChallenge from "./components/TimeChallenge";
 
 function App() {
   return (
@@ -16,3 +16,4 @@ function App() {
 }
 
 export default App;
+
