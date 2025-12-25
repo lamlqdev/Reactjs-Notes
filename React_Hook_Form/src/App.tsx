@@ -1,34 +1,31 @@
 import { useState } from "react";
 import { BasicForm } from "./components/BasicForm";
-import { FormWithDefaultValues } from "./components/FormWithDefaultValues";
 import { FormWithWatch } from "./components/FormWithWatch";
-import { FormWithReset } from "./components/FormWithReset";
 import { AdvancedForm } from "./components/AdvancedForm";
 import { FormWithCustomValidation } from "./components/FormWithCustomValidation";
 import { FormWithAsyncValidation } from "./components/FormWithAsyncValidation";
 import { FormWithConditionalFields } from "./components/FormWithConditionalFields";
+import { FormWithCustomInput } from "./components/FormWithCustomInput";
 import {
   FaFileAlt,
-  FaEdit,
   FaEye,
-  FaRedo,
   FaLayerGroup,
   FaShieldAlt,
   FaSync,
   FaCodeBranch,
+  FaCode,
   FaRocket,
 } from "react-icons/fa";
 import "./App.css";
 
 type FormExample =
   | "basic"
-  | "defaultValues"
   | "watch"
-  | "reset"
   | "advanced"
   | "customValidation"
   | "asyncValidation"
-  | "conditionalFields";
+  | "conditionalFields"
+  | "customInput";
 
 const formExamples: {
   key: FormExample;
@@ -36,9 +33,7 @@ const formExamples: {
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
   { key: "basic", label: "Basic Form", icon: FaFileAlt },
-  { key: "defaultValues", label: "Form with Default Values", icon: FaEdit },
   { key: "watch", label: "Form with Watch", icon: FaEye },
-  { key: "reset", label: "Form with Reset", icon: FaRedo },
   {
     key: "advanced",
     label: "Advanced Form (Nested & Arrays)",
@@ -59,6 +54,11 @@ const formExamples: {
     label: "Form with Conditional Fields",
     icon: FaCodeBranch,
   },
+  {
+    key: "customInput",
+    label: "Form with Custom Input Components",
+    icon: FaCode,
+  },
 ];
 
 function App() {
@@ -68,12 +68,8 @@ function App() {
     switch (activeForm) {
       case "basic":
         return <BasicForm />;
-      case "defaultValues":
-        return <FormWithDefaultValues />;
       case "watch":
         return <FormWithWatch />;
-      case "reset":
-        return <FormWithReset />;
       case "advanced":
         return <AdvancedForm />;
       case "customValidation":
@@ -82,6 +78,8 @@ function App() {
         return <FormWithAsyncValidation />;
       case "conditionalFields":
         return <FormWithConditionalFields />;
+      case "customInput":
+        return <FormWithCustomInput />;
       default:
         return <BasicForm />;
     }

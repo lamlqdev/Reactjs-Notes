@@ -4,6 +4,13 @@
 
 ![React Hook Form and Zod](./public/rhf-zod.png)
 
+**zodResolver**:
+
+- Adapter from `@hookform/resolvers` to integrate Zod with React Hook Form.
+- Converts Zod schema into format that React Hook Form understands.
+- Automatically maps Zod errors to React Hook Form errors.
+- Syntax: `zodResolver(schema)` where `schema` is a Zod schema object.
+
 **Zod**:
 
 ![Zod Syntax Overview](./public/zod-schema.png)
@@ -16,90 +23,43 @@ Some common Zod validation types:
 - `z.object({ name: z.string() })` – object with fields (used for form schemas)
 - `z.string().optional()` – string or undefined (makes field optional)
 
-**zodResolver**:
-
-- Adapter from `@hookform/resolvers` to integrate Zod with React Hook Form.
-- Converts Zod schema into format that React Hook Form understands.
-- Automatically maps Zod errors to React Hook Form errors.
-- Syntax: `zodResolver(schema)` where `schema` is a Zod schema object.
-
 **useForm**:
 
 ![useForm](./public/useForm.png)
 
-**useForm Generic Type**:
+**useForm Generic Type**: Type safety for form values, autocomplete for field names, compile-time error checking
 
-- `TFieldValues`: TypeScript type representing form structure
-- Example: `useForm<FormData>` where `FormData` is `{ name: string, email: string }`
+![useForm Generic Type](./public/useForm-generic-type.png)
 
 **useForm Options**:
 
-- `resolver` (optional): Validation resolver function
+- `resolver` (optional): Validation resolver function. Integrates external validation library (Zod, Yup, etc.) with React Hook Form. When validation fails, errors are automatically populated in `formState.errors`.
 
-  - Type: `Resolver<TFieldValues>`
-  - Purpose: Integrates external validation library (Zod, Yup, etc.) with React Hook Form
-  - Example: `resolver: zodResolver(formSchema)`
-  - When validation fails, errors are automatically populated in `formState.errors`
+- `defaultValues` (optional): Initial form values. Sets initial values for form fields when component mounts. `isDirty` in `formState` will be `false` if form hasn't changed from default values.
 
-- `defaultValues` (optional): Initial form values
+- `mode` (optional): Validation mode - when validation should trigger.
 
-  - Type: `Partial<TFieldValues> | AsyncDefaultValues<TFieldValues>`
-  - Purpose: Sets initial values for form fields when component mounts
-  - Example: `defaultValues: { name: "", email: "" }`
-  - Form fields are automatically populated with these values
-  - `isDirty` in `formState` will be `false` if form hasn't changed from default values
-
-- `mode` (optional): Validation mode - when validation should trigger
-  - Type: `"onSubmit" | "onBlur" | "onChange" | "onTouched" | "all"`
-  - Default: `"onSubmit"`
-  - `"onSubmit"`: Validate only when form is submitted (default, most performant)
-  - `"onBlur"`: Validate when field loses focus
-  - `"onChange"`: Validate on every change (can be expensive)
-  - `"onTouched"`: Validate after first blur, then on every change
-  - `"all"`: Validate on both blur and change events
+![useForm Options](./public/useForm-options.png)
 
 **register**:
 
-- Function to register input with React Hook Form.
-- Returns object with props to spread into input element: `{ name, onChange, onBlur, ref }`.
-- When spread into input: `{...register("fieldName")}`, it automatically connects the input to React Hook Form
-- Can accept options like `valueAsNumber`, `valueAsDate`, `disabled`, `validate`.
+![register](./public/register.png)
 
 **handleSubmit**:
 
-- Function to handle form submission.
-- Automatically validates form before calling callback.
-- Accepts 2 callbacks: `onValid` (when validation passes) and `onInvalid` (when validation fails).
+![handleSubmit](./public/handleSubmit.png)
 
 **formState**:
 
-- Object containing form state that automatically updates when form state changes. Common properties:
-  - `errors`: Object containing validation errors for each field
-  - `isValid`: Boolean indicating if form is valid (no errors)
-  - `isDirty`: Boolean indicating if form has been modified from default values
-  - `isSubmitting`: Boolean indicating if form is currently being submitted
-  - `touchedFields`: Object tracking which fields have been touched (blurred)
-  - `dirtyFields`: Object tracking which fields have been modified
-  - `isLoading`: Boolean indicating if form is loading (for async defaultValues)
-  - `submitCount`: Number of times form has been submitted
-- Access via destructuring: `formState: { errors, isDirty }`
+![formState](./public/formState.png)
 
 **watch**:
 
-- Function to watch values of fields.
-- Can watch one field, multiple fields, or entire form.
-- Triggers re-render when value changes.
+![watch](./public/watch.png)
 
 **reset**:
 
-- Function to reset form to initial values or new values.
-- Can reset entire form or specific fields.
-
-**useFieldArray**:
-
-- Hook to manage dynamic arrays in forms.
-- Provides methods: `append`, `remove`, `insert`, `move`, `swap`.
-- Useful for forms with dynamic lists (addresses, items, etc.).
+![reset](./public/reset.png)
 
 ---
 
@@ -173,62 +133,7 @@ function BasicForm() {
 - `handleSubmit(onSubmit)` wraps the submit handler, automatically validates form before calling `onSubmit`, and prevents default form submission
 - Error messages come from Zod schema validation and are automatically mapped to `formState.errors`
 
-### Example 2: Form with Default Values
-
-**When to use**: When you want the form to have default values when loading.
-
-**Example**:
-
-```typescript
-const formSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  bio: z.string().optional(),
-  country: z.string().min(1, "Please select a country"),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
-function FormWithDefaultValues() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      username: "john_doe",
-      bio: "Software developer",
-      country: "vn",
-    },
-  });
-
-  const onSubmit = (data: FormData) => {
-    console.log(data);
-  };
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <input {...register("username")} />
-      <textarea {...register("bio")} />
-      <select {...register("country")}>
-        <option value="vn">Vietnam</option>
-        <option value="us">United States</option>
-      </select>
-      <button type="submit">Submit</button>
-    </form>
-  );
-}
-```
-
-**Explanation**:
-
-- `defaultValues` object structure must match the form schema structure
-- When component mounts, all form fields are automatically populated with values from `defaultValues`
-- `formState: { errors }` only destructures `errors` since we don't need other state properties in this example
-- `register()` works the same way for different input types: `<input>`, `<textarea>`, and `<select>` all use the same `register()` function
-- Since `defaultValues` are set, `isDirty` would be `false` initially (form hasn't changed from defaults)
-
-### Example 3: Form with Watch - Real-time Updates
+### Example 2: Form with Watch - Real-time Updates
 
 **When to use**: When you want to display field values in real-time or create conditional logic.
 
@@ -278,73 +183,7 @@ function FormWithWatch() {
 - Component automatically re-renders whenever any watched field value changes
 - `register()` still works normally - watching doesn't interfere with form registration
 
-### Example 4: Form with Reset
-
-**When to use**: When you want to reset form to initial values or clear form after submission.
-
-**Example**:
-
-```typescript
-function FormWithReset() {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-    },
-  });
-
-  const onSubmit = async (data: FormData) => {
-    // Submit data...
-    // Reset form after successful submission
-    reset();
-  };
-
-  const handleReset = () => {
-    // Reset to default values
-    reset();
-
-    // Or reset to new values
-    reset({
-      title: "",
-      description: "",
-    });
-  };
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <input {...register("title")} />
-      <textarea {...register("description")} />
-
-      <button type="submit">Submit</button>
-      <button type="button" onClick={handleReset}>
-        Reset
-      </button>
-    </form>
-  );
-}
-```
-
-**Explanation**:
-
-- `reset()` with no arguments resets form to `defaultValues` (or empty if no defaults)
-- `reset({ title: "", description: "" })` resets form to the provided values - this becomes the new baseline for form state
-- After `reset()`, form state is cleared: errors are cleared, touched fields are reset, form values return to reset values
-- `reset()` can be called manually (button click) or after successful submission
-- `defaultValues` should be provided to ensure form has initial state - without it, `reset()` with no arguments may not work as expected
-
----
-
-## Advanced: Advanced Form Usage
-
-This section guides you through more complex patterns and advanced features.
-
-### Example 1: Form with Nested Objects
+### Example 3: Form with Nested Objects
 
 **When to use**: When form has complex data structure with nested objects.
 
@@ -397,7 +236,150 @@ function NestedForm() {
 - The generic type `useForm<NestedFormData>` ensures type safety for nested structure - TypeScript knows about `personalInfo.firstName` path
 - Form data structure matches schema: `{ personalInfo: { firstName: "...", ... }, address: { street: "...", ... } }`
 
+---
+
+## Advanced: Advanced Form Usage
+
+This section guides you through more complex patterns and advanced features.
+
+### Example 1: Form with Custom Input Components
+
+**When to use**: When you need to integrate React Hook Form with custom controlled components or third-party UI libraries (Material-UI, Ant Design, etc.).
+
+**Controlled vs Uncontrolled Components**:
+
+| Aspect               | Uncontrolled Components (using `register`)                               | Controlled Components (using `Controller`)                                    |
+| -------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| **State Management** | React Hook Form manages the form state internally                        | React state manages the component's value                                     |
+| **Value Access**     | Uses native DOM refs to access input values                              | Component receives `value` and `onChange` props explicitly                    |
+| **Performance**      | Better performance, less re-renders                                      | More re-renders (component re-renders on every value change)                  |
+| **Use Case**         | Standard HTML inputs (`<input>`, `<select>`, `<textarea>`)               | Custom components or third-party UI libraries (Material-UI, Ant Design, etc.) |
+| **Example**          | `<input {...register("name")} />`                                        | `<CustomInput value={value} onChange={onChange} />`                           |
+| **Props**            | Spread `{...register("name")}` returns `{ name, onChange, onBlur, ref }` | Explicitly pass `value`, `onChange`, `onBlur` props                           |
+
+**What is `control`?**:
+
+- `control` is an object returned from `useForm()` that contains methods and state for managing form fields
+- It connects React Hook Form's internal state management with controlled components
+- Pass `control` to `Controller` component to register custom components with React Hook Form
+- `control` enables React Hook Form to track field values, validation, and errors for controlled components
+
+**Example**:
+
+```typescript
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+// Custom controlled component
+interface CustomTextInputProps {
+  value: string;
+  onChange: (value: string) => void;
+  onBlur: () => void;
+  error?: string;
+  label: string;
+}
+
+function CustomTextInput({
+  value,
+  onChange,
+  onBlur,
+  error,
+  label,
+}: CustomTextInputProps) {
+  return (
+    <div>
+      <label>{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        className={error ? "error" : ""}
+      />
+      {error && <span>{error}</span>}
+    </div>
+  );
+}
+
+const formSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+function FormWithCustomInput() {
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+  });
+
+  const onSubmit = async (data: FormData) => {
+    console.log(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Controller
+        name="name"
+        control={control}
+        render={({ field, fieldState }) => (
+          <CustomTextInput
+            value={field.value || ""}
+            onChange={field.onChange}
+            onBlur={field.onBlur}
+            error={fieldState.error?.message}
+            label="Name"
+          />
+        )}
+      />
+
+      <Controller
+        name="email"
+        control={control}
+        render={({ field, fieldState }) => (
+          <CustomTextInput
+            value={field.value || ""}
+            onChange={field.onChange}
+            onBlur={field.onBlur}
+            error={fieldState.error?.message}
+            label="Email"
+          />
+        )}
+      />
+
+      <button type="submit" disabled={isSubmitting}>
+        Submit
+      </button>
+    </form>
+  );
+}
+```
+
+**Explanation**:
+
+- `control` from `useForm()` is passed to `Controller` - it connects the custom component to React Hook Form's state management
+- `Controller` component wraps custom components and provides `field` and `fieldState` through render prop
+- `field` object contains:
+  - `value`: Current field value
+  - `onChange`: Handler to update field value
+  - `onBlur`: Handler for blur event
+  - `ref`: Ref for the input (if needed)
+- `fieldState` object contains:
+  - `error`: Validation error object
+  - `isTouched`: Whether field has been touched
+  - `isDirty`: Whether field value has changed
+- Spread `{...field}` into custom component props to connect `value`, `onChange`, `onBlur` automatically
+- `field.value || ""` ensures controlled component always has a value (prevents uncontrolled to controlled warning)
+- Custom components receive props explicitly, making them fully controlled by React Hook Form
+
 ### Example 2: Form with Dynamic Arrays (useFieldArray)
+
+![useFieldArray](./public/useFieldArray.png)
 
 **When to use**: When form has dynamic list of items (addresses, products, etc.).
 
@@ -745,38 +727,7 @@ if (result.success) {
 
 **Documentation**: [Zod Documentation](https://zod.dev/)
 
-### 3. Custom Input Components
-
-**Integrating React Hook Form with custom components**:
-
-- Use `Controller` component for controlled components
-- Use `useController` hook for custom hooks
-- Forward refs for custom input components
-
-**Example**:
-
-```typescript
-import { Controller } from "react-hook-form";
-
-function CustomInput({ control, name }) {
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field, fieldState }) => (
-        <div>
-          <input {...field} />
-          {fieldState.error && <span>{fieldState.error.message}</span>}
-        </div>
-      )}
-    />
-  );
-}
-```
-
-**Documentation**: [React Hook Form Controller](https://react-hook-form.com/docs/usecontroller)
-
-### 4. Form with File Upload
+### 3. Form with File Upload
 
 **Handling file upload**:
 
@@ -802,7 +753,7 @@ const fileSchema = z.object({
 });
 ```
 
-### 5. Form with Multi-step/Wizard
+### 4. Form with Multi-step/Wizard
 
 **Creating multi-step form**:
 
@@ -839,7 +790,7 @@ function MultiStepForm() {
 }
 ```
 
-### 6. Form with Dependent Fields
+### 5. Form with Dependent Fields
 
 **Fields dependent on each other**:
 
@@ -879,7 +830,7 @@ function DependentFieldsForm() {
 }
 ```
 
-### 7. Performance Optimization
+### 6. Performance Optimization
 
 **Performance optimization**:
 
@@ -906,7 +857,7 @@ const debouncedCheck = useMemo(
 );
 ```
 
-### 8. Testing Forms
+### 7. Testing Forms
 
 **Testing** forms with React Hook Form:
 
@@ -931,7 +882,7 @@ test("shows validation error", async () => {
 
 **Documentation**: [Testing React Hook Form](https://react-hook-form.com/advanced-usage#TestingForm)
 
-### 9. Integration with UI Libraries
+### 8. Integration with UI Libraries
 
 **Integrating with UI libraries**:
 
@@ -966,7 +917,7 @@ import { TextField } from "@mui/material";
 1. **React Hook Form**: High-performance form management with uncontrolled components
 2. **Zod**: Schema validation with TypeScript type inference
 3. **zodResolver**: Integrates Zod with React Hook Form
-4. **Basic usage**: `register`, `handleSubmit`, `formState`, `watch`, `reset`
+4. **Basic usage**: `register`, `handleSubmit`, `formState`, `watch`
 5. **Advanced features**: Nested objects, arrays, custom validation, async validation, conditional fields
 6. **Best practices**: Proper validation modes, error handling, performance optimization
 
