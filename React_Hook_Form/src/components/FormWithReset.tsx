@@ -14,9 +14,13 @@ export function FormWithReset() {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+    },
   });
 
   const onSubmit = (data: FormData) => {
@@ -36,7 +40,7 @@ export function FormWithReset() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="form-container">
       <h2>Form with Reset</h2>
-      
+
       <div className="form-group">
         <label htmlFor="title">Title</label>
         <input
@@ -63,16 +67,11 @@ export function FormWithReset() {
       </div>
 
       <div className="form-actions">
-        <button type="submit" disabled={!isDirty}>
-          Submit
-        </button>
+        <button type="submit">Submit</button>
         <button type="button" onClick={handleReset}>
           Reset
         </button>
       </div>
-
-      {isDirty && <p className="dirty-indicator">Form has been modified</p>}
     </form>
   );
 }
-

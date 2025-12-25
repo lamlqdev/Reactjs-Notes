@@ -2,35 +2,68 @@
 
 ## Core terminology
 
-**React Hook Form**:
-
-- High-performance form management library for React.
-- Reduces re-renders by using uncontrolled components and refs.
-- Provides simple API for handling validation, errors, and form state.
+![React Hook Form and Zod](./public/rhf-zod.png)
 
 **Zod**:
 
-- TypeScript-first schema validation library.
-- Allows defining schemas and automatically infers TypeScript types.
-- Provides powerful validation with clear error messages.
+![Zod Syntax Overview](./public/zod-schema.png)
+
+Some common Zod validation types:
+
+- `z.string()` – string type
+- `z.string().email()` – string must be a valid email
+- `z.number()` – number type
+- `z.object({ name: z.string() })` – object with fields (used for form schemas)
+- `z.string().optional()` – string or undefined (makes field optional)
 
 **zodResolver**:
 
 - Adapter from `@hookform/resolvers` to integrate Zod with React Hook Form.
 - Converts Zod schema into format that React Hook Form understands.
 - Automatically maps Zod errors to React Hook Form errors.
+- Syntax: `zodResolver(schema)` where `schema` is a Zod schema object.
 
 **useForm**:
 
-- Main hook of React Hook Form for managing forms.
-- Returns methods and state: `register`, `handleSubmit`, `formState`, `watch`, `reset`, etc.
-- Accepts options like `resolver`, `defaultValues`, `mode`.
+![useForm](./public/useForm.png)
+
+**useForm Generic Type**:
+
+- `TFieldValues`: TypeScript type representing form structure
+- Example: `useForm<FormData>` where `FormData` is `{ name: string, email: string }`
+
+**useForm Options**:
+
+- `resolver` (optional): Validation resolver function
+
+  - Type: `Resolver<TFieldValues>`
+  - Purpose: Integrates external validation library (Zod, Yup, etc.) with React Hook Form
+  - Example: `resolver: zodResolver(formSchema)`
+  - When validation fails, errors are automatically populated in `formState.errors`
+
+- `defaultValues` (optional): Initial form values
+
+  - Type: `Partial<TFieldValues> | AsyncDefaultValues<TFieldValues>`
+  - Purpose: Sets initial values for form fields when component mounts
+  - Example: `defaultValues: { name: "", email: "" }`
+  - Form fields are automatically populated with these values
+  - `isDirty` in `formState` will be `false` if form hasn't changed from default values
+
+- `mode` (optional): Validation mode - when validation should trigger
+  - Type: `"onSubmit" | "onBlur" | "onChange" | "onTouched" | "all"`
+  - Default: `"onSubmit"`
+  - `"onSubmit"`: Validate only when form is submitted (default, most performant)
+  - `"onBlur"`: Validate when field loses focus
+  - `"onChange"`: Validate on every change (can be expensive)
+  - `"onTouched"`: Validate after first blur, then on every change
+  - `"all"`: Validate on both blur and change events
 
 **register**:
 
 - Function to register input with React Hook Form.
-- Returns props to spread into input element: `{ name, onChange, onBlur, ref }`.
-- Can accept options like `valueAsNumber`, `validate`.
+- Returns object with props to spread into input element: `{ name, onChange, onBlur, ref }`.
+- When spread into input: `{...register("fieldName")}`, it automatically connects the input to React Hook Form
+- Can accept options like `valueAsNumber`, `valueAsDate`, `disabled`, `validate`.
 
 **handleSubmit**:
 
@@ -40,8 +73,16 @@
 
 **formState**:
 
-- Object containing form state: `errors`, `isValid`, `isDirty`, `isSubmitting`, `touchedFields`, etc.
-- Automatically updates when form state changes.
+- Object containing form state that automatically updates when form state changes. Common properties:
+  - `errors`: Object containing validation errors for each field
+  - `isValid`: Boolean indicating if form is valid (no errors)
+  - `isDirty`: Boolean indicating if form has been modified from default values
+  - `isSubmitting`: Boolean indicating if form is currently being submitted
+  - `touchedFields`: Object tracking which fields have been touched (blurred)
+  - `dirtyFields`: Object tracking which fields have been modified
+  - `isLoading`: Boolean indicating if form is loading (for async defaultValues)
+  - `submitCount`: Number of times form has been submitted
+- Access via destructuring: `formState: { errors, isDirty }`
 
 **watch**:
 
@@ -124,18 +165,13 @@ function BasicForm() {
 
 **Explanation**:
 
-- `z.object()` creates schema for object with fields and validation rules
-- `z.infer<typeof formSchema>` automatically creates TypeScript type from schema
-- `zodResolver(formSchema)` integrates Zod with React Hook Form
-- `register("fieldName")` registers input with form, returns props to spread into input
-- `{ valueAsNumber: true }` converts string to number for input type="number"
-- `errors.fieldName?.message` displays error message from Zod validation
-
-**Syntax**:
-
-- **Input**: `z.object({ field: z.string().min(2) })` → Zod schema
-- **Output**: `{ name, onChange, onBlur, ref }` từ `register()`
-- **Error**: `{ field: { message: string, type: string } }` trong `formState.errors`
+- `register("name")` returns `{ name: "name", onChange, onBlur, ref }` which is spread into the input element, connecting it to React Hook Form
+- `register("age", { valueAsNumber: true })` converts the input value from string to number automatically
+- `formState: { errors, isSubmitting }` destructures specific form state properties:
+  - `errors`: Used to display validation error messages (`errors.name?.message`)
+  - `isSubmitting`: Used to disable submit button and show loading state during submission
+- `handleSubmit(onSubmit)` wraps the submit handler, automatically validates form before calling `onSubmit`, and prevents default form submission
+- Error messages come from Zod schema validation and are automatically mapped to `formState.errors`
 
 ### Example 2: Form with Default Values
 
@@ -186,14 +222,11 @@ function FormWithDefaultValues() {
 
 **Explanation**:
 
-- `defaultValues` in `useForm` options sets default values for form
-- Form will be populated with these values when component mounts
-- `isDirty` in `formState` will be `false` if form hasn't changed from default values
-
-**Syntax**:
-
-- **Input**: `defaultValues: { field: value }` → Object with default values
-- **Output**: Form fields are filled with default values immediately on mount
+- `defaultValues` object structure must match the form schema structure
+- When component mounts, all form fields are automatically populated with values from `defaultValues`
+- `formState: { errors }` only destructures `errors` since we don't need other state properties in this example
+- `register()` works the same way for different input types: `<input>`, `<textarea>`, and `<select>` all use the same `register()` function
+- Since `defaultValues` are set, `isDirty` would be `false` initially (form hasn't changed from defaults)
 
 ### Example 3: Form with Watch - Real-time Updates
 
@@ -239,15 +272,11 @@ function FormWithWatch() {
 
 **Explanation**:
 
-- `watch("fieldName")` returns current value of field and triggers re-render when value changes
-- `watch(["field1", "field2"])` returns array of values from fields
-- `watch()` with no arguments returns entire form data
-- Component will re-render whenever watched values change
-
-**Syntax**:
-
-- **Input**: `watch("field")` or `watch(["field1", "field2"])` or `watch()`
-- **Output**: Current value of field(s) or entire form
+- `watch("firstName")` returns the current value of `firstName` field and subscribes component to changes, causing re-render when value changes
+- `watch(["firstName", "lastName"])` returns an array `[firstNameValue, lastNameValue]` and subscribes to both fields
+- The watched values (`firstName`, `fullName`) are used in JSX to display real-time preview
+- Component automatically re-renders whenever any watched field value changes
+- `register()` still works normally - watching doesn't interfere with form registration
 
 ### Example 4: Form with Reset
 
@@ -261,9 +290,13 @@ function FormWithReset() {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+    },
   });
 
   const onSubmit = async (data: FormData) => {
@@ -288,9 +321,7 @@ function FormWithReset() {
       <input {...register("title")} />
       <textarea {...register("description")} />
 
-      <button type="submit" disabled={!isDirty}>
-        Submit
-      </button>
+      <button type="submit">Submit</button>
       <button type="button" onClick={handleReset}>
         Reset
       </button>
@@ -301,15 +332,11 @@ function FormWithReset() {
 
 **Explanation**:
 
-- `reset()` resets form to initial `defaultValues`
-- `reset(newValues)` resets form to newly provided values
-- `isDirty` in `formState` indicates whether form has been modified
-- After reset, `isDirty` will return to `false`
-
-**Syntax**:
-
-- **Input**: `reset()` or `reset({ field: value })`
-- **Output**: Form is reset to initial values or new values
+- `reset()` with no arguments resets form to `defaultValues` (or empty if no defaults)
+- `reset({ title: "", description: "" })` resets form to the provided values - this becomes the new baseline for form state
+- After `reset()`, form state is cleared: errors are cleared, touched fields are reset, form values return to reset values
+- `reset()` can be called manually (button click) or after successful submission
+- `defaultValues` should be provided to ensure form has initial state - without it, `reset()` with no arguments may not work as expected
 
 ---
 
@@ -365,15 +392,10 @@ function NestedForm() {
 
 **Explanation**:
 
-- Zod schema can be nested with `z.object()` inside `z.object()`
-- Use dot notation `"personalInfo.firstName"` in `register()` to access nested fields
-- Error path also uses dot notation: `errors.personalInfo?.firstName`
-- TypeScript type is automatically inferred with nested structure
-
-**Syntax**:
-
-- **Input**: `register("parent.child")` → Dot notation for nested fields
-- **Output**: Form data has structure `{ parent: { child: value } }`
+- `register("personalInfo.firstName")` uses dot notation to register nested field - the returned props still work the same way when spread into input
+- Error access uses optional chaining: `errors.personalInfo?.firstName?.message` to safely access nested error messages
+- The generic type `useForm<NestedFormData>` ensures type safety for nested structure - TypeScript knows about `personalInfo.firstName` path
+- Form data structure matches schema: `{ personalInfo: { firstName: "...", ... }, address: { street: "...", ... } }`
 
 ### Example 2: Form with Dynamic Arrays (useFieldArray)
 
@@ -442,19 +464,13 @@ function ArrayForm() {
 
 **Explanation**:
 
-- `useFieldArray` manages dynamic arrays in form
-- `fields` is array of field objects with unique `id`
-- `append(newItem)` adds new item to end of array
-- `remove(index)` removes item at index
-- `insert(index, newItem)` inserts item at index
-- Use `register(\`addresses.${index}.field\`)` to register array fields
-- `field.id` is used as `key` in map (don't use `index`)
-
-**Syntax**:
-
-- **Input**: `useFieldArray({ control, name: "fieldName" })`
-- **Output**: `{ fields, append, remove, insert, move, swap }`
-- **Register**: `register(\`fieldName.${index}.nestedField\`)`
+- `control` from `useForm` is passed to `useFieldArray` - it connects the field array to the form instance
+- `fields` array contains objects with unique `id` property (auto-generated) plus the field data
+- `register(\`addresses.${index}.street\`)` uses template literal to dynamically create field paths for array items
+- `key={field.id}` uses the unique `id` from `useFieldArray` (not array `index`) - this is important for React's reconciliation when items are added/removed/reordered
+- `append({ street: "", city: "", zipCode: "" })` adds a new address object - structure must match schema
+- `remove(index)` removes item at that index - form state automatically updates
+- `defaultValues` must include initial array structure: `addresses: [{ ... }]` so `useFieldArray` has initial data
 
 ### Example 3: Form with Custom Validation
 
@@ -501,15 +517,11 @@ function CustomValidationForm() {
 
 **Explanation**:
 
-- `.refine()` allows complex custom validation logic
-- Function receives entire form data and returns boolean
-- `path` in options specifies which field will display error
-- Can use `.superRefine()` for more complex validation with multiple errors
-
-**Syntax**:
-
-- **Input**: `.refine((data) => condition, { message, path })`
-- **Output**: Validation error is added to field specified in `path`
+- `.refine()` receives entire form data object (not just single field) - allows comparing multiple fields like `password` and `confirmPassword`
+- The `path: ["confirmPassword"]` option assigns the error to `confirmPassword` field even though validation checks both fields
+- Error appears in `formState.errors.confirmPassword.message` when passwords don't match
+- Multiple `.refine()` calls can be chained for multiple cross-field validations
+- `register()` works normally - validation happens automatically on submit or when `trigger()` is called
 
 ### Example 4: Form with Async Validation
 
@@ -565,15 +577,11 @@ function AsyncValidationForm() {
 
 **Explanation**:
 
-- Zod schema can use async function in `.refine()`
-- `trigger("fieldName")` manually triggers validation for a field
-- `mode: "onBlur"` only validates on blur to avoid too many validations while typing
-- Can use `mode: "onChange"` for real-time validation or `mode: "onSubmit"` to only validate on submit
-
-**Syntax**:
-
-- **Input**: `.refine(async (data) => await check(), { message })`
-- **Output**: Async validation is performed, error displays when validation fails
+- `trigger("username")` manually triggers validation for the `username` field - returns a Promise that resolves to `true` if valid, `false` if invalid
+- `onBlur={handleUsernameBlur}` custom handler calls `trigger()` when field loses focus - this gives control over when async validation runs
+- `mode: "onBlur"` prevents validation on every keystroke (which would cause too many API calls) - validation only happens on blur or submit
+- The async validation in `.refine()` runs when `trigger()` is called - the Promise is awaited, and error is set if validation fails
+- `formState.errors.username` will contain the error message if async validation fails
 
 ### Example 5: Form with Conditional Fields
 
@@ -654,10 +662,12 @@ function ConditionalForm() {
 
 **Explanation**:
 
-- Use `watch()` to watch value of field that determines conditional logic
-- Conditional rendering in JSX based on watched value
-- Zod schema uses `.refine()` to validate conditional requirements
-- Validation only applies when condition is met
+- `watch("accountType")` subscribes to `accountType` field - component re-renders when this value changes
+- Conditional rendering `{accountType === "business" && ...}` shows/hides fields based on watched value
+- Fields are conditionally registered: `register("companyName")` only runs when `accountType === "business"` - React Hook Form handles this gracefully
+- Zod `.refine()` validation checks condition at submit time - if `accountType === "business"` but `companyName` is empty, error is set
+- The `path` option in `.refine()` assigns error to the correct field even though validation checks `accountType` first
+- `formState.errors` will contain errors for conditionally required fields if validation fails
 
 **Syntax**:
 
