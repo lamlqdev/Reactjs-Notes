@@ -651,22 +651,6 @@ function ConditionalForm() {
 - The `path` option in `.refine()` assigns error to the correct field even though validation checks `accountType` first
 - `formState.errors` will contain errors for conditionally required fields if validation fails
 
-**Syntax**:
-
-- **Input**: `watch("fieldName")` → Current value of field
-- **Output**: Conditional rendering and validation based on value
-
----
-
-## Summary of React Hook Form + Zod Benefits
-
-1. **Performance**: React Hook Form uses uncontrolled components and refs, reducing re-renders
-2. **Type Safety**: Zod schema automatically infers TypeScript types, ensuring type safety
-3. **Validation**: Zod provides powerful validation with clear error messages
-4. **Developer Experience**: Simple API, easy to use, less boilerplate code
-5. **Flexibility**: Supports nested objects, arrays, conditional validation, async validation
-6. **Integration**: `zodResolver` integrates Zod with React Hook Form seamlessly
-
 ---
 
 ## Learn More
@@ -914,11 +898,11 @@ import { TextField } from "@mui/material";
 
 ## Summary
 
-1. **React Hook Form**: High-performance form management with uncontrolled components
-2. **Zod**: Schema validation with TypeScript type inference
-3. **zodResolver**: Integrates Zod with React Hook Form
-4. **Basic usage**: `register`, `handleSubmit`, `formState`, `watch`
-5. **Advanced features**: Nested objects, arrays, custom validation, async validation, conditional fields
+1. **React Hook Form**: High-performance form management with uncontrolled components and refs, reducing re-renders
+2. **Zod**: Schema validation with TypeScript type inference, providing powerful validation with clear error messages
+3. **zodResolver**: Integrates Zod with React Hook Form seamlessly
+4. **Basic usage**: `register`, `handleSubmit`, `formState`, `watch` - Simple API, easy to use, less boilerplate code
+5. **Advanced features**: Nested objects, arrays, custom validation, async validation, conditional fields, custom input components
 6. **Best practices**: Proper validation modes, error handling, performance optimization
 
 ---
