@@ -16,12 +16,6 @@ Refs (references) are a way to access DOM elements or store mutable values that 
 
 ![useRef vs useState](./public/ref-vs-state.png)
 
-**Portals**:
-
-Portals provide a way to render children into a DOM node that exists outside the parent component's DOM hierarchy. This is useful for modals, tooltips, and other UI elements that need to break out of their parent's styling constraints.
-
-![Why portals are useful](./public/portals-useful.png)
-
 ---
 
 ## Basic: Basic useRef Usage
@@ -75,13 +69,6 @@ export default function Player() {
 - `ref.current?.scrollIntoView()` - Scroll element into view
 - `ref.current?.value` - Get/set input value
 - `ref.current?.offsetHeight` - Measure element height
-
-**TypeScript key points**:
-
-- `useRef<HTMLInputElement>(null)` - Specify DOM element type
-- Always check `if (ref.current)` before accessing properties
-- Use optional chaining `?.` for safe access
-- TypeScript ensures type safety for DOM operations
 
 ### Example 2: Storing Mutable Values (Timer IDs)
 
@@ -178,14 +165,6 @@ export default function TimeChallenge({
 - Storing in state would cause unnecessary re-renders
 - Ref persists the value without triggering updates
 
-**TypeScript key points**:
-
-- `useRef<number | undefined>(undefined)` - Type for timer interval ID (browser environment)
-- `useRef<ModalRef | null>(null)` - Type for component ref with custom interface
-- Define `TimeChallengeProps` interface for props
-- Use optional chaining `?.` to safely call methods
-- Always check `if (timer.current)` before clearing interval
-
 ### Example 3: Storing Previous Values
 
 **When to use**: When you need to compare current value with previous value.
@@ -223,12 +202,6 @@ function Counter() {
 - Doesn't trigger re-render when updated
 - Useful for tracking changes
 - Use nullish coalescing `??` to handle undefined values
-
-**TypeScript key points**:
-
-- `useRef<number | undefined>(undefined)` - Explicitly type the stored value
-- Use nullish coalescing `??` to handle undefined values
-- TypeScript helps catch type mismatches
 
 ---
 
@@ -356,6 +329,11 @@ export default ResultModal;
 
 ### Example 2: Portal - Rendering Outside Parent DOM
 
+**Portals**:
+
+Portals provide a way to render children into a DOM node that exists outside the parent component's DOM hierarchy. This is useful for modals, tooltips, and other UI elements that need to break out of their parent's styling constraints.
+
+![Why portals are useful](./public/portals-useful.png)
 **When to use**: When you need to render content outside the parent component's DOM hierarchy (modals, tooltips, dropdowns).
 
 ![Portal syntax](./public/createPortal.png)
@@ -410,12 +388,6 @@ export default ResultModal;
 - Dropdown menus
 - Loading overlays
 - Notifications
-
-**TypeScript key points**:
-
-- Check `if (!modalContainer)` before using `createPortal`
-- Return `null` if container not found to prevent runtime errors
-- Type-safe DOM operations with TypeScript
 
 ---
 
