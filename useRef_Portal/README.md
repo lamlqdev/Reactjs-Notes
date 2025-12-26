@@ -717,10 +717,6 @@ inputRef.current!.focus();
 
 ![Mistake 4](./public/mistake-4.png)
 
-### Mistake 5: Portal Container Not Found
-
-![Mistake 5](./public/mistake-5.png)
-
 ---
 
 **References**:

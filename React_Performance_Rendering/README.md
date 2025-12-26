@@ -6,11 +6,7 @@ This project helps you understand deeper how React works internally, including i
 
 ## 1. Optimizing Component Re-renders
 
-React re-renders a component when:
-
-- The component's state changes
-- The component's props change
-- The parent component re-renders, by default, all child components also re-render
+![React re-renders a component when](./public/component-rerender.png)
 
 Unnecessary re-renders can reduce application performance. Below are techniques to optimize.
 

@@ -27,7 +27,9 @@ Some common Zod validation types:
 
 ![useForm](./public/useForm.png)
 
-**useForm Generic Type**: Type safety for form values, autocomplete for field names, compile-time error checking
+**useForm Generic Type**:
+
+Type safety for form values, autocomplete for field names, compile-time error checking
 
 ![useForm Generic Type](./public/useForm-generic-type.png)
 
@@ -653,6 +655,12 @@ function ConditionalForm() {
 
 ---
 
+## Summary
+
+![Summary](./public/summary.png)
+
+---
+
 ## Learn More
 
 After mastering the basic and advanced concepts above, you can continue learning the following topics:
@@ -893,17 +901,6 @@ import { TextField } from "@mui/material";
   )}
 />;
 ```
-
----
-
-## Summary
-
-1. **React Hook Form**: High-performance form management with uncontrolled components and refs, reducing re-renders
-2. **Zod**: Schema validation with TypeScript type inference, providing powerful validation with clear error messages
-3. **zodResolver**: Integrates Zod with React Hook Form seamlessly
-4. **Basic usage**: `register`, `handleSubmit`, `formState`, `watch` - Simple API, easy to use, less boilerplate code
-5. **Advanced features**: Nested objects, arrays, custom validation, async validation, conditional fields, custom input components
-6. **Best practices**: Proper validation modes, error handling, performance optimization
 
 ---
 

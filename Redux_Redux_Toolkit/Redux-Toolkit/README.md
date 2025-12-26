@@ -445,13 +445,9 @@ const HomePage = () => {
 
 ---
 
-## Summary of Redux Toolkit Benefits
+## Summary
 
-1. **createSlice**: Reduces boilerplate by combining action types, action creators, and reducer in one place
-2. **createAsyncThunk**: Automatically creates 3 action types for async operations (pending/fulfilled/rejected)
-3. **configureStore**: Automatically sets up middleware and DevTools
-4. **createSelector**: Automatically memoizes selectors to optimize performance
-5. **Immer**: Allows writing "mutating" logic while ensuring immutability
+![Redux Toolkit Benefits](./public/summary.png)
 
 ---
 
@@ -595,15 +591,6 @@ const articlesReducer = await import("./features/articles/articlesSlice");
 - Use `useMemo` and `useCallback` when needed
 - Normalize state to avoid deep nesting
 - Use RTK Query for automatic caching
-
-### 9. Redux Toolkit Patterns
-
-**Common Patterns**:
-
-- **Feature-based folder structure**: Organize code by features
-- **Ducks pattern**: Combine actions, reducers, selectors in one file
-- **Normalized state**: Use entities pattern
-- **Async patterns**: Handle loading, error, success states
 
 ---
 

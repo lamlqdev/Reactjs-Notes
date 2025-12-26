@@ -42,7 +42,9 @@ The start-line and headers of the HTTP message are collectively known as the `he
 
 ### HTTP requests
 
-![HTTP request](./public/http-request-start-line.png)
+**Request start-line**:
+
+![Request start-line](./public/http-request-start-line.png)
 
 The start line of an HTTP request contains three parts: the **HTTP method**, the **request target** (usually a URL path), and the **HTTP version**. Example: `GET /user-places HTTP/1.1` means: use GET method to retrieve the resource at `/user-places` using HTTP version 1.1.
 
@@ -95,25 +97,18 @@ formData.append("image", fileInput.files[0]);
 fetch("http://localhost:3000/places", {
   method: "POST",
   body: formData,
-  // Don't set Content-Type header - browser sets it automatically with boundary
 });
 ```
 
+> **Note**: Don't set `Content-Type` header for FormData - browser sets it automatically with boundary.
+
 ### HTTP responses
 
-![HTTP response status line](./public/http-response-start-line.png)
+**Response start-line**:
+
+![Response start-line](./public/http-response-start-line.png)
 
 The status line of an HTTP response contains three parts: the **HTTP version**, the **status code**, and the **reason phrase**. Example: `HTTP/1.1 200 OK` means: HTTP version 1.1, status code 200 (success), with reason phrase "OK".
-
-**Response Headers**:
-
-Response headers provide metadata about the response and the server. Common headers include:
-
-![HTTP response headers](./public/http-response-headers.png)
-
-**Response Body**:
-
-![HTTP response body](./public/http-response-body.png)
 
 **Example handling response**:
 
@@ -143,6 +138,16 @@ if (response.status === 200) {
   // Handle server error
 }
 ```
+
+**Response Headers**:
+
+Response headers provide metadata about the response and the server. Common headers include:
+
+![HTTP response headers](./public/http-response-headers.png)
+
+**Response Body**:
+
+![HTTP response body](./public/http-response-body.png)
 
 ## Basic: Fetching Data and Handling States
 
@@ -495,16 +500,9 @@ const handleRemovePlace = useCallback(
 
 ---
 
-## Summary of Data Fetching Patterns
+## Summary
 
-1. **HTTP Protocol**: Standard protocol for frontend-backend communication
-2. **fetch API**: Browser API for making HTTP requests
-3. **Loading States**: Show loading indicators during data fetching
-4. **Error Handling**: Catch and display errors gracefully
-5. **Custom Hooks**: Reusable logic for data fetching (`useFetch`)
-6. **Optimistic Updates**: Update UI immediately, sync with backend later
-7. **Error Recovery**: Allow users to dismiss errors and retry
-8. **Centralized API Functions**: Keep API calls in separate files (`http.js`)
+![Summary](./public/summary.png)
 
 ---
 
@@ -643,28 +641,7 @@ useEffect(() => {
 
 **Documentation**: [MDN AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController)
 
-### 6. Form Data and File Uploads
-
-**Sending Form Data**:
-
-- **FormData**: For file uploads and form submissions
-- **multipart/form-data**: For file uploads
-
-**Example**:
-
-```javascript
-const formData = new FormData();
-formData.append("name", "Place Name");
-formData.append("image", fileInput.files[0]);
-
-const response = await fetch("http://localhost:3000/places", {
-  method: "POST",
-  body: formData,
-  // Don't set Content-Type header - browser sets it automatically
-});
-```
-
-### 7. CORS (Cross-Origin Resource Sharing)
+### 6. CORS (Cross-Origin Resource Sharing)
 
 **CORS**:
 
@@ -685,7 +662,7 @@ app.use((req, res, next) => {
 
 **Documentation**: [MDN CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
 
-### 8. Testing API Calls
+### 7. Testing API Calls
 
 **Testing Strategies**:
 

@@ -305,14 +305,9 @@ function Component() {
 
 ---
 
-## Summary of useEffect
+## Summary
 
-1. **Empty dependency array `[]`**: Effect runs once after mount → use for initial setup
-2. **With dependencies `[dep1, dep2]`**: Effect re-runs when dependencies change → use for synchronizing with state/props
-3. **Cleanup function**: Return function from effect to clean up resources → prevent memory leaks
-4. **Async functions**: Define async function inside effect, don't use async directly
-5. **Object/Array dependencies**: Use primitive values or `useMemo`/`useRef` to avoid unnecessary re-runs
-6. **Function dependencies**: Use `useCallback` or define function inside effect
+![Summary](./public/summary.png)
 
 ---
 
@@ -398,13 +393,7 @@ function Component() {
 
 ### 3. useEffect with API calls and Data Fetching
 
-**Patterns** for fetching data with useEffect:
-
-- Loading states
-- Error handling
-- Cancellation
-- Pagination
-- Refetching
+**Patterns** for fetching data with useEffect: Loading states, Error handling, Cancellation, Pagination, Refetching.
 
 **Example**:
 
@@ -484,22 +473,7 @@ function useKeyPress(targetKey) {
 }
 ```
 
-### 5. useEffect with Subscriptions
-
-**Pattern** for subscribing and unsubscribing:
-
-**Example**:
-
-```javascript
-function useSubscription(subscribe, unsubscribe) {
-  useEffect(() => {
-    const subscription = subscribe();
-    return () => unsubscribe(subscription);
-  }, [subscribe, unsubscribe]);
-}
-```
-
-### 6. useEffect with localStorage/sessionStorage
+### 5. useEffect with localStorage/sessionStorage
 
 **Pattern** for synchronizing state with localStorage:
 
@@ -528,7 +502,7 @@ function useLocalStorage(key, initialValue) {
 }
 ```
 
-### 7. useEffect Dependencies Best Practices
+### 6. useEffect Dependencies Best Practices
 
 **Rules**:
 
@@ -539,7 +513,7 @@ function useLocalStorage(key, initialValue) {
 
 **Documentation**: [Rules of Hooks](https://react.dev/reference/rules/rules-of-hooks)
 
-### 8. Performance Optimization with useEffect
+### 7. Performance Optimization with useEffect
 
 **Techniques**:
 
@@ -568,7 +542,7 @@ function useDebounce(value, delay) {
 }
 ```
 
-### 9. Testing Components with useEffect
+### 8. Testing Components with useEffect
 
 **Testing** components using useEffect:
 

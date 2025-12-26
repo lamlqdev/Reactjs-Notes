@@ -59,8 +59,6 @@ A learning project to understand the fundamentals of Redux state management in R
 
 ### Redux Data Flow
 
-Redux follows a **one-way data flow**, which means data flows in a single, predictable direction. This pattern makes state changes predictable and easier to debug.
-
 The diagram below illustrates the one-way data flow in Redux:
 
 ![Redux flow diagram](./public/redux-flow.png)
@@ -132,22 +130,7 @@ src/
 
 This section demonstrates how to implement Redux using examples from this project (a Todo application with authentication). Follow these steps to set up Redux in your own project.
 
-### Step 1: Install Dependencies
-
-First, install Redux and React Redux:
-
-```bash
-npm install redux react-redux
-npm install --save-dev @types/react-redux
-```
-
-For TypeScript projects, also install:
-
-```bash
-npm install --save-dev typescript @types/react @types/react-dom @types/node
-```
-
-### Step 2: Define Your State Structure
+### Step 1: Define Your State Structure
 
 Plan and define TypeScript interfaces for your application state. This project has two main features: authentication and todos:
 
@@ -173,7 +156,7 @@ export interface RootState {
 }
 ```
 
-### Step 3: Create Action Type Constants
+### Step 2: Create Action Type Constants
 
 Define action type constants to avoid typos and ensure consistency:
 
@@ -189,7 +172,7 @@ export const DELETE_TODO = "DELETE_TODO";
 export const TOGGLE_TODO = "TOGGLE_TODO";
 ```
 
-### Step 4: Define Action Types
+### Step 3: Define Action Types
 
 Create TypeScript types for your actions:
 
@@ -206,7 +189,7 @@ export type TodoAction =
 export type AppAction = AuthAction | TodoAction;
 ```
 
-### Step 5: Create Action Creators
+### Step 4: Create Action Creators
 
 Write functions that create and return action objects:
 
@@ -243,7 +226,7 @@ export const toggleTodo = (id: number, isCompleted: boolean): TodoAction => {
 };
 ```
 
-### Step 6: Create Reducers
+### Step 5: Create Reducers
 
 Implement reducer functions that handle state updates. Remember: reducers must be pure functions and return new state objects:
 
@@ -314,7 +297,7 @@ export const todoReducer = (
 };
 ```
 
-### Step 7: Combine Reducers
+### Step 6: Combine Reducers
 
 Combine all reducers into a root reducer:
 
@@ -330,7 +313,7 @@ export const rootReducer = combineReducers({
 });
 ```
 
-### Step 8: Create the Store
+### Step 7: Create the Store
 
 Set up your Redux store with the root reducer:
 
@@ -343,7 +326,7 @@ export const store = createStore(rootReducer);
 export type AppDispatch = typeof store.dispatch;
 ```
 
-### Step 9: Provide the Store to Your App
+### Step 8: Provide the Store
 
 Wrap your root component with the Redux `Provider` to make the store available to all components:
 
@@ -366,7 +349,7 @@ root.render(
 );
 ```
 
-### Step 10: Create Selectors (Recommended)
+### Step 9: Create Selectors (Recommended)
 
 Create selector functions to extract and derive data from state. This improves reusability and makes components cleaner:
 
@@ -386,7 +369,7 @@ export const selectCompletedTodos = (state: RootState): Todo[] =>
   state.todo.todos.filter((todo) => todo.isCompleted);
 ```
 
-### Step 11: Create Typed Hooks (TypeScript)
+### Step 10: Create Typed Hooks (TypeScript)
 
 For TypeScript projects, create typed versions of Redux hooks for better type safety:
 
@@ -400,7 +383,7 @@ export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 ```
 
-### Step 12: Connect Components to Redux
+### Step 11: Connect Components to Redux
 
 Use hooks in your components to access state and dispatch actions:
 
@@ -445,8 +428,6 @@ const Todo = () => {
   return <div>{/* Todo list UI */}</div>;
 };
 ```
-
-![Redux Step List](./public/redux-step.png)
 
 ## Conclusion & Next Steps
 

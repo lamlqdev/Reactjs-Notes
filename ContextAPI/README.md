@@ -18,7 +18,6 @@ A demo application for managing UI preferences using **Context API** combined wi
 **useContext**:
 
 - Hook that consumes values from a Context.
-- Modern approach, recommended over `<Context.Consumer>` component.
 - Returns the value provided by the nearest Provider.
 
 **useReducer**:
@@ -273,7 +272,7 @@ export function Header() {
 
 This section covers advanced patterns for optimizing performance and managing multiple contexts.
 
-### Step 1: Split Contexts for Performance
+### Example 1: Split Contexts for Performance
 
 **Problem**: When Context value changes, all consumers re-render, even if they only use part of the state.
 
@@ -306,7 +305,7 @@ function Header() {
 - By splitting contexts by update frequency, components only re-render when the specific context they use changes
 - **Benefit**: Reduces unnecessary re-renders, improves performance
 
-### Step 2: Memoize Context Value
+### Example 2: Memoize Context Value
 
 **Problem**: Creating new object in Provider causes all consumers to re-render.
 
@@ -333,7 +332,7 @@ export function AppProvider({ children }: AppProviderProps) {
 - Without `useMemo`, a new object would be created on every render, causing all consumers to re-render
 - **Benefit**: Prevents unnecessary re-renders of consumer components
 
-### Step 3: Create Selector Hooks
+### Example 3: Create Selector Hooks
 
 **Problem**: Components re-render when any part of state changes, even unused parts.
 
@@ -368,7 +367,7 @@ function Header() {
 - Components only re-render when selected state changes
 - **Benefit**: Granular control over re-renders, better performance
 
-### Step 4: Combine Multiple Contexts
+### Example 4: Combine Multiple Contexts
 
 **Example**: Managing both theme and user preferences:
 
@@ -413,15 +412,9 @@ function App() {
 
 ---
 
-## Summary of Context API + useReducer Benefits
+## Summary
 
-1. **Context API**: Eliminates prop drilling by sharing state across component tree
-2. **useReducer**: Manages complex state logic better than useState
-3. **Pattern**: Context + useReducer = Simple state management solution
-4. **TypeScript**: Provides type safety for state and actions
-5. **Pure functions**: Reducer has no side effects, easier to test
-6. **Centralized logic**: All state updates in one place (reducer)
-7. **Performance**: Can optimize with context splitting and memoization
+![Context API + useReducer](./public/summary.png)
 
 ---
 
@@ -429,25 +422,7 @@ function App() {
 
 After mastering the basic and advanced concepts above, you can continue learning the following topics:
 
-### 1. Context API vs Redux
-
-**When to use Context API**:
-
-- Small to medium applications
-- Simple state management needs
-- Avoiding external dependencies
-- Co-located state with components
-
-**When to use Redux**:
-
-- Large applications with complex state
-- Need time-travel debugging
-- Need middleware for async operations
-- Need DevTools for debugging
-
-**Documentation**: [React Context API](https://react.dev/reference/react/createContext) | [Redux Documentation](https://redux.js.org/)
-
-### 2. State Management Patterns
+### 1. State Management Patterns
 
 **Common Patterns**:
 
@@ -463,7 +438,7 @@ After mastering the basic and advanced concepts above, you can continue learning
 - Memoize context values to prevent unnecessary re-renders
 - Split contexts when performance becomes an issue
 
-### 3. Testing Context and Reducers
+### 2. Testing Context and Reducers
 
 **Testing** includes:
 
@@ -480,7 +455,7 @@ After mastering the basic and advanced concepts above, you can continue learning
 
 **Documentation**: [Testing React Components](https://react.dev/learn/testing)
 
-### 4. Performance Optimization Techniques
+### 3. Performance Optimization Techniques
 
 **Performance optimization** strategies:
 
@@ -492,7 +467,7 @@ After mastering the basic and advanced concepts above, you can continue learning
 
 **Documentation**: [React Performance](https://react.dev/learn/render-and-commit)
 
-### 5. TypeScript Best Practices
+### 4. TypeScript Best Practices
 
 **TypeScript** with Context API:
 
@@ -503,32 +478,7 @@ After mastering the basic and advanced concepts above, you can continue learning
 
 **Documentation**: [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 
-### 6. Context API Patterns
-
-**Common Patterns**:
-
-- **Provider pattern**: Wrap app with Provider
-- **Custom hook pattern**: Abstract context access
-- **Selector pattern**: Extract specific state slices
-- **Multiple providers**: Nest providers for different domains
-
-### 7. Migration from useState to useReducer
-
-**When to migrate**:
-
-- State logic becomes complex
-- Multiple state updates in sequence
-- Need to test state logic separately
-- Want to centralize state updates
-
-**Migration steps**:
-
-1. Define action types
-2. Create reducer function
-3. Replace `useState` with `useReducer`
-4. Update state updates to dispatch actions
-
-### 8. Error Handling in Context
+### 5. Error Handling in Context
 
 **Error handling** strategies:
 
@@ -537,7 +487,7 @@ After mastering the basic and advanced concepts above, you can continue learning
 - Handle errors in reducer for invalid actions
 - Use error boundaries for context-related errors
 
-### 9. Persisting State with Context
+### 6. Persisting State with Context
 
 **Persistence** techniques:
 
