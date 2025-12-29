@@ -1,4 +1,4 @@
-# FETCHING DATA WITH API
+# Fetching Data
 
 A demo application demonstrating how to fetch data from a backend API, handle loading and error states, and create custom hooks for data fetching in React.
 
@@ -697,4 +697,3 @@ test("fetches places", async () => {
 - [React useEffect Documentation](https://react.dev/reference/react/useEffect)
 - [Custom Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks)
 - [HTTP Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)
-- [Express.js Documentation](https://expressjs.com/)

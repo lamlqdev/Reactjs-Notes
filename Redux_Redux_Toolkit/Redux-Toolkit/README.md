@@ -38,94 +38,9 @@
 
 This section guides you through implementing a simple feature with Redux Toolkit, without async operations.
 
-### Step 1: Setup Store
+**Why this order?** We create the slice first because the store setup needs to import the reducer from the slice. This follows the natural development flow: define your feature logic (slice) → combine reducers → setup store → use in components.
 
-#### 1.1. Create Root Reducer with `combineReducers`
-
-![combineReducers](./public/combineReducers.png)
-
-**Example**:
-
-```typescript
-import { combineReducers } from "@reduxjs/toolkit";
-import authReducer from "../features/auth/authSlice";
-import articlesReducer from "../features/articles/articlesSlice";
-
-export const rootReducer = combineReducers({
-  auth: authReducer,
-  articles: articlesReducer,
-});
-```
-
-**Explanation**:
-
-- `combineReducers` combines multiple reducers into a single reducer
-- State will have the structure: `{ auth: {...}, articles: {...} }`
-- Each reducer only manages its own part of the state
-
-#### 1.2. Create Store with `configureStore`
-
-![configureStore](./public/configureStore.png)
-
-**Example**:
-
-```typescript
-import { configureStore } from "@reduxjs/toolkit";
-import { rootReducer } from "./rootReducer";
-
-export const store = configureStore({
-  reducer: rootReducer,
-});
-
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
-```
-
-**Explanation**:
-
-- `configureStore` automatically sets up Redux DevTools and thunk middleware
-- `RootState` type helps TypeScript know the state structure
-- `AppDispatch` type helps TypeScript know which actions can be dispatched
-
-#### 1.3. Setup Provider in App
-
-![Provider](./public/setup-provider.png)
-
-**Example**:
-
-```typescript
-import { Provider } from "react-redux";
-import { store } from "./store/index.ts";
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <Provider store={store}>
-    <App />
-  </Provider>
-);
-```
-
-**Explanation**: Provider makes the store accessible from all child components
-
-#### 1.4. Create Typed Hooks
-
-![Typed Hooks](./public/typed-hooks.png)
-
-**Example**:
-
-```typescript
-import { useDispatch, useSelector } from "react-redux";
-import type { RootState, AppDispatch } from "./index";
-
-export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
-export const useAppSelector = useSelector.withTypes<RootState>();
-```
-
-**Explanation**:
-
-- Helps TypeScript automatically suggest and check types when used
-- Prevents type errors when dispatching actions or selecting state
-
-### Step 2: Create Auth Slice with `createSlice`
+### Step 1: Create Auth Slice with `createSlice`
 
 ![createSlice](./public/createSlice.png)
 
@@ -172,6 +87,92 @@ export default authSlice.reducer;
 - **Benefit**: Instead of writing separate action types, action creators, and reducer, you only need to define reducers in an object
 - `PayloadAction<T>` helps TypeScript know the type of `action.payload`
 - Can write "mutating" logic (like `state.isAuthenticated = true`) thanks to Immer automatically converting to immutable update
+
+### Step 2: Setup Store
+
+#### 2.1. Create Root Reducer with `combineReducers`
+
+![combineReducers](./public/combineReducers.png)
+
+**Example**:
+
+```typescript
+import { combineReducers } from "@reduxjs/toolkit";
+import authReducer from "../features/auth/authSlice";
+
+export const rootReducer = combineReducers({
+  auth: authReducer,
+});
+```
+
+**Explanation**:
+
+- `combineReducers` combines multiple reducers into a single reducer
+- State will have the structure: `{ auth: {...} }`
+- Each reducer only manages its own part of the state
+- **Note**: You can add more reducers later (e.g., `articles: articlesReducer`)
+
+#### 2.2. Create Store with `configureStore`
+
+![configureStore](./public/configureStore.png)
+
+**Example**:
+
+```typescript
+import { configureStore } from "@reduxjs/toolkit";
+import { rootReducer } from "./rootReducer";
+
+export const store = configureStore({
+  reducer: rootReducer,
+});
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
+```
+
+**Explanation**:
+
+- `configureStore` automatically sets up Redux DevTools and thunk middleware
+- `RootState` type helps TypeScript know the state structure
+- `AppDispatch` type helps TypeScript know which actions can be dispatched
+
+#### 2.3. Setup Provider in App
+
+![Provider](./public/setup-provider.png)
+
+**Example**:
+
+```typescript
+import { Provider } from "react-redux";
+import { store } from "./store/index.ts";
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <Provider store={store}>
+    <App />
+  </Provider>
+);
+```
+
+**Explanation**: Provider makes the store accessible from all child components
+
+#### 2.4. Create Typed Hooks
+
+![Typed Hooks](./public/typed-hooks.png)
+
+**Example**:
+
+```typescript
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, AppDispatch } from "./index";
+
+export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
+export const useAppSelector = useSelector.withTypes<RootState>();
+```
+
+**Explanation**:
+
+- Helps TypeScript automatically suggest and check types when used
+- Prevents type errors when dispatching actions or selecting state
 
 ### Step 3: Create Selectors with `createSelector`
 

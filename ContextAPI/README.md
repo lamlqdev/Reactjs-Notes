@@ -81,7 +81,6 @@ export type AppAction = SetThemeAction | SetPrimaryColorAction | ...;
 
 **Explanation**:
 
-- TypeScript types ensure type safety for state and actions
 - Enum or string literals define action types
 - Union type combines all possible actions
 - **Benefit**: Prevents type errors and provides better IDE autocomplete
@@ -115,7 +114,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 - When `action.type` is `SET_THEME`, it returns a new state object with updated `theme` property using spread operator `{ ...state, theme: action.payload }`
 - When `action.type` is `TOGGLE_SIDEBAR`, it returns a new state object with toggled `sidebarCollapsed` property
 - The function never mutates the old state, always returns a new object
-- **Benefit**: Centralizes state update logic, easier to test and debug
 
 ### Step 3: Create Context and Provider
 
@@ -143,7 +141,7 @@ export const AppContext = createContext<AppContextValue | undefined>(undefined);
 - `createContext<AppContextValue | undefined>(undefined)` creates a Context object for sharing state between components
 - The generic type `<AppContextValue | undefined>` ensures type safety - TypeScript knows the context value can be `AppContextValue` or `undefined`
 - `undefined` is passed as the default value, which will be returned by `useContext` if no Provider exists above a component
-- The Context object (`AppContext`) has `Provider` and `Consumer` properties that will be used to provide and consume the context value
+- The Context object (`AppContext`) has `Provider` property that will be used to provide the context value
 
 #### 3.2. Create Provider with `useReducer`
 
@@ -172,7 +170,6 @@ export function AppProvider({ children }: AppProviderProps) {
 - `useReducer(appReducer, initialState)` manages state with the reducer function. It returns `[state, dispatch]` where `state` is the current state and `dispatch` is a function to update state by dispatching actions
 - The `value` object contains both `state` and `dispatch`, which will be provided to all child components via the Context
 - `<AppContext.Provider value={value}>` wraps child components and makes the context value accessible to all descendants through `useContext`
-- **Benefit**: Eliminates prop drilling, state accessible from any child component
 
 ### Step 4: Create Custom Hook
 
@@ -264,7 +261,6 @@ export function Header() {
 - `useAppContext()` returns `{ state, dispatch }` from Context. The component automatically subscribes to context changes and re-renders when the context value changes
 - `dispatch({ type: AppActionType.TOGGLE_HEADER })` sends an action without payload to the reducer. The reducer handles this action and returns a new state
 - `dispatch({ type: AppActionType.SET_THEME, payload: newTheme })` sends an action with payload. The reducer uses `action.payload` to update the theme in the state
-- **Benefit**: Components can read and update global state without prop drilling
 
 ---
 
@@ -444,8 +440,6 @@ After mastering the basic and advanced concepts above, you can continue learning
 
 - **Unit test** for reducers: Test state handling logic
 - **Unit test** for context: Test Provider and value
-- **Component test**: Test components using context hooks
-- **Integration test**: Test full flow with Provider
 
 **Supporting Tools**:
 

@@ -369,13 +369,6 @@ function Component() {
 
 ---
 
-## Conclusion
+## Summary
 
-Understanding these concepts helps you:
-
-1. **Optimize performance**: Reduce unnecessary re-renders with `memo`, `useCallback`, `useMemo`
-2. **Understand how React works**: Virtual DOM and diffing algorithm
-3. **Use Keys correctly**: Avoid bugs and optimize performance
-4. **Manage State effectively**: Understand batching and execution order
-
-Open DevTools and observe console logs in this project to see clearly which components are re-rendered and when!
+![Summary](./public/summary.png)
