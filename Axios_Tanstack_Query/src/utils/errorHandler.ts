@@ -1,14 +1,6 @@
-// ============================================
-// Error Normalization & Handling
-// ============================================
+import { AxiosError } from "axios";
+import { ApiError } from "../types/api";
 
-import { AxiosError } from 'axios';
-import { ApiError } from '../types/api.types';
-
-/**
- * Normalize Axios errors to a consistent ApiError format
- * This ensures error handling is consistent across the app
- */
 export function normalizeError(error: unknown): ApiError {
   // Check if it's an Axios error
   if (error instanceof AxiosError) {
@@ -37,9 +29,6 @@ export function normalizeError(error: unknown): ApiError {
   };
 }
 
-/**
- * Check if error is a network error
- */
 export function isNetworkError(error: unknown): boolean {
   if (error instanceof AxiosError) {
     return !error.response; // No response means network error
@@ -47,9 +36,6 @@ export function isNetworkError(error: unknown): boolean {
   return false;
 }
 
-/**
- * Check if error is a client error (4xx)
- */
 export function isClientError(error: unknown): boolean {
   if (error instanceof AxiosError) {
     const status = error.response?.status;
@@ -58,9 +44,6 @@ export function isClientError(error: unknown): boolean {
   return false;
 }
 
-/**
- * Check if error is a server error (5xx)
- */
 export function isServerError(error: unknown): boolean {
   if (error instanceof AxiosError) {
     const status = error.response?.status;
@@ -69,9 +52,6 @@ export function isServerError(error: unknown): boolean {
   return false;
 }
 
-/**
- * Get user-friendly error message
- */
 export function getErrorMessage(error: unknown): string {
   const normalized = normalizeError(error);
   return normalized.message;

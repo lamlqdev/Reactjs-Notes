@@ -10,7 +10,7 @@ A comprehensive demo application demonstrating how to use **Axios** for HTTP req
 
 #### Axios Instance & Config
 
-Axios Instance is a reusable, pre-configured HTTP client created by axios.create(). It centralizes global settings (baseURL, headers, timeout) and interceptors, ensuring consistent request behavior and easier maintenance across the application.
+Axios Instance is a reusable, pre-configured HTTP client created by `axios.create()`. It centralizes global settings (baseURL, headers, timeout) and interceptors, ensuring consistent request behavior and easier maintenance across the application.
 
 ![Axios Instance](./public/axios-instance.png)
 
@@ -27,7 +27,7 @@ const axiosInstance = axios.create({
 });
 ```
 
-> Note: Axios config contains many fields, but not all are suitable for global configuration. Some options are method-specific (e.g., data, params, method, url) and should be defined per request to avoid unintended side effects.
+> Note: Axios config contains many fields, but not all are suitable for global configuration. Some options are method-specific (e.g., `data`, `params`) and should be defined per request to avoid unintended side effects.
 
 **Global Config vs Per-request Config**:
 
@@ -42,6 +42,8 @@ const axiosInstance = axios.create({
 #### Interceptors (Very Important)
 
 Interceptors are functions from `axiosInstance` that run **before a request is sent** or **after a response is received**, allowing centralized side effects and logic reuse.
+
+![Interceptors](./public/interceptors.png)
 
 **Request Interceptor**:
 
@@ -99,7 +101,7 @@ Before diving into Axios, let's understand why Axios is often preferred over the
 
 | Aspect                              | Axios                                                      | Fetch API                                                          |
 | ----------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------ |
-| **Package**                         | External library (needs installation)                      | Built-in browser API (no installation)                             |
+| **Package**                         | External library (axios)                                   | Built-in browser API (fetch)                                       |
 | **Request/Response**                | Automatically transforms JSON data                         | Requires manual `.json()` call                                     |
 | **Error Handling**                  | Rejects only on network errors; treats 4xx/5xx as errors   | Only rejects on network errors; 4xx/5xx are "successful" responses |
 | **Request Timeout**                 | Built-in timeout support                                   | Requires `AbortController` for timeout                             |
@@ -269,25 +271,6 @@ Deduplication is a powerful feature that prevents unnecessary API calls when mul
 
 All components that requested the data will receive the same result, improving performance and reducing server load. For example, if three components call `useQuery({ queryKey: ["posts"], queryFn: fetchPosts })` at the same time, only one API request is made, and all three components receive the same data.
 
-**Pagination / Infinite Query**:
-
-Pagination and infinite queries allow you to load data incrementally, page by page, which is essential for handling large datasets efficiently. The `useInfiniteQuery` hook is specifically designed for this purpose, managing the loading of multiple pages of data and providing a seamless way to load more content as users scroll or interact with your application.
-
-Like regular queries, infinite queries also benefit from automatic deduplication, ensuring that pages are not fetched multiple times unnecessarily. The hook provides a `getNextPageParam` function that determines when more pages are available and what the next page parameter should be.
-
-**Example**:
-
-```typescript
-useInfiniteQuery({
-  queryKey: ["posts", "infinite"],
-  queryFn: ({ pageParam = 1 }) => fetchPosts({ page: pageParam }),
-  getNextPageParam: (lastPage, allPages) => {
-    return lastPage.hasNextPage ? allPages.length + 1 : undefined;
-  },
-  initialPageParam: 1,
-});
-```
-
 **Prefetch**:
 
 Prefetching is a performance optimization technique where data is fetched before the user actually needs it, making the application feel faster and more responsive. By prefetching data that users are likely to request next (such as when they hover over a link or button), you can have the data ready in the cache by the time they navigate to that page or component.
@@ -322,15 +305,42 @@ When combining all three, you'll encounter these concepts frequently:
 
 ```text
 src/
-  api/           # Axios layer - HTTP communication
-    axiosConfig.ts    # Axios instance & interceptors
-    usersApi.ts       # API functions
-  hooks/         # TanStack Query layer - State management
-    useUsers.ts       # Query & mutation hooks
-  types/         # TypeScript layer - Type definitions
-    api.types.ts      # API types
-  utils/         # Utilities
-    errorHandler.ts   # Error normalization
+├── api/                    # Axios layer - HTTP communication
+│   ├── axios.ts           # Axios instance & interceptors
+│   ├── auth.api.ts        # Auth API functions
+│   ├── user.api.ts        # User API functions
+│   └── product.api.ts     # Product API functions
+│
+├── hooks/                  # TanStack Query layer - State management
+│   ├── queries/           # Query hooks (read operations)
+│   │   ├── useUserQuery.ts
+│   │   └── useProductsQuery.ts
+│   └── mutations/         # Mutation hooks (write operations)
+│       ├── useLoginMutation.ts
+│       └── useUpdateProfileMutation.ts
+│
+├── providers/             # React providers
+│   └── react-query.provider.tsx  # QueryClientProvider wrapper
+│
+├── lib/                    # Library configurations
+│   └── queryClient.ts     # QueryClient instance configuration
+│
+├── constants/             # Constants
+│   └── queryKeys.ts       # Query keys factory
+│
+├── types/                  # TypeScript layer - Type definitions
+│   ├── api.ts             # API response types
+│   ├── auth.ts            # Auth types
+│   └── user.ts            # User types
+│
+├── components/            # React components
+│   ├── common/
+│   └── user/
+│
+├── pages/                 # Page components (React Router)
+│   └── ...
+│
+└── App.tsx                # Root component
 ```
 
 **Example API Layer**:
@@ -391,14 +401,11 @@ function normalizeError(error: unknown): ApiError {
 
 #### DTO (Data Transfer Object)
 
-DTOs (Data Transfer Objects) are TypeScript interfaces that define the structure of data transferred between frontend and backend API. They serve as contracts specifying required or optional fields for requests and expected response structures. DTOs are separate from domain models, focusing solely on API communication format, which allows transforming data without coupling business logic to API specifics.
-
-DTOs provide type safety and maintainability by establishing explicit contracts enforced at compile-time. When API requirements change, updating the DTO definition allows TypeScript to highlight all affected code, making refactoring safer and faster than discovering mismatches at runtime.
+DTOs are TypeScript interfaces that define the structure of data transferred between frontend and backend API. They provide type safety and serve as contracts for API requests and responses.
 
 **Example**:
 
 ```typescript
-// DTOs define the contract for API communication
 export interface CreateUserDTO {
   name: string;
   email: string;
@@ -410,21 +417,15 @@ export interface UpdateUserDTO {
   email?: string;
   age?: number;
 }
-
-// Used in API calls
-async function createUser(data: CreateUserDTO): Promise<User> {
-  const response = await axiosInstance.post<User>("/users", data);
-  return response.data;
-}
 ```
 
 ---
 
 ## Basic Setup and Usage
 
-### Step 1: Configure Axios Instance
+### Step 1: Configure Axios Instance (API Layer)
 
-**File: `src/api/axiosConfig.ts`**
+**File: `src/api/axios.ts`**
 
 ```typescript
 import axios, {
@@ -477,80 +478,95 @@ axiosInstance.interceptors.response.use(
 );
 ```
 
-### Step 2: Create API Functions with DTOs
+### Step 2: Create API Functions with DTOs (API Layer)
 
-**File: `src/api/postsApi.ts`**
+**File: `src/api/user.api.ts`** (Example - similar structure for other API files)
 
 ```typescript
-import { axiosInstance } from "./axiosConfig";
+import { axiosInstance } from "./axios";
 import { AxiosResponse } from "axios";
-
-// DTOs
-export interface Post {
-  id: number;
-  title: string;
-  body: string;
-  userId: number;
-}
-
-export interface CreatePostDTO {
-  title: string;
-  body: string;
-  userId: number;
-}
-
-export interface UpdatePostDTO {
-  title?: string;
-  body?: string;
-}
+import { User, CreateUserDTO, UpdateUserDTO } from "../types/user";
 
 // API functions with typed responses
-export const postsApi = {
-  getPosts: async (): Promise<Post[]> => {
-    const response: AxiosResponse<Post[]> = await axiosInstance.get<Post[]>(
-      "/posts"
+export const userApi = {
+  getUsers: async (): Promise<User[]> => {
+    const response: AxiosResponse<User[]> = await axiosInstance.get<User[]>(
+      "/users"
     );
     return response.data;
   },
 
-  getPostById: async (id: number): Promise<Post> => {
-    const response: AxiosResponse<Post> = await axiosInstance.get<Post>(
-      `/posts/${id}`
+  getUserById: async (id: number): Promise<User> => {
+    const response: AxiosResponse<User> = await axiosInstance.get<User>(
+      `/users/${id}`
     );
     return response.data;
   },
 
-  createPost: async (data: CreatePostDTO): Promise<Post> => {
-    const response: AxiosResponse<Post> = await axiosInstance.post<Post>(
-      "/posts",
+  createUser: async (data: CreateUserDTO): Promise<User> => {
+    const response: AxiosResponse<User> = await axiosInstance.post<User>(
+      "/users",
       data
     );
     return response.data;
   },
-  // ...
+
+  updateUser: async (id: number, data: UpdateUserDTO): Promise<User> => {
+    const response: AxiosResponse<User> = await axiosInstance.put<User>(
+      `/users/${id}`,
+      data
+    );
+    return response.data;
+  },
+
+  deleteUser: async (id: number): Promise<void> => {
+    await axiosInstance.delete(`/users/${id}`);
+  },
 };
 ```
 
-### Step 3: Setup QueryClient and Wrap App with QueryClientProvider
+**File: `src/api/auth.api.ts`** (Example for auth endpoints)
+
+```typescript
+import { axiosInstance } from "./axios";
+import { AxiosResponse } from "axios";
+import { LoginDTO, AuthResponse } from "../types/auth";
+
+export const authApi = {
+  login: async (data: LoginDTO): Promise<AuthResponse> => {
+    const response: AxiosResponse<AuthResponse> =
+      await axiosInstance.post<AuthResponse>("/auth/login", data);
+    return response.data;
+  },
+
+  logout: async (): Promise<void> => {
+    await axiosInstance.post("/auth/logout");
+  },
+
+  refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
+    const response: AxiosResponse<AuthResponse> =
+      await axiosInstance.post<AuthResponse>("/auth/refresh", { refreshToken });
+    return response.data;
+  },
+};
+```
+
+### Step 3: Setup QueryClient and Wrap App with QueryClientProvider (TanStack Query Layer)
 
 > **Important**: You **MUST** wrap your application with `QueryClientProvider` to use TanStack Query hooks (`useQuery`, `useMutation`, etc.). Without wrapping, the hooks will throw an error when you try to use them.
 
-**File: `src/main.tsx`**
+**File: `src/lib/queryClient.ts`**
 
 ```typescript
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import App from "./App";
-import "./index.css";
+import { QueryClient } from "@tanstack/react-query";
 
 // Create QueryClient instance with default configuration
 // QueryClient manages cache and state of all queries/mutations
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5,
-      gcTime: 1000 * 60 * 10,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 10, // 10 minutes
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
       retry: 3,
@@ -561,79 +577,235 @@ const queryClient = new QueryClient({
     },
   },
 });
+```
 
-// Wrap App with QueryClientProvider
+**File: `src/providers/react-query.provider.tsx`**
+
+```typescript
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactNode } from "react";
+import { queryClient } from "../lib/queryClient";
+
+interface ReactQueryProviderProps {
+  children: ReactNode;
+}
+
+export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
+```
+
+**File: `src/main.tsx`**
+
+```typescript
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import "./index.css";
+import { ReactQueryProvider } from "./providers/react-query.provider";
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
+    <ReactQueryProvider>
       <App />
-    </QueryClientProvider>
+    </ReactQueryProvider>
   </React.StrictMode>
 );
 ```
 
 **Explanation:**
 
-- **`QueryClientProvider`**: Component wrapper that provides QueryClient context to your entire application. Must wrap your `App` component or root component.
-- **`client={queryClient}`**: Prop that passes the QueryClient instance to the provider.
-- **`QueryClient`**: Instance that manages cache, state, and lifecycle of all queries/mutations in your application.
+- **`lib/queryClient.ts`**: Centralized QueryClient configuration that can be reused across the application (e.g., for testing, DevTools).
+- **`providers/react-query.provider.tsx`**: Reusable provider component that wraps QueryClientProvider with your configuration.
+- **`main.tsx`**: Root entry point that wraps the app with ReactQueryProvider.
 
-### Step 4: Create Query Hooks
+### Step 4: Create Query Keys Factory (TanStack Query Layer)
 
-**File: `src/hooks/usePosts.ts`**
+**File: `src/constants/queryKeys.ts`**
 
 ```typescript
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { postsApi, Post, CreatePostDTO } from "../api/postsApi";
+export const queryKeys = {
+  // User queries
+  users: {
+    all: ["users"] as const,
+    lists: () => [...queryKeys.users.all, "list"] as const,
+    detail: (id: number) => [...queryKeys.users.all, "detail", id] as const,
+  },
 
-// Query keys factory
-export const postKeys = {
-  all: ["posts"] as const,
-  lists: () => [...postKeys.all, "list"] as const,
-  detail: (id: number) => [...postKeys.all, "detail", id] as const,
+  // Product queries
+  products: {
+    all: ["products"] as const,
+    lists: () => [...queryKeys.products.all, "list"] as const,
+    detail: (id: number) => [...queryKeys.products.all, "detail", id] as const,
+  },
+
+  // Auth queries
+  auth: {
+    all: ["auth"] as const,
+    currentUser: () => [...queryKeys.auth.all, "currentUser"] as const,
+  },
 };
+```
 
-// Query hook
-export function usePosts() {
+### Step 5: Create Query Hooks (TanStack Query Layer)
+
+**File: `src/hooks/queries/useUserQuery.ts`**
+
+```typescript
+import { useQuery } from "@tanstack/react-query";
+import { userApi } from "../../api/user.api";
+import { queryKeys } from "../../constants/queryKeys";
+
+export function useUsers() {
   return useQuery({
-    queryKey: postKeys.lists(),
-    queryFn: postsApi.getPosts,
+    queryKey: queryKeys.users.lists(),
+    queryFn: userApi.getUsers,
     staleTime: 1000 * 60 * 5,
   });
 }
 
-// Mutation hook
-export function useCreatePost() {
+export function useUser(id: number) {
+  return useQuery({
+    queryKey: queryKeys.users.detail(id),
+    queryFn: () => userApi.getUserById(id),
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+```
+
+**File: `src/hooks/mutations/useLoginMutation.ts`**
+
+```typescript
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { authApi } from "../../api/auth.api";
+import { queryKeys } from "../../constants/queryKeys";
+import { LoginDTO } from "../../types/auth";
+import { normalizeError } from "../../utils/errorHandler";
+
+export function useLoginMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreatePostDTO) => postsApi.createPost(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: postKeys.lists() });
+    mutationFn: (data: LoginDTO) => authApi.login(data),
+    onSuccess: (data) => {
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.currentUser() });
+    },
+    onError: (error) => {
+      const normalizedError = normalizeError(error);
+      console.error("Login error:", normalizedError);
     },
   });
 }
 ```
 
-### Step 5: Use in Components
-
-**File: `src/components/PostList.tsx`**
+**File: `src/hooks/mutations/useUpdateProfileMutation.ts`**
 
 ```typescript
-import { usePosts } from "../hooks/usePosts";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { userApi } from "../../api/user.api";
+import { queryKeys } from "../../constants/queryKeys";
+import { UpdateUserDTO } from "../../types/user";
+import { normalizeError } from "../../utils/errorHandler";
 
-export function PostList() {
-  const { data: posts, isLoading, error, isError } = usePosts();
+export function useUpdateProfileMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdateUserDTO }) =>
+      userApi.updateUser(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.users.detail(variables.id),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
+    },
+    onError: (error) => {
+      const normalizedError = normalizeError(error);
+      console.error("Update profile error:", normalizedError);
+    },
+  });
+}
+```
+
+### Step 6: Use in Components (UI Layer)
+
+**File: `src/components/user/UserList.tsx`**
+
+```typescript
+import { useUsers } from "../../hooks/queries/useUserQuery";
+import { getErrorMessage } from "../../utils/errorHandler";
+
+export function UserList() {
+  const { data: users, isLoading, error, isError } = useUsers();
 
   if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>Error: {error.message}</div>;
+  if (isError) {
+    const errorMessage = getErrorMessage(error);
+    return <div>Error: {errorMessage}</div>;
+  }
 
   return (
     <ul>
-      {posts?.map((post) => (
-        <li key={post.id}>{post.title}</li>
+      {users?.map((user) => (
+        <li key={user.id}>{user.name}</li>
       ))}
     </ul>
+  );
+}
+```
+
+**File: `src/components/user/UserProfile.tsx`** (Example with mutation)
+
+```typescript
+import { useUser } from "../../hooks/queries/useUserQuery";
+import { useUpdateProfileMutation } from "../../hooks/mutations/useUpdateProfileMutation";
+import { getErrorMessage, isNetworkError } from "../../utils/errorHandler";
+
+export function UserProfile({ userId }: { userId: number }) {
+  const { data: user, isLoading, error, isError } = useUser(userId);
+  const updateProfile = useUpdateProfileMutation();
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) {
+    const errorMessage = getErrorMessage(error);
+    return <div>Error: {errorMessage}</div>;
+  }
+  if (!user) return <div>User not found</div>;
+
+  const handleUpdate = async () => {
+    try {
+      await updateProfile.mutateAsync({
+        id: userId,
+        data: { name: "Updated Name" },
+      });
+    } catch (error) {
+      const errorMessage = getErrorMessage(error);
+      if (isNetworkError(error)) {
+        alert("Network error. Please check your connection.");
+      } else {
+        alert(`Failed to update: ${errorMessage}`);
+      }
+    }
+  };
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <button onClick={handleUpdate} disabled={updateProfile.isPending}>
+        {updateProfile.isPending ? "Updating..." : "Update Profile"}
+      </button>
+      {updateProfile.isError && (
+        <div style={{ color: "red" }}>
+          {getErrorMessage(updateProfile.error)}
+        </div>
+      )}
+    </div>
   );
 }
 ```
@@ -684,25 +856,7 @@ export function useUpdatePost() {
 }
 ```
 
-### 2. Infinite Query / Pagination
-
-**File: `src/hooks/usePosts.ts`**
-
-```typescript
-export function useInfinitePosts() {
-  return useInfiniteQuery({
-    queryKey: postKeys.infinite(),
-    queryFn: ({ pageParam = 1 }) =>
-      postsApi.getPosts({ page: pageParam, limit: 10 }),
-    getNextPageParam: (lastPage, allPages) => {
-      return allPages.length < 10 ? allPages.length + 1 : undefined;
-    },
-    initialPageParam: 1,
-  });
-}
-```
-
-### 3. Polling
+### 2. Polling
 
 **File: `src/hooks/usePosts.ts`**
 
@@ -717,7 +871,7 @@ export function usePostsWithPolling(interval: number = 5000) {
 }
 ```
 
-### 4. Prefetching
+### 3. Prefetching
 
 **File: `src/hooks/usePosts.ts`**
 
@@ -735,30 +889,11 @@ export function usePrefetchPost() {
 }
 ```
 
-### 5. Error Normalization
-
-**File: `src/utils/errorHandler.ts`**
-
-```typescript
-export function normalizeError(error: unknown): ApiError {
-  if (error instanceof AxiosError) {
-    return {
-      message: error.response?.data?.message || error.message,
-      status: error.response?.status || 500,
-    };
-  }
-  if (error instanceof Error) {
-    return { message: error.message, status: 500 };
-  }
-  return { message: "An unknown error occurred", status: 500 };
-}
-```
-
 ---
 
 ## Architecture Pattern
 
-![Architecture Pattern](./public/architecture-pattern.png)
+![Architecture](./public/architecture.png)
 
 ---
 

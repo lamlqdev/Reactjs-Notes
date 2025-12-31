@@ -1,18 +1,8 @@
-// ============================================
-// Auth Token Management
-// ============================================
+import { TokenPair } from "../types/auth";
 
-const TOKEN_KEY = 'auth_token';
-const REFRESH_TOKEN_KEY = 'refresh_token';
+const TOKEN_KEY = "auth_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
 
-export interface TokenPair {
-  accessToken: string;
-  refreshToken: string;
-}
-
-/**
- * Token storage utilities
- */
 export const tokenStorage = {
   getToken: (): string | null => {
     return localStorage.getItem(TOKEN_KEY);
@@ -37,9 +27,6 @@ export const tokenStorage = {
   },
 };
 
-/**
- * Refresh token function (mock - replace with actual API call)
- */
 export const refreshAccessToken = async (): Promise<string> => {
   const refreshToken = tokenStorage.getRefreshToken();
   
@@ -59,9 +46,6 @@ export const refreshAccessToken = async (): Promise<string> => {
   });
 };
 
-/**
- * Check if token is expired (mock - in real app, decode JWT)
- */
 export const isTokenExpired = (token: string | null): boolean => {
   if (!token) return true;
   

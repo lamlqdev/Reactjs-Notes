@@ -1,8 +1,4 @@
-// ============================================
-// Retry Logic Utility
-// ============================================
-
-import { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 
 export interface RetryConfig {
   retries: number;
@@ -10,9 +6,6 @@ export interface RetryConfig {
   retryCondition?: (error: AxiosError) => boolean;
 }
 
-/**
- * Default retry condition - retry on network errors or 5xx errors
- */
 export const defaultRetryCondition = (error: AxiosError): boolean => {
   // Don't retry on 4xx errors (client errors)
   if (error.response?.status && error.response.status >= 400 && error.response.status < 500) {
@@ -23,17 +16,10 @@ export const defaultRetryCondition = (error: AxiosError): boolean => {
   return !error.response || (error.response.status >= 500);
 };
 
-/**
- * Calculate exponential backoff delay
- */
 export const exponentialBackoff = (attempt: number, baseDelay: number = 1000): number => {
   return Math.min(baseDelay * Math.pow(2, attempt), 30000); // Max 30 seconds
 };
 
-/**
- * Retry interceptor factory
- * Note: This should be used within axios interceptor, not as standalone
- */
 export const createRetryLogic = (config: RetryConfig) => {
   return async (error: AxiosError, axiosInstance: any) => {
     const { retries, retryDelay, retryCondition = defaultRetryCondition } = config;
