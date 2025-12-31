@@ -5,7 +5,6 @@ import UseLocalStorageDemo from "./pages/UseLocalStorageDemo";
 import UseDebounceDemo from "./pages/UseDebounceDemo";
 import UseToggleDemo from "./pages/UseToggleDemo";
 import UseWindowSizeDemo from "./pages/UseWindowSizeDemo";
-import UseMediaQueryDemo from "./pages/UseMediaQueryDemo";
 import UseFetchDemo from "./pages/UseFetchDemo";
 import UsePreviousDemo from "./pages/UsePreviousDemo";
 
@@ -15,7 +14,6 @@ type Page =
   | "useDebounce"
   | "useToggle"
   | "useWindowSize"
-  | "useMediaQuery"
   | "useFetch"
   | "usePrevious";
 
@@ -34,8 +32,6 @@ function App() {
         return <UseToggleDemo />;
       case "useWindowSize":
         return <UseWindowSizeDemo />;
-      case "useMediaQuery":
-        return <UseMediaQueryDemo />;
       case "useFetch":
         return <UseFetchDemo />;
       case "usePrevious":

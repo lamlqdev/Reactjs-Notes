@@ -6,7 +6,6 @@ type Page =
   | 'useDebounce'
   | 'useToggle'
   | 'useWindowSize'
-  | 'useMediaQuery'
   | 'useFetch'
   | 'usePrevious'
 
@@ -21,7 +20,6 @@ const hooks = [
   { id: 'useDebounce' as Page, name: 'useDebounce', icon: '⏱️' },
   { id: 'useToggle' as Page, name: 'useToggle', icon: '🔄' },
   { id: 'useWindowSize' as Page, name: 'useWindowSize', icon: '📐' },
-  { id: 'useMediaQuery' as Page, name: 'useMediaQuery', icon: '📱' },
   { id: 'useFetch' as Page, name: 'useFetch', icon: '🌐' },
   { id: 'usePrevious' as Page, name: 'usePrevious', icon: '⏮️' },
 ]

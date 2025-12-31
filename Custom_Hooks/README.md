@@ -8,56 +8,11 @@ A comprehensive demo application demonstrating how to create and use **Custom Ho
 
 ### Custom Hooks
 
-**Custom Hooks** are JavaScript functions that start with "use" and may call other React Hooks. They allow you to extract component logic into reusable functions.
+**Custom Hooks** are JavaScript functions that start with `use` and may call other React Hooks. They allow you to extract component logic into reusable functions.
 
 **Rules of Hooks**:
 
-1. Only call hooks at the top level (not inside loops, conditions, or nested functions)
-2. Only call hooks from React function components or custom hooks
-3. Custom hooks must start with "use" prefix
-
-**Syntax**:
-
-```typescript
-function useCustomHook() {
-  // Use React hooks here
-  const [state, setState] = useState();
-
-  // Return values or functions
-  return { state, setState };
-}
-```
-
-**When to use**: When you want to reuse stateful logic between components. Custom hooks let you share logic without duplicating code.
-
-**Example**:
-
-```typescript
-// Custom hook
-function useCounter(initialValue: number = 0) {
-  const [count, setCount] = useState(initialValue);
-
-  const increment = () => setCount((c) => c + 1);
-  const decrement = () => setCount((c) => c - 1);
-  const reset = () => setCount(initialValue);
-
-  return { count, increment, decrement, reset };
-}
-
-// Usage in component
-function Counter() {
-  const { count, increment, decrement, reset } = useCounter(0);
-
-  return (
-    <div>
-      <p>Count: {count}</p>
-      <button onClick={increment}>+</button>
-      <button onClick={decrement}>-</button>
-      <button onClick={reset}>Reset</button>
-    </div>
-  );
-}
-```
+![Rules of Hooks](./public/rules-of-hooks.png)
 
 ### Benefits of Custom Hooks
 
@@ -69,9 +24,7 @@ function Counter() {
 
 ---
 
-## Basic: Basic Custom Hooks
-
-This section guides you through creating and using basic custom hooks.
+## Common Custom Hooks
 
 ### Example 1: useLocalStorage Hook
 
@@ -281,72 +234,7 @@ const { width, height } = useWindowSize();
 }
 ```
 
----
-
-## Advanced: Advanced Custom Hooks
-
-This section covers more complex custom hooks and patterns.
-
-### Example 1: useMediaQuery Hook
-
-**When to use**: When you need to react to CSS media query changes (responsive design, dark mode detection).
-
-**File: `src/hooks/useMediaQuery.ts`**
-
-```typescript
-import { useState, useEffect } from "react";
-
-function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      return window.matchMedia(query).matches;
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const mediaQuery = window.matchMedia(query);
-    setMatches(mediaQuery.matches);
-
-    const handler = (event: MediaQueryListEvent) => {
-      setMatches(event.matches);
-    };
-
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener("change", handler);
-      return () => mediaQuery.removeEventListener("change", handler);
-    } else {
-      mediaQuery.addListener(handler);
-      return () => mediaQuery.removeListener(handler);
-    }
-  }, [query]);
-
-  return matches;
-}
-```
-
-**Explanation**:
-
-- Uses `window.matchMedia()` to check if media query matches
-- Initializes state with current match value
-- Listens for changes to media query
-- Handles both modern (`addEventListener`) and legacy (`addListener`) APIs
-- Returns boolean indicating if query matches
-
-**Usage**:
-
-```typescript
-const isMobile = useMediaQuery("(max-width: 640px)");
-const isDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-
-{
-  isMobile ? <MobileLayout /> : <DesktopLayout />;
-}
-```
-
-### Example 2: useFetch Hook
+### Example 5: useFetch Hook
 
 **When to use**: When you need to fetch data from APIs with loading and error states.
 
@@ -423,7 +311,7 @@ if (error) return <Error message={error.message} />;
 return <div>{data.name}</div>;
 ```
 
-### Example 4: usePrevious Hook
+### Example 6: usePrevious Hook
 
 **When to use**: When you need to track the previous value of a state or prop.
 
@@ -464,85 +352,6 @@ if (previousCount !== undefined && count > previousCount) {
 
 ---
 
-## Custom Hook Patterns
-
-### Pattern 1: Returning Object vs Array
-
-**Object Return** (Better for multiple values):
-
-```typescript
-function useCounter() {
-  const [count, setCount] = useState(0);
-  return { count, setCount, increment: () => setCount((c) => c + 1) };
-}
-
-// Usage
-const { count, increment } = useCounter();
-```
-
-**Array Return** (Better for single value, matches useState API):
-
-```typescript
-function useToggle() {
-  const [value, setValue] = useState(false);
-  return [value, () => setValue((v) => !v)];
-}
-
-// Usage
-const [isOpen, toggle] = useToggle();
-```
-
-### Pattern 2: Generic Types
-
-**Generic hooks** work with any type:
-
-```typescript
-function useLocalStorage<T>(
-  key: string,
-  initialValue: T
-): [T, (value: T) => void] {
-  // Implementation
-}
-
-// Usage with different types
-const [name, setName] = useLocalStorage<string>("name", "");
-const [count, setCount] = useLocalStorage<number>("count", 0);
-const [user, setUser] = useLocalStorage<User | null>("user", null);
-```
-
-### Pattern 3: Composing Hooks
-
-**Combine multiple hooks** to create more powerful hooks:
-
-```typescript
-function useDebouncedLocalStorage<T>(
-  key: string,
-  initialValue: T,
-  delay: number
-) {
-  const [value, setValue] = useLocalStorage(key, initialValue);
-  const debouncedValue = useDebounce(value, delay);
-  return [debouncedValue, setValue] as const;
-}
-```
-
-### Pattern 4: Conditional Hook Execution
-
-**Skip hook execution** based on conditions:
-
-```typescript
-function useFetch<T>(url: string, options?: { skip?: boolean }) {
-  // Only fetch if skip is false
-  useEffect(() => {
-    if (!options?.skip) {
-      fetchData();
-    }
-  }, [url, options?.skip]);
-}
-```
-
----
-
 ## Summary
 
 Custom Hooks enable code reuse and logic extraction in React:
@@ -551,9 +360,7 @@ Custom Hooks enable code reuse and logic extraction in React:
 2. **Rules**: Follow Rules of Hooks (top level, React functions only)
 3. **Reusability**: Share logic between components
 4. **TypeScript**: Use generics for type-safe hooks
-5. **Patterns**: Return objects or arrays based on use case
-6. **Composition**: Combine hooks to create more powerful hooks
-7. **Common Hooks**: useLocalStorage, useDebounce, useToggle, useWindowSize, etc.
+5. **Common Hooks**: useLocalStorage, useDebounce, useToggle, useWindowSize, useFetch, usePrevious
 
 ---
 
@@ -590,29 +397,7 @@ test("toggles value", () => {
 
 **Documentation**: [Testing React Hooks](https://react.dev/reference/react/testing)
 
-### 2. Advanced Hook Patterns
-
-**Advanced Patterns**:
-
-- **Hook Factories**: Functions that return hooks
-- **Hook Composition**: Combining multiple hooks
-- **Conditional Hooks**: Using hooks conditionally (with care)
-- **Hook Dependencies**: Managing complex dependencies
-
-**Example - Hook Factory**:
-
-```typescript
-function createUseApi<T>(endpoint: string) {
-  return function useApi() {
-    return useFetch<T>(`/api/${endpoint}`);
-  };
-}
-
-const useUsers = createUseApi<User[]>("users");
-const usePosts = createUseApi<Post[]>("posts");
-```
-
-### 3. Performance Optimization
+### 2. Performance Optimization
 
 **Optimization Techniques**:
 
@@ -633,7 +418,7 @@ function useExpensiveCalculation(data: Data[]) {
 }
 ```
 
-### 4. Error Handling in Hooks
+### 3. Error Handling in Hooks
 
 **Error Handling Patterns**:
 
@@ -662,30 +447,7 @@ function useSafeLocalStorage<T>(key: string, initialValue: T) {
 }
 ```
 
-### 5. Hook Dependencies Best Practices
-
-**Dependency Management**:
-
-- Include all dependencies in dependency arrays
-- Use `useCallback` for stable function references
-- Use `useMemo` for stable object references
-- Understand when to omit dependencies
-
-**Example**:
-
-```typescript
-function useApiCall(endpoint: string) {
-  const fetchData = useCallback(async () => {
-    // API call
-  }, [endpoint]); // endpoint is dependency
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]); // fetchData is dependency
-}
-```
-
-### 6. Custom Hooks Libraries
+### 4. Custom Hooks Libraries
 
 **Popular Libraries**:
 
@@ -705,56 +467,7 @@ const debouncedValue = useDebounce(value, 500);
 
 **Documentation**: [react-use](https://github.com/streamich/react-use) | [ahooks](https://ahooks.js.org/)
 
-### 7. Hook Composition Patterns
-
-**Composition Strategies**:
-
-- Combine multiple hooks
-- Create hook hierarchies
-- Share state between hooks
-- Build complex behaviors from simple hooks
-
-**Example**:
-
-```typescript
-function useFormWithValidation() {
-  const [values, setValues] = useState({});
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
-
-  // Combine multiple hooks
-  const debouncedValues = useDebounce(values, 300);
-  const [isSubmitting, toggleSubmitting] = useToggle(false);
-
-  // Complex logic combining hooks
-  return { values, errors, touched, isSubmitting /* ... */ };
-}
-```
-
-### 8. TypeScript Advanced Patterns
-
-**Advanced TypeScript**:
-
-- Generic constraints
-- Conditional types
-- Utility types with hooks
-- Type inference
-
-**Example**:
-
-```typescript
-function useAsync<T, E = Error>(
-  asyncFunction: () => Promise<T>
-): {
-  data: T | null;
-  loading: boolean;
-  error: E | null;
-} {
-  // Implementation
-}
-```
-
-### 9. Hook Lifecycle Management
+### 5. Hook Lifecycle Management
 
 **Lifecycle Patterns**:
 

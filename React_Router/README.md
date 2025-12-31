@@ -2,6 +2,8 @@
 
 A comprehensive demo application demonstrating **React Router v6** features with **TypeScript** for building single-page applications (SPAs) with client-side routing.
 
+![React Router Demo](./public/spas-build.png)
+
 ---
 
 ## Core Terminology
@@ -105,18 +107,6 @@ import { NavLink } from "react-router-dom";
 - `style`: Function that receives `{ isActive }` and returns style object
 - `end`: If true, only matches when the pathname ends with the `to` path
 
-**Example**:
-
-```typescript
-<nav>
-  <NavLink to="/" end>
-    Home
-  </NavLink>
-  <NavLink to="/about">About</NavLink>
-  <NavLink to="/contact">Contact</NavLink>
-</nav>
-```
-
 ### Navigate
 
 `Navigate` is a component that redirects to a new location when rendered. It's useful for conditional redirects.
@@ -134,14 +124,6 @@ import { Navigate } from "react-router-dom";
 - `to`: The path to redirect to
 - `replace`: If true, replaces the current entry in history
 - `state`: State to pass to the new location
-
-**Example**:
-
-```typescript
-{
-  isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />;
-}
-```
 
 ### Outlet
 
@@ -168,24 +150,7 @@ function ParentComponent() {
 
 ## Basic: Basic Routing Usage
 
-This section guides you through the most fundamental React Router patterns.
-
 ### Step 1: Setup BrowserRouter
-
-**File: `src/main.tsx`**
-
-```typescript
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
-import "./index.css";
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
-```
 
 **File: `src/App.tsx`**
 
@@ -275,7 +240,7 @@ export default Home;
 
 This section covers more complex routing patterns and features.
 
-### Example 1: Dynamic Routes with URL Parameters
+### Example 1: Dynamic Routes with URL Parameters using `useParams` and `useNavigate`
 
 **When to use**: When you need to pass data through the URL (e.g., product IDs, user IDs).
 
@@ -320,7 +285,7 @@ function ProductDetail() {
 - `/products/1` → `id = "1"`
 - `/products/123` → `id = "123"`
 
-### Example 2: Nested Routes
+### Example 2: Nested Routes with `Outlet` and `useParams`
 
 **When to use**: When you have routes that share a common layout or parent component (e.g., user profile with tabs).
 
@@ -374,7 +339,7 @@ function UserProfile() {
 - `/users/1/posts` → Renders `UserProfile` with `UserPosts`
 - `/users/1/settings` → Renders `UserProfile` with `UserSettings`
 
-### Example 3: Protected Routes
+### Example 3: Protected Routes with `Navigate` and `useLocation`
 
 **When to use**: When you need to restrict access to certain routes based on authentication or authorization.
 
@@ -452,7 +417,7 @@ function Login() {
 - After login, user is redirected back to the page they tried to access
 - `useLocation()` gets current location, including state passed from `Navigate`
 
-### Example 4: Query Parameters
+### Example 4: Query Parameters with `useSearchParams`
 
 **When to use**: When you need to pass optional data through the URL (e.g., search queries, filters).
 
@@ -506,7 +471,7 @@ function Search() {
 - `/search?q=react` → `query = "react"`
 - `/search?q=react&category=tutorial` → `query = "react"`, `category = "tutorial"`
 
-### Example 5: Programmatic Navigation
+### Example 5: Programmatic Navigation with `useNavigate`
 
 **When to use**: When you need to navigate based on user actions or conditions (e.g., after form submission, on button click).
 
@@ -551,7 +516,7 @@ navigate("/dashboard", {
 });
 ```
 
-### Example 6: Layout Routes with Outlet
+### Example 6: Layout Routes with `Outlet`
 
 **When to use**: When multiple routes share a common layout (header, sidebar, etc.).
 
@@ -598,7 +563,7 @@ function Layout() {
 - Header and footer are shared across all pages
 - Only the content inside `<Outlet />` changes when navigating
 
-### Example 7: Catch-All Route (404)
+### Example 7: Catch-All Route (404) with `useNavigate`
 
 **When to use**: To handle routes that don't match any defined route.
 
@@ -638,157 +603,6 @@ function NotFound() {
 
 ---
 
-## Navigation Hooks
-
-React Router provides several hooks for accessing routing information and navigating programmatically.
-
-### useNavigate
-
-Returns a function to navigate programmatically.
-
-**Syntax**:
-
-```typescript
-const navigate = useNavigate();
-
-navigate("/path");
-navigate(-1); // Go back
-navigate(1); // Go forward
-navigate("/path", { replace: true, state: { data: "value" } });
-```
-
-**Example**:
-
-```typescript
-import { useNavigate } from "react-router-dom";
-
-function Component() {
-  const navigate = useNavigate();
-
-  const handleClick = () => {
-    navigate("/products/1");
-  };
-
-  return <button onClick={handleClick}>Go to Product</button>;
-}
-```
-
-### useParams
-
-Returns an object of URL parameters from the current route.
-
-**Syntax**:
-
-```typescript
-const params = useParams<{ id: string }>();
-const { id } = params;
-```
-
-**Example**:
-
-```typescript
-import { useParams } from "react-router-dom";
-
-function ProductDetail() {
-  const { id } = useParams<{ id: string }>();
-  // id is the value from URL /products/:id
-  return <div>Product ID: {id}</div>;
-}
-```
-
-### useLocation
-
-Returns the current location object, which represents where the app is now.
-
-**Syntax**:
-
-```typescript
-const location = useLocation();
-// location.pathname - Current path
-// location.search - Query string
-// location.hash - Hash fragment
-// location.state - State passed from navigate()
-```
-
-**Example**:
-
-```typescript
-import { useLocation } from "react-router-dom";
-
-function Component() {
-  const location = useLocation();
-
-  return (
-    <div>
-      <p>Current path: {location.pathname}</p>
-      <p>Query string: {location.search}</p>
-    </div>
-  );
-}
-```
-
-### useSearchParams
-
-Returns a tuple `[searchParams, setSearchParams]` for reading and modifying the query string.
-
-**Syntax**:
-
-```typescript
-const [searchParams, setSearchParams] = useSearchParams();
-const value = searchParams.get("key");
-setSearchParams({ key: "value" });
-```
-
-**Example**:
-
-```typescript
-import { useSearchParams } from "react-router-dom";
-
-function Search() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const query = searchParams.get("q") || "";
-
-  return (
-    <input
-      value={query}
-      onChange={(e) => setSearchParams({ q: e.target.value })}
-    />
-  );
-}
-```
-
-### useOutletContext
-
-Allows parent routes to pass data to child routes via `Outlet`.
-
-**Syntax**:
-
-```typescript
-// In parent component
-<Outlet context={{ data: "value" }} />;
-
-// In child component
-const { data } = useOutletContext<{ data: string }>();
-```
-
-**Example**:
-
-```typescript
-// Parent
-function UserProfile() {
-  const user = { id: 1, name: "John" };
-  return <Outlet context={{ user }} />;
-}
-
-// Child
-function UserPosts() {
-  const { user } = useOutletContext<{ user: User }>();
-  return <div>Posts by {user.name}</div>;
-}
-```
-
----
-
 ## Summary
 
 React Router enables client-side routing in React applications:
@@ -802,7 +616,6 @@ React Router enables client-side routing in React applications:
 7. **Nested Routes**: Create route hierarchies
 8. **Protected Routes**: Restrict access with authentication
 9. **Query Parameters**: Handle search params with `useSearchParams`
-10. **Navigation Hooks**: Access routing info and navigate programmatically
 
 ---
 
@@ -902,87 +715,7 @@ function AnimatedRoutes() {
 }
 ```
 
-### 4. HashRouter vs BrowserRouter
-
-**HashRouter**:
-
-- Uses hash (`#`) in URL
-- Works without server configuration
-- Example: `/app#/products`
-
-**BrowserRouter**:
-
-- Uses HTML5 history API
-- Requires server configuration for SPAs
-- Cleaner URLs: `/products`
-
-**When to use HashRouter**:
-
-- Static hosting without server config
-- Legacy browser support needed
-- Quick prototypes
-
-**Documentation**: [HashRouter](https://reactrouter.com/en/main/router-components/hash-router)
-
-### 5. Route Guards and Middleware
-
-**Route Guards**:
-
-- Protect routes based on conditions
-- Redirect unauthorized users
-- Handle role-based access control
-
-**Example**:
-
-```typescript
-function RoleBasedRoute({ children, requiredRole }: Props) {
-  const user = useAuth();
-
-  if (user.role !== requiredRole) {
-    return <Navigate to="/unauthorized" />;
-  }
-
-  return <>{children}</>;
-}
-```
-
-### 6. Relative Navigation
-
-**Relative Paths**:
-
-- Navigate relative to current route
-- Use `..` for parent routes
-- Useful in nested routes
-
-**Example**:
-
-```typescript
-// In /users/1/posts
-<Link to="..">Back to User</Link> // Goes to /users/1
-<Link to="../settings">Settings</Link> // Goes to /users/1/settings
-```
-
-### 7. Route State Management
-
-**Passing State**:
-
-- Pass data via `navigate()` state
-- Access with `useLocation()`
-- Useful for temporary data
-
-**Example**:
-
-```typescript
-navigate("/dashboard", {
-  state: { message: "Success!" },
-});
-
-// In dashboard
-const location = useLocation();
-const message = location.state?.message;
-```
-
-### 8. Testing Routes
+### 4. Testing Routes
 
 **Testing Strategies**:
 
@@ -1008,7 +741,7 @@ test("renders home page", () => {
 
 **Documentation**: [Testing React Router](https://reactrouter.com/en/main/start/testing)
 
-### 9. Server-Side Rendering (SSR)
+### 5. Server-Side Rendering (SSR)
 
 **SSR with React Router**:
 
@@ -1032,7 +765,7 @@ function renderApp(url: string) {
 
 **Documentation**: [React Router SSR](https://reactrouter.com/en/main/guides/ssr)
 
-### 10. Route Configuration Objects
+### 6. Route Configuration Objects
 
 **Declarative Routes**:
 
