@@ -1,130 +1,108 @@
-# React Core Concepts - Tài liệu học tập
+# React Core Concepts - Learning Documentation
 
-Tài liệu này giúp bạn hiểu các khái niệm cơ bản nhất của React thông qua ví dụ thực tế trong project này.
+This documentation helps you understand the most fundamental concepts of React through practical examples in this project.
 
 ---
 
 ## 1. Core Concepts
 
-React được xây dựng dựa trên 4 khái niệm cốt lõi:
+React is built on 4 core concepts:
 
 ### 1.1. Components
 
-**Components** là các khối xây dựng cơ bản của ứng dụng React. Mỗi component là một module độc lập (HTML + CSS + JavaScript) có thể tái sử dụng.
+**Components** are the basic building blocks of React applications. Each component is an independent, reusable module (HTML + CSS + JavaScript).
 
-**Ví dụ trong project:**
+![Components](./public/Components.png)
 
-- `Header.jsx` - Component hiển thị header
-- `CoreConcept.jsx` - Component hiển thị một concept
-- `TabButton.jsx` - Component nút tab
-- `App.jsx` - Component chính chứa tất cả
+**Examples in this project:**
 
-**Đặc điểm:**
+- `Header.jsx` - Component that displays the header
+- `CoreConcept.jsx` - Component that displays a concept
+- `TabButton.jsx` - Tab button component
+- `App.jsx` - Main component that contains everything
 
-- Mỗi component là một function trả về JSX
-- Component có thể được sử dụng nhiều lần
-- Component giúp code dễ đọc và bảo trì
+![Benefits of Components](./public/benefit-components.png)
 
 ### 1.2. JSX (JavaScript XML)
 
-**JSX** là cú pháp mở rộng của JavaScript, cho phép viết HTML-like code trong JavaScript.
+**JSX** is a JavaScript syntax extension that allows you to write HTML-like code in JavaScript.
 
-**Ví dụ:**
+**Example:**
 
 ```jsx
 return (
   <div>
     <h1>Hello, World!</h1>
-    <p>Chào mừng đến với React!</p>
+    <p>Welcome to React!</p>
   </div>
 );
 ```
 
-**Đặc điểm:**
-
-- JSX trông giống HTML nhưng thực chất là JavaScript
-- Có thể nhúng biến và biểu thức JavaScript bằng `{}`
-- Phải có một phần tử cha (parent element) bao bọc
+![JSX](./public/jsx.png)
 
 ### 1.3. Props (Properties)
 
-**Props** là cách truyền dữ liệu từ component cha xuống component con. Props giống như tham số của function.
+**Props** are a way to pass data from parent components to child components. Props are like function parameters.
 
-**Ví dụ trong project:**
+**Examples in this project:**
 
-- `CoreConcept` nhận props: `image`, `title`, `description`
-- `TabButton` nhận props: `children`, `onSelect`, `isSelected`
+- `CoreConcept` receives props: `image`, `title`, `description`
+- `TabButton` receives props: `children`, `onSelect`, `isSelected`
 
-**Đặc điểm:**
+**Characteristics:**
 
-- Props là read-only
-- Props giúp component có thể tái sử dụng với dữ liệu khác nhau
-- Props được truyền từ component cha xuống component con
+- Props are read-only
+- Props allow components to be reusable with different data
+- Props are passed from parent components to child components
+
+![Props](./public/prop.png)
 
 ### 1.4. State
 
-**State** là dữ liệu được quản lý bởi React. Khi state thay đổi, component sẽ tự động re-render để cập nhật UI.
+**State** is data managed by React. When state changes, the component automatically re-renders to update the UI.
 
-**Ví dụ trong project:**
-
-- `selectedTopic` là state lưu topic được chọn
-- Khi state thay đổi, UI tự động cập nhật
-
-**Đặc điểm:**
-
-- State chỉ có thể thay đổi bằng hàm setter (như `setSelectedTopic`)
-- Khi state thay đổi, React tự động re-render component
-- State giúp UI phản ứng với tương tác người dùng
+![State](./public/useState.png)
 
 ---
 
-## 2. Cách React hoạt động
+## 2. How React Works
 
-### 2.1. Quy trình cơ bản
+### 2.1. Basic Process
 
-1. **Khởi tạo ứng dụng:**
+1. **Initialize the application:**
 
-   - React tìm phần tử `root` trong HTML (`index.html`)
-   - Render component `App` vào phần tử đó
+   - React finds the `root` element in HTML (`index.html`)
+   - Renders the `App` component into that element
 
 2. **Render component:**
 
-   - React đọc JSX và chuyển thành các phần tử DOM
-   - Hiển thị lên màn hình
+   - React reads JSX and converts it into DOM elements
+   - Displays them on the screen
 
-3. **Cập nhật UI:**
-   - Khi state thay đổi, React tự động re-render
-   - Chỉ cập nhật những phần thay đổi (hiệu quả)
+3. **Update UI:**
+   - When state changes, React automatically re-renders
+   - Only updates the parts that changed (efficient)
 
 ### 2.2. Component Tree
 
-```text
-App
-├── Header
-└── main
-    ├── section (Core Concepts)
-    │   └── CoreConcept (x4)
-    └── section (Examples)
-        ├── TabButton (x4)
-        └── tabContent
-```
+![Component Tree](./public/component-tree.png)
 
-Mỗi component có thể chứa các component con khác, tạo thành một cây component.
+Each component can contain other child components, forming a component tree.
 
 ### 2.3. Data Flow
 
-- **Props Down:** Dữ liệu truyền từ component cha xuống component con
-- **Events Up:** Sự kiện từ component con truyền lên component cha qua callback functions
+- **Props Down:** Data flows from parent components to child components
+- **Events Up:** Events from child components flow up to parent components through callback functions
 
 ---
 
 ## 3. Examples
 
-Hãy cùng phân tích code trong project để hiểu cách các khái niệm trên được áp dụng.
+Let's analyze the code in this project to understand how the concepts above are applied.
 
-### 3.1. Component và JSX
+### 3.1. Components and JSX
 
-#### Ví dụ 1: Component Header
+#### Example 1: Header Component
 
 ```1:23:src/components/Header/Header.jsx
 import reactImg from '../../assets/react-core-concepts.png';
@@ -152,14 +130,14 @@ export default function Header() {
 }
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- `Header` là một function component
-- Component trả về JSX (HTML-like code)
-- Sử dụng biến JavaScript trong JSX: `{description}`
-- Component có thể chứa logic JavaScript (hàm `genRandomInt`)
+- `Header` is a function component
+- The component returns JSX (HTML-like code)
+- Uses JavaScript variables in JSX: `{description}`
+- Components can contain JavaScript logic (the `genRandomInt` function)
 
-#### Ví dụ 2: Component CoreConcept
+#### Example 2: CoreConcept Component
 
 ```1:9:src/components/CoreConcept.jsx
 export default function CoreConcept({ image, title, description }) {
@@ -173,15 +151,15 @@ export default function CoreConcept({ image, title, description }) {
 }
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- Component nhận 3 props: `image`, `title`, `description`
-- Sử dụng destructuring để lấy props: `{ image, title, description }`
-- Props được sử dụng trực tiếp trong JSX
+- Component receives 3 props: `image`, `title`, `description`
+- Uses destructuring to get props: `{ image, title, description }`
+- Props are used directly in JSX
 
-### 3.2. Props - Truyền dữ liệu
+### 3.2. Props - Passing Data
 
-#### Ví dụ: Truyền props từ App xuống CoreConcept
+#### Example: Passing props from App to CoreConcept
 
 ```34:40:src/App.jsx
         <section id="core-concepts">
@@ -194,14 +172,14 @@ export default function CoreConcept({ image, title, description }) {
         </section>
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- `CORE_CONCEPTS` là mảng chứa dữ liệu (xem `data.js`)
-- `.map()` duyệt qua từng phần tử và tạo component
-- `{...conceptItem}` là spread operator, truyền tất cả properties của `conceptItem` làm props
-- `key={conceptItem.title}` giúp React nhận biết từng phần tử (bắt buộc khi dùng `.map()`)
+- `CORE_CONCEPTS` is an array containing data (see `data.js`)
+- `.map()` iterates through each element and creates a component
+- `{...conceptItem}` is the spread operator, passing all properties of `conceptItem` as props
+- `key={conceptItem.title}` helps React identify each element (required when using `.map()`)
 
-**Dữ liệu trong `data.js`:**
+**Data in `data.js`:**
 
 ```6:31:src/data.js
 export const CORE_CONCEPTS = [
@@ -232,11 +210,11 @@ export const CORE_CONCEPTS = [
 ];
 ```
 
-Khi render, React sẽ tạo 4 component `CoreConcept`, mỗi component nhận một object từ mảng làm props.
+When rendering, React creates 4 `CoreConcept` components, each receiving an object from the array as props.
 
-### 3.3. State - Quản lý trạng thái
+### 3.3. State - Managing State
 
-#### Ví dụ: Sử dụng useState để quản lý topic được chọn
+#### Example: Using useState to manage the selected topic
 
 ```9:14:src/App.jsx
 function App() {
@@ -247,25 +225,25 @@ function App() {
   }
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- `useState()` là hook của React để tạo state
-- `selectedTopic` là giá trị hiện tại của state (có thể là `undefined`, `"components"`, `"jsx"`, `"props"`, hoặc `"state"`)
-- `setSelectedTopic` là hàm để thay đổi giá trị state
-- Khi gọi `setSelectedTopic("components")`, state thay đổi và component tự động re-render
+- `useState()` is a React hook to create state
+- `selectedTopic` is the current value of state (can be `undefined`, `"components"`, `"jsx"`, `"props"`, or `"state"`)
+- `setSelectedTopic` is a function to change the state value
+- When calling `setSelectedTopic("components")`, state changes and the component automatically re-renders
 
-**Cách hoạt động:**
+**How it works:**
 
-1. Ban đầu `selectedTopic = undefined`
-2. Người dùng click vào tab "Components"
-3. `handleSelect("components")` được gọi
-4. `setSelectedTopic("components")` cập nhật state
-5. React re-render component `App`
-6. UI cập nhật để hiển thị nội dung tương ứng
+1. Initially `selectedTopic = undefined`
+2. User clicks on the "Components" tab
+3. `handleSelect("components")` is called
+4. `setSelectedTopic("components")` updates the state
+5. React re-renders the `App` component
+6. UI updates to display the corresponding content
 
 ### 3.4. Conditional Rendering
 
-#### Ví dụ: Hiển thị nội dung dựa trên state
+#### Example: Displaying content based on state
 
 ```16:28:src/App.jsx
   let tabContent = <p>Please select a topic.</p>;
@@ -283,37 +261,37 @@ function App() {
   }
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- **Conditional Rendering** là cách hiển thị nội dung khác nhau dựa trên điều kiện
-- Ban đầu `tabContent` là một đoạn text mặc định
-- Nếu `selectedTopic` có giá trị (truthy), `tabContent` được gán JSX mới
-- JSX mới lấy dữ liệu từ object `EXAMPLES` dựa trên `selectedTopic`
+- **Conditional Rendering** is a way to display different content based on conditions
+- Initially `tabContent` is a default text paragraph
+- If `selectedTopic` has a value (truthy), `tabContent` is assigned new JSX
+- The new JSX retrieves data from the `EXAMPLES` object based on `selectedTopic`
 
-**Các cách conditional rendering khác:**
+**Other conditional rendering methods:**
 
 ```jsx
-// Cách 1: Dùng if-else
+// Method 1: Using if-else
 if (condition) {
   return <ComponentA />;
 } else {
   return <ComponentB />;
 }
 
-// Cách 2: Dùng toán tử ternary
+// Method 2: Using ternary operator
 {
   condition ? <ComponentA /> : <ComponentB />;
 }
 
-// Cách 3: Dùng toán tử &&
+// Method 3: Using && operator
 {
   condition && <ComponentA />;
 }
 ```
 
-### 3.5. Event Handling - Xử lý sự kiện
+### 3.5. Event Handling - Handling Events
 
-#### Ví dụ: Xử lý click event trên TabButton
+#### Example: Handling click event on TabButton
 
 ```45:70:src/App.jsx
           <menu>
@@ -344,15 +322,15 @@ if (condition) {
           </menu>
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- Mỗi `TabButton` nhận 2 props:
-  - `isSelected`: boolean để xác định tab nào đang được chọn
-  - `onSelect`: function callback được gọi khi click vào button
-- `selectedTopic === "components"` so sánh state với string, trả về `true` hoặc `false`
-- `() => handleSelect("components")` là arrow function, khi click sẽ gọi `handleSelect` với tham số `"components"`
+- Each `TabButton` receives 2 props:
+  - `isSelected`: boolean to determine which tab is selected
+  - `onSelect`: callback function called when clicking the button
+- `selectedTopic === "components"` compares state with string, returns `true` or `false`
+- `() => handleSelect("components")` is an arrow function, when clicked it calls `handleSelect` with parameter `"components"`
 
-#### Component TabButton xử lý event
+#### TabButton Component handling the event
 
 ```1:10:src/components/TabButton.jsx
 export default function TabButton({ children, onSelect, isSelected }) {
@@ -366,26 +344,26 @@ export default function TabButton({ children, onSelect, isSelected }) {
 }
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- `onClick={onSelect}` gán function `onSelect` (từ props) vào sự kiện click
-- Khi button được click, function `onSelect` được gọi
-- `children` là prop đặc biệt, chứa nội dung giữa thẻ mở và đóng: `<TabButton>Components</TabButton>`
-- `className={isSelected ? 'active' : undefined}` áp dụng class CSS nếu tab được chọn
+- `onClick={onSelect}` assigns the `onSelect` function (from props) to the click event
+- When the button is clicked, the `onSelect` function is called
+- `children` is a special prop containing content between opening and closing tags: `<TabButton>Components</TabButton>`
+- `className={isSelected ? 'active' : undefined}` applies CSS class if the tab is selected
 
-**Luồng xử lý sự kiện:**
+**Event handling flow:**
 
-1. Người dùng click vào button "Components"
-2. `onClick` trigger, gọi `onSelect()` (tức là `handleSelect("components")`)
-3. `handleSelect` gọi `setSelectedTopic("components")`
-4. State thay đổi → React re-render
-5. `selectedTopic === "components"` trả về `true`
-6. TabButton nhận `isSelected={true}` → button có class `active`
-7. `tabContent` được cập nhật với nội dung mới
+1. User clicks the "Components" button
+2. `onClick` triggers, calling `onSelect()` (which is `handleSelect("components")`)
+3. `handleSelect` calls `setSelectedTopic("components")`
+4. State changes → React re-renders
+5. `selectedTopic === "components"` returns `true`
+6. TabButton receives `isSelected={true}` → button has `active` class
+7. `tabContent` is updated with new content
 
-### 3.6. Tổng hợp: Luồng hoạt động của ứng dụng
+### 3.6. Summary: Application Flow
 
-#### Bước 1: Khởi tạo
+#### Step 1: Initialization
 
 ```1:8:src/index.jsx
 import ReactDOM from "react-dom/client";
@@ -397,10 +375,10 @@ const entryPoint = document.getElementById("root");
 ReactDOM.createRoot(entryPoint).render(<App />);
 ```
 
-- React tìm element có `id="root"` trong HTML
-- Render component `App` vào đó
+- React finds the element with `id="root"` in HTML
+- Renders the `App` component into it
 
-#### Bước 2: Render lần đầu
+#### Step 2: First Render
 
 ```30:74:src/App.jsx
   return (
@@ -451,50 +429,35 @@ ReactDOM.createRoot(entryPoint).render(<App />);
   );
 ```
 
-**Khi render lần đầu:**
+**On first render:**
 
-- `selectedTopic = undefined` (chưa chọn tab nào)
-- Tất cả `TabButton` có `isSelected={false}`
+- `selectedTopic = undefined` (no tab selected yet)
+- All `TabButton` components have `isSelected={false}`
 - `tabContent = <p>Please select a topic.</p>`
 
-#### Bước 3: Tương tác người dùng
+#### Step 3: User Interaction
 
-- Người dùng click vào tab "JSX"
-- `handleSelect("jsx")` được gọi
-- `setSelectedTopic("jsx")` cập nhật state
-- React re-render component
+- User clicks on the "JSX" tab
+- `handleSelect("jsx")` is called
+- `setSelectedTopic("jsx")` updates the state
+- React re-renders the component
 
-#### Bước 4: Re-render
+#### Step 4: Re-render
 
 - `selectedTopic = "jsx"`
-- TabButton "JSX" có `isSelected={true}` → có class `active`
-- `tabContent` được cập nhật với nội dung từ `EXAMPLES["jsx"]`
-- UI hiển thị title, description và code example của JSX
+- TabButton "JSX" has `isSelected={true}` → has `active` class
+- `tabContent` is updated with content from `EXAMPLES["jsx"]`
+- UI displays the title, description, and code example for JSX
 
 ---
 
-## 📝 Tóm tắt
+## 📝 Summary
 
-### Các khái niệm đã học
+![Summary](./public/summary.png)
 
-1. **Components**: Khối xây dựng cơ bản, có thể tái sử dụng
-2. **JSX**: Cú pháp viết HTML trong JavaScript
-3. **Props**: Truyền dữ liệu từ component cha xuống component con
-4. **State**: Dữ liệu được quản lý bởi React, khi thay đổi sẽ re-render
+### Important Notes
 
-### Các kỹ thuật đã thực hành
-
-- Tạo và sử dụng components
-- Truyền props giữa các components
-- Sử dụng `useState` để quản lý state
-- Conditional rendering (render theo điều kiện)
-- Event handling (xử lý sự kiện click)
-- Render danh sách với `.map()`
-- Sử dụng `key` prop khi render danh sách
-
-### Lưu ý quan trọng
-
-1. **Props là read-only**: Không thể thay đổi props từ component con
-2. **State chỉ thay đổi bằng setter**: Luôn dùng hàm setter (như `setSelectedTopic`) để thay đổi state
-3. **Key prop**: Luôn cần `key` khi render danh sách với `.map()`
-4. **Event handlers**: Truyền function, không gọi function (không dùng `onClick={handleSelect()}`)
+1. **Props are read-only**: Cannot change props from child components
+2. **State only changes with setter**: Always use setter functions (like `setSelectedTopic`) to change state
+3. **Key prop**: Always need `key` when rendering lists with `.map()`
+4. **Event handlers**: Pass function, don't call function (don't use `onClick={handleSelect()}`)

@@ -9,6 +9,8 @@ A demo application for managing UI preferences using **Context API** combined wi
 - Function that creates a Context object for sharing state between components.
 - Avoids prop drilling by providing a way to pass data through the component tree.
 
+![Create Context](./public/createContext.png)
+
 **Provider**:
 
 - Component that provides values to a Context.
@@ -20,17 +22,23 @@ A demo application for managing UI preferences using **Context API** combined wi
 - Hook that consumes values from a Context.
 - Returns the value provided by the nearest Provider.
 
+![useContext](./public/useContext.png)
+
 **useReducer**:
 
 - Hook for managing complex state, alternative to `useState`.
 - Takes a reducer function and initial state.
 - Returns current state and dispatch function.
 
+![useReducer](./public/useReducer.png)
+
 **reducer**:
 
 - Pure function that takes `(state, action)` and returns new state.
 - Handles state updates based on action type.
 - Must be immutable (no mutations).
+
+![Reducer Function](./public/appReducer.png)
 
 **action**:
 
@@ -89,8 +97,6 @@ export type AppAction = SetThemeAction | SetPrimaryColorAction | ...;
 
 **File: `src/context/appReducer.ts`**: Create reducer function to handle state updates.
 
-![Reducer Function](./public/appReducer.png)
-
 **Example**:
 
 ```typescript
@@ -121,8 +127,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
 **File: `src/context/AppContext.tsx`**
 
-![Create Context](./public/createContext.png)
-
 **Example**:
 
 ```typescript
@@ -146,8 +150,6 @@ export const AppContext = createContext<AppContextValue | undefined>(undefined);
 #### 3.2. Create Provider with `useReducer`
 
 **File: `src/context/AppContext.tsx`**
-
-![useReducer](./public/useReducer.png)
 
 **Example**:
 
@@ -174,8 +176,6 @@ export function AppProvider({ children }: AppProviderProps) {
 ### Step 4: Create Custom Hook
 
 **File: `src/hooks/useAppContext.ts`**
-
-![useContext](./public/useContext.png)
 
 **Example**:
 

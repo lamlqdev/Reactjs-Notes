@@ -7,20 +7,28 @@
 - Function that generates reducer, action creators and action types together.
 - Reduces boilerplate code.
 
+![createSlice](./public/createSlice.png)
+
 **configureStore**:
 
 - Function that creates a store with good defaults.
 - Replace the older `createStore`.
+
+![configureStore](./public/configureStore.png)
 
 **createSelector**:
 
 - Function that creates a selector function.
 - Used to create memoized selectors.
 
+![createSelector](./public/createSelector.png)
+
 **createAsyncThunk**:
 
 - Create thunk actions for async operations (API calls).
 - Automatically generates pending, fulfilled, and rejected action.
+
+![createAsyncThunk](./public/createAsyncThunk.png)
 
 **thunk**:
 
@@ -41,8 +49,6 @@ This section guides you through implementing a simple feature with Redux Toolkit
 **Why this order?** We create the slice first because the store setup needs to import the reducer from the slice. This follows the natural development flow: define your feature logic (slice) → combine reducers → setup store → use in components.
 
 ### Step 1: Create Auth Slice with `createSlice`
-
-![createSlice](./public/createSlice.png)
 
 **Example**:
 
@@ -114,8 +120,6 @@ export const rootReducer = combineReducers({
 
 #### 2.2. Create Store with `configureStore`
 
-![configureStore](./public/configureStore.png)
-
 **Example**:
 
 ```typescript
@@ -175,8 +179,6 @@ export const useAppSelector = useSelector.withTypes<RootState>();
 - Prevents type errors when dispatching actions or selecting state
 
 ### Step 3: Create Selectors with `createSelector`
-
-![createSelector](./public/createSelector.png)
 
 **Example**:
 
@@ -269,8 +271,6 @@ const Component = () => {
 This section guides you through implementing a more complex feature with async operations and advanced selectors.
 
 ### Step 1: Create Async Thunks with `createAsyncThunk`
-
-![createAsyncThunk](./public/createAsyncThunk.png)
 
 **Example**:
 
