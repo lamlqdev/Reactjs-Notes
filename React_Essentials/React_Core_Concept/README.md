@@ -12,7 +12,7 @@ React is built on 4 core concepts:
 
 **Components** are the basic building blocks of React applications. Each component is an independent, reusable module (HTML + CSS + JavaScript).
 
-![Components](./public/Components.png)
+![Components](./public/components.png)
 
 **Examples in this project:**
 
@@ -27,35 +27,28 @@ React is built on 4 core concepts:
 
 **JSX** is a JavaScript syntax extension that allows you to write HTML-like code in JavaScript.
 
-**Example:**
-
-```jsx
-return (
-  <div>
-    <h1>Hello, World!</h1>
-    <p>Welcome to React!</p>
-  </div>
-);
-```
-
 ![JSX](./public/jsx.png)
 
 ### 1.3. Props (Properties)
 
 **Props** are a way to pass data from parent components to child components. Props are like function parameters.
 
+![Props](./public/props.png)
+
 **Examples in this project:**
 
 - `CoreConcept` receives props: `image`, `title`, `description`
 - `TabButton` receives props: `children`, `onSelect`, `isSelected`
 
-**Characteristics:**
+![Understanding Props](./public/understanding-props.png)
 
-- Props are read-only
-- Props allow components to be reusable with different data
-- Props are passed from parent components to child components
+![Props accept any data type](./public/props-accept-types.png)
 
-![Props](./public/prop.png)
+Children props are used to pass content between components.
+
+![Children props](./public/children-prop.png)
+
+![Children vs Attributes](./public/children-vs-attribute-prop.png)
 
 ### 1.4. State
 
@@ -69,25 +62,26 @@ return (
 
 ### 2.1. Basic Process
 
-1. **Initialize the application:**
+**Initialize the application:**
 
-   - React finds the `root` element in HTML (`index.html`)
-   - Renders the `App` component into that element
+- React finds the `root` element in HTML (`index.html`)
+- Renders the `App` component into that element
 
-2. **Render component:**
+**Render component:**
 
-   - React reads JSX and converts it into DOM elements
-   - Displays them on the screen
+- React reads JSX and converts it into DOM elements
+- Displays them on the screen
 
-3. **Update UI:**
-   - When state changes, React automatically re-renders
-   - Only updates the parts that changed (efficient)
+**Update UI:**
+
+- When state changes, React automatically re-renders
+- Only updates the parts that changed (efficient)
 
 ### 2.2. Component Tree
 
-![Component Tree](./public/component-tree.png)
-
 Each component can contain other child components, forming a component tree.
+
+![Component Tree](./public/component-tree.png)
 
 ### 2.3. Data Flow
 
@@ -360,96 +354,6 @@ export default function TabButton({ children, onSelect, isSelected }) {
 5. `selectedTopic === "components"` returns `true`
 6. TabButton receives `isSelected={true}` → button has `active` class
 7. `tabContent` is updated with new content
-
-### 3.6. Summary: Application Flow
-
-#### Step 1: Initialization
-
-```1:8:src/index.jsx
-import ReactDOM from "react-dom/client";
-
-import App from "./App.jsx";
-import "./index.css";
-
-const entryPoint = document.getElementById("root");
-ReactDOM.createRoot(entryPoint).render(<App />);
-```
-
-- React finds the element with `id="root"` in HTML
-- Renders the `App` component into it
-
-#### Step 2: First Render
-
-```30:74:src/App.jsx
-  return (
-    <div>
-      <Header />
-      <main>
-        <section id="core-concepts">
-          <h2>Core Concepts</h2>
-          <ul>
-            {CORE_CONCEPTS.map((conceptItem) => (
-              <CoreConcept key={conceptItem.title} {...conceptItem} />
-            ))}
-          </ul>
-        </section>
-
-        <section id="examples">
-          <h2>Examples</h2>
-          <menu>
-            <TabButton
-              isSelected={selectedTopic === "components"}
-              onSelect={() => handleSelect("components")}
-            >
-              Components
-            </TabButton>
-            <TabButton
-              isSelected={selectedTopic === "jsx"}
-              onSelect={() => handleSelect("jsx")}
-            >
-              JSX
-            </TabButton>
-            <TabButton
-              isSelected={selectedTopic === "props"}
-              onSelect={() => handleSelect("props")}
-            >
-              Props
-            </TabButton>
-            <TabButton
-              isSelected={selectedTopic === "state"}
-              onSelect={() => handleSelect("state")}
-            >
-              State
-            </TabButton>
-          </menu>
-          {tabContent}
-        </section>
-      </main>
-    </div>
-  );
-```
-
-**On first render:**
-
-- `selectedTopic = undefined` (no tab selected yet)
-- All `TabButton` components have `isSelected={false}`
-- `tabContent = <p>Please select a topic.</p>`
-
-#### Step 3: User Interaction
-
-- User clicks on the "JSX" tab
-- `handleSelect("jsx")` is called
-- `setSelectedTopic("jsx")` updates the state
-- React re-renders the component
-
-#### Step 4: Re-render
-
-- `selectedTopic = "jsx"`
-- TabButton "JSX" has `isSelected={true}` → has `active` class
-- `tabContent` is updated with content from `EXAMPLES["jsx"]`
-- UI displays the title, description, and code example for JSX
-
----
 
 ## 📝 Summary
 
