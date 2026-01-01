@@ -10,6 +10,14 @@ A comprehensive demo application demonstrating **Frontend Authentication** patte
 
 ![Authentication vs Authorization](./public/authentication-authorization.png)
 
+### Session-based Authentication
+
+![Session-based Authentication](./public/session-based-authentication.png)
+
+**httpOnly Cookies**: Cookies that cannot be accessed via JavaScript, preventing XSS attacks.
+
+**When to use**: Traditional web applications where server controls session lifecycle and security is critical.
+
 ### JWT-based Authentication
 
 ![JWT-based Authentication](./public/jwt-based-authentication.png)
@@ -28,29 +36,15 @@ A comprehensive demo application demonstrating **Frontend Authentication** patte
 
 **Best Practice**: For production apps, use httpOnly cookies for refresh tokens and short-lived access tokens in memory or secure storage.
 
-### Session-based Authentication
-
-![Session-based Authentication](./public/session-based-authentication.png)
-
-**httpOnly Cookies**: Cookies that cannot be accessed via JavaScript, preventing XSS attacks.
-
-**When to use**: Traditional web applications where server controls session lifecycle and security is critical.
-
 ---
 
 ## Basic: Authentication Implementation
-
-This section guides you through implementing basic authentication features.
 
 ### Example 1: Simple Login Form with JWT
 
 **File: `src/components/Login.tsx`**
 
 ```typescript
-import { useState, FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-
 function Login() {
   const navigate = useNavigate();
   const { login, error, isLoading } = useAuth();
@@ -73,15 +67,11 @@ function Login() {
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        required
       />
       <input
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        required
       />
       {error && <div className="error">{error}</div>}
       <button type="submit" disabled={isLoading}>
@@ -92,62 +82,28 @@ function Login() {
 }
 ```
 
-**Explanation**:
-
-- Form collects email and password
-- Calls `login` function from `useAuth` hook
-- Handles loading and error states
-- Navigates to dashboard on success
-- Disables button during loading to prevent double submission
-
-**File: `src/api/authApi.ts`**
-
-```typescript
-export const authApi = {
-  login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await axios.post("/auth/login", credentials);
-    return response.data;
-  },
-};
-```
+**Explanation**: Form collects credentials, calls `login` from `useAuth` hook, handles loading/error states, and navigates to dashboard on success.
 
 ### Example 2: Token Storage Implementation
 
-This project is a demo, so it uses **localStorage** to store tokens. Although localStorage has security risks (vulnerable to XSS attacks), it's suitable for learning and demo purposes because it's easy to use and debug.
+This project is a demo, so it uses `localStorage` to store tokens. Although `localStorage` has security risks (vulnerable to XSS attacks), it's suitable for learning and demo purposes because it's easy to use and debug.
 
 **File: `src/utils/tokenStorage.ts`**
 
 ```typescript
-// localStorage Strategy - Used for demo project
 export const tokenStorage = {
-  getAccessToken: (): string | null => {
-    return localStorage.getItem("access_token");
-  },
-  setAccessToken: (token: string): void => {
-    localStorage.setItem("access_token", token);
-  },
-  removeAccessToken: (): void => {
-    localStorage.removeItem("access_token");
-  },
-  getRefreshToken: (): string | null => {
-    return localStorage.getItem("refresh_token");
-  },
-  setRefreshToken: (token: string): void => {
-    localStorage.setItem("refresh_token", token);
-  },
-  removeRefreshToken: (): void => {
-    localStorage.removeItem("refresh_token");
-  },
+  getAccessToken: (): string | null => localStorage.getItem("access_token"),
+  setAccessToken: (token: string): void =>
+    localStorage.setItem("access_token", token),
+  getRefreshToken: (): string | null => localStorage.getItem("refresh_token"),
+  setRefreshToken: (token: string): void =>
+    localStorage.setItem("refresh_token", token),
   getUser: (): any => {
     const user = localStorage.getItem("user");
     return user ? JSON.parse(user) : null;
   },
-  setUser: (user: any): void => {
-    localStorage.setItem("user", JSON.stringify(user));
-  },
-  removeUser: (): void => {
-    localStorage.removeItem("user");
-  },
+  setUser: (user: any): void =>
+    localStorage.setItem("user", JSON.stringify(user)),
   clearAll: (): void => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
@@ -187,28 +143,9 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 };
 ```
 
-**Usage**:
+**Usage**: Wrap protected routes with `<ProtectedRoute><Dashboard /></ProtectedRoute>`
 
-```typescript
-<Routes>
-  <Route
-    path="/dashboard"
-    element={
-      <ProtectedRoute>
-        <Dashboard />
-      </ProtectedRoute>
-    }
-  />
-</Routes>
-```
-
-**Explanation**:
-
-- Checks authentication status before rendering children
-- Shows loading state while checking
-- Redirects to login if not authenticated
-- Preserves attempted location for redirect after login
-- Uses `replace` to avoid adding login page to history
+**Explanation**: Checks authentication status, shows loading state, redirects to login if not authenticated, and preserves attempted location for redirect after login.
 
 ---
 
@@ -223,40 +160,14 @@ This section covers more complex authentication patterns and features.
 **File: `src/context/AuthContext.tsx`**
 
 ```typescript
-import {
-  createContext,
-  useContext,
-  useReducer,
-  useEffect,
-  ReactNode,
-} from "react";
-import {
-  AuthState,
-  AuthAction,
-  LoginCredentials,
-  RegisterData,
-} from "../types/auth.types";
-import { authApi } from "../api/authApi";
-import { tokenStorage } from "../utils/tokenStorage";
-
-const initialState: AuthState = {
-  user: null,
-  isAuthenticated: false,
-  isLoading: true,
-  error: null,
-};
-
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
-    case "LOGIN_START":
-      return { ...state, isLoading: true, error: null };
     case "LOGIN_SUCCESS":
       return {
         ...state,
         user: action.payload.user,
         isAuthenticated: true,
         isLoading: false,
-        error: null,
       };
     case "LOGIN_FAILURE":
       return {
@@ -267,44 +178,20 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       };
     case "LOGOUT":
       return { ...state, user: null, isAuthenticated: false };
-    case "SET_USER":
-      return { ...state, user: action.payload, isAuthenticated: true };
-    case "SET_LOADING":
-      return { ...state, isLoading: action.payload };
-    case "CLEAR_ERROR":
-      return { ...state, error: null };
-    default:
-      return state;
+    // ... other cases
   }
 };
-
-interface AuthContextType {
-  state: AuthState;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
-  logout: () => Promise<void>;
-  clearError: () => void;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Check for existing session on mount
   useEffect(() => {
-    const initAuth = async () => {
-      const token = tokenStorage.getAccessToken();
-      const user = tokenStorage.getUser();
-
-      if (token && user) {
-        dispatch({ type: "SET_USER", payload: user });
-      }
-
-      dispatch({ type: "SET_LOADING", payload: false });
-    };
-
-    initAuth();
+    const token = tokenStorage.getAccessToken();
+    const user = tokenStorage.getUser();
+    if (token && user) {
+      dispatch({ type: "SET_USER", payload: user });
+    }
+    dispatch({ type: "SET_LOADING", payload: false });
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
@@ -312,92 +199,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authApi.login(credentials);
       tokenStorage.setAccessToken(response.accessToken);
-      tokenStorage.setRefreshToken(response.refreshToken);
       tokenStorage.setUser(response.user);
-      dispatch({
-        type: "LOGIN_SUCCESS",
-        payload: {
-          user: response.user,
-          accessToken: response.accessToken,
-          refreshToken: response.refreshToken,
-        },
-      });
+      dispatch({ type: "LOGIN_SUCCESS", payload: { user: response.user } });
     } catch (error) {
-      dispatch({
-        type: "LOGIN_FAILURE",
-        payload: error instanceof Error ? error.message : "Login failed",
-      });
-      throw error;
-    }
-  };
-
-  const register = async (data: RegisterData) => {
-    dispatch({ type: "LOGIN_START" });
-    try {
-      const response = await authApi.register(data);
-      tokenStorage.setAccessToken(response.accessToken);
-      tokenStorage.setRefreshToken(response.refreshToken);
-      tokenStorage.setUser(response.user);
-      dispatch({
-        type: "LOGIN_SUCCESS",
-        payload: {
-          user: response.user,
-          accessToken: response.accessToken,
-          refreshToken: response.refreshToken,
-        },
-      });
-    } catch (error) {
-      dispatch({
-        type: "LOGIN_FAILURE",
-        payload: error instanceof Error ? error.message : "Registration failed",
-      });
-      throw error;
+      dispatch({ type: "LOGIN_FAILURE", payload: error.message });
     }
   };
 
   const logout = async () => {
-    try {
-      await authApi.logout();
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      tokenStorage.clearAll();
-      dispatch({ type: "LOGOUT" });
-    }
-  };
-
-  const clearError = () => {
-    dispatch({ type: "CLEAR_ERROR" });
+    tokenStorage.clearAll();
+    dispatch({ type: "LOGOUT" });
   };
 
   return (
-    <AuthContext.Provider
-      value={{ state, login, register, logout, clearError }}
-    >
+    <AuthContext.Provider value={{ state, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
 ```
 
-**Explanation**:
-
-- Centralized auth state management with Context API
-- Reducer pattern for predictable state updates
-- `useEffect` initializes auth state from localStorage on mount
-- `login` and `register` functions handle authentication
-- `logout` clears tokens and resets state
-- `clearError` allows manual error clearing
-- Persists tokens and user data to localStorage
-- Custom hook provides convenient access to auth state and methods
+**Explanation**: Centralized auth state with Context API and useReducer. Initializes from localStorage on mount, handles login/logout, and persists tokens. Use `useAuth()` hook to access auth state and methods.
 
 ### Example 2: Axios Interceptors for Token Management
 
@@ -406,69 +228,40 @@ export const useAuth = (): AuthContextType => {
 **File: `src/api/axiosInstance.ts`**
 
 ```typescript
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
-import { tokenStorage } from "../utils/tokenStorage";
-import { isTokenExpired } from "../utils/tokenUtils";
-
-export const axiosInstance = axios.create({
-  baseURL: "http://localhost:3000/api",
-  timeout: 10000,
-});
-
 // Request interceptor - Attach token
-axiosInstance.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = tokenStorage.getAccessToken();
-    if (token && !isTokenExpired(token)) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error: AxiosError) => Promise.reject(error)
-);
+axiosInstance.interceptors.request.use((config) => {
+  const token = tokenStorage.getAccessToken();
+  if (token && !isTokenExpired(token)) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 // Response interceptor - Handle 401 and refresh token
 axiosInstance.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & {
-      _retry?: boolean;
-    };
-
+  async (error) => {
+    const originalRequest = error.config;
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-
-      const refreshToken = tokenStorage.getRefreshToken();
-      if (refreshToken && !isTokenExpired(refreshToken)) {
-        try {
-          const response = await axios.post("/auth/refresh", { refreshToken });
-          const { accessToken } = response.data;
-
-          tokenStorage.setAccessToken(accessToken);
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return axiosInstance(originalRequest);
-        } catch {
-          tokenStorage.clearAll();
-          window.location.href = "/login";
-        }
+      try {
+        const response = await axios.post("/auth/refresh", {
+          refreshToken: tokenStorage.getRefreshToken(),
+        });
+        tokenStorage.setAccessToken(response.data.accessToken);
+        originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+        return axiosInstance(originalRequest);
+      } catch {
+        tokenStorage.clearAll();
+        window.location.href = "/login";
       }
     }
-
     return Promise.reject(error);
   }
 );
 ```
 
-**Explanation**:
-
-- **Recommended approach**: This is the preferred method for token refresh in production applications
-- Request interceptor attaches access token to all requests automatically
-- Response interceptor handles 401 errors (unauthorized/expired token)
-- **On-demand refresh**: Only refreshes tokens when actually needed (when API call fails with 401)
-- Automatically retries the failed request after successful token refresh
-- Logs out user if refresh fails or refresh token is expired
-- Prevents infinite retry loops with `_retry` flag
-- **Efficient**: No unnecessary API calls or periodic checks - refresh happens only when required
+**Explanation**: Request interceptor attaches access token automatically. Response interceptor handles 401 errors by refreshing token on-demand (only when needed), retries failed request, and logs out if refresh fails. This is the recommended approach for production.
 
 ### Example 3: Role-Based Access Control (RBAC)
 
@@ -506,27 +299,9 @@ export const RoleGuard = ({
 };
 ```
 
-**Usage**:
+**Usage**: `<RoleGuard allowedRoles={["admin"]}><AdminPanel /></RoleGuard>`
 
-```typescript
-<Route
-  path="/admin"
-  element={
-    <ProtectedRoute>
-      <RoleGuard allowedRoles={["admin"]}>
-        <AdminPanel />
-      </RoleGuard>
-    </ProtectedRoute>
-  }
-/>
-```
-
-**Explanation**:
-
-- Checks if user is authenticated first
-- Verifies user role against allowed roles
-- Redirects unauthorized users to fallback path
-- Can be combined with ProtectedRoute for layered protection
+**Explanation**: Checks authentication first, verifies user role against allowed roles, and redirects unauthorized users. Can be combined with ProtectedRoute for layered protection.
 
 ### Example 4: Token Utilities
 
@@ -535,41 +310,18 @@ export const RoleGuard = ({
 **File: `src/utils/tokenUtils.ts`**
 
 ```typescript
-/**
- * Check if token is expired
- */
 export const isTokenExpired = (token: string | null): boolean => {
   if (!token) return true;
-
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
-    const exp = payload.exp * 1000;
-    return Date.now() >= exp;
+    return Date.now() >= payload.exp * 1000;
   } catch {
     return true;
   }
 };
 
-/**
- * Get token expiration time
- */
-export const getTokenExpiration = (token: string | null): number | null => {
-  if (!token) return null;
-
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.exp * 1000;
-  } catch {
-    return null;
-  }
-};
-
-/**
- * Decode JWT token payload
- */
 export const decodeToken = (token: string | null): any => {
   if (!token) return null;
-
   try {
     return JSON.parse(atob(token.split(".")[1]));
   } catch {
@@ -578,13 +330,7 @@ export const decodeToken = (token: string | null): any => {
 };
 ```
 
-**Explanation**:
-
-- JWT tokens have three parts: header.payload.signature
-- Payload is base64 encoded JSON
-- `atob()` decodes base64 string
-- `exp` field contains expiration timestamp (seconds since epoch)
-- Always handle errors as tokens may be malformed
+**Explanation**: JWT tokens have three parts (header.payload.signature). Payload is base64 encoded JSON. `atob()` decodes base64, `exp` field contains expiration timestamp. Always handle errors as tokens may be malformed.
 
 ---
 
@@ -616,15 +362,30 @@ export const decodeToken = (token: string | null): any => {
 
 ## Summary
 
-Frontend Authentication enables secure user access and authorization:
+Frontend Authentication is a crucial component in building secure web applications. This documentation has covered the key concepts and patterns for implementing authentication in React with TypeScript.
 
-1. **Authentication**: Verify user identity (login/logout)
-2. **Token Management**: Store and manage JWT tokens securely
-3. **Protected Routes**: Restrict access to authenticated users
-4. **Role-Based Access**: Control access based on user roles
-5. **Token Refresh**: Automatically refresh expired tokens
-6. **Axios Interceptors**: Automatically attach tokens to requests
-7. **Security**: Follow best practices to prevent common attacks
+### Authentication Methods
+
+1. **Session-based Authentication**: Traditional method using server-side sessions and httpOnly cookies. Suitable for traditional web applications where the server controls session lifecycle and security is a top priority.
+
+2. **JWT-based Authentication**: Stateless token-based method, ideal for SPAs, mobile apps, and stateless APIs. Enables scalability without server-side session storage.
+
+### Best Practices for Authentication
+
+- **Storage**: Use httpOnly cookies for refresh tokens in production, avoid localStorage for sensitive data
+- **Token Expiration**: Use short-lived access tokens (15-60 minutes) and longer-lived refresh tokens (7-30 days)
+- **HTTPS Only**: Always use HTTPS in production to encrypt communication
+- **Server Validation**: Always validate tokens on the server, never fully trust client-side validation
+- **Input Sanitization**: Sanitize user inputs to prevent XSS attacks
+- **Rate Limiting**: Implement rate limiting on authentication endpoints to prevent brute force attacks
+
+### Security Considerations
+
+Common security vulnerabilities to be aware of:
+
+- **XSS (Cross-Site Scripting)**: Prevent with httpOnly cookies, input sanitization, and CSP
+- **CSRF (Cross-Site Request Forgery)**: Prevent with CSRF tokens, SameSite cookie attribute
+- **Token Theft**: Mitigate with httpOnly cookies, HTTPS, short token expiration, and token rotation
 
 ---
 
