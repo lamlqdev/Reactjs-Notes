@@ -8,43 +8,29 @@ A comprehensive demo application demonstrating **Frontend Authentication** patte
 
 ### Authentication vs Authorization
 
-**Authentication**: The process of verifying who a user is (login). It answers "Who are you?"
+![Authentication vs Authorization](./public/authentication-authorization.png)
 
-**Authorization**: The process of verifying what a user has access to (permissions). It answers "What can you do?"
+### JWT-based Authentication
 
-**Example**:
-
-```typescript
-// Authentication - Login
-const { login } = useAuth();
-await login({ email: "user@example.com", password: "password123" });
-
-// Authorization - Check permissions
-const { user } = useAuth();
-if (user?.role === "admin") {
-  // Allow access to admin features
-}
-```
-
-### Token-based Authentication
-
-**JWT (JSON Web Token)**: A compact, URL-safe token format for securely transmitting information between parties. Consists of three parts: header.payload.signature.
-
-**Access Token**: Short-lived token used to authenticate API requests. Typically expires in 15 minutes to 1 hour.
-
-**Refresh Token**: Long-lived token used to obtain new access tokens. Typically expires in days or weeks.
-
-**Token Storage Strategies**:
-
-- **localStorage**: Accessible via JavaScript, vulnerable to XSS attacks
-- **sessionStorage**: Similar to localStorage but cleared when tab closes
-- **httpOnly Cookies**: Not accessible via JavaScript, protected from XSS, requires CSRF protection
+![JWT-based Authentication](./public/jwt-based-authentication.png)
 
 **When to use**: Token-based authentication is ideal for stateless APIs, SPAs, and mobile apps. It allows scalability without server-side session storage.
 
+![Refresh Token vs Access Token](./public/refresh-token-vs-access-token.png)
+
+**Storage Comparison**:
+
+| Storage Type         | Pros                                     | Cons                                   | Best For                        |
+| -------------------- | ---------------------------------------- | -------------------------------------- | ------------------------------- |
+| **localStorage**     | Persists across tabs, easy to use        | Vulnerable to XSS, accessible to JS    | Development, non-sensitive data |
+| **sessionStorage**   | Cleared on tab close, easy to use        | Vulnerable to XSS, accessible to JS    | Temporary data, single session  |
+| **httpOnly Cookies** | Protected from XSS, not accessible to JS | Requires CSRF protection, server setup | Production, sensitive tokens    |
+
+**Best Practice**: For production apps, use httpOnly cookies for refresh tokens and short-lived access tokens in memory or secure storage.
+
 ### Session-based Authentication
 
-**Server-side Sessions**: Server stores session data, client receives session ID in cookie.
+![Session-based Authentication](./public/session-based-authentication.png)
 
 **httpOnly Cookies**: Cookies that cannot be accessed via JavaScript, preventing XSS attacks.
 
@@ -57,8 +43,6 @@ if (user?.role === "admin") {
 This section guides you through implementing basic authentication features.
 
 ### Example 1: Simple Login Form with JWT
-
-**When to use**: When you need to authenticate users and receive JWT tokens from your backend.
 
 **File: `src/components/Login.tsx`**
 
@@ -127,14 +111,14 @@ export const authApi = {
 };
 ```
 
-### Example 2: Token Storage Strategies
+### Example 2: Token Storage Implementation
 
-**When to use**: Understanding different token storage options and their trade-offs.
+This project is a demo, so it uses **localStorage** to store tokens. Although localStorage has security risks (vulnerable to XSS attacks), it's suitable for learning and demo purposes because it's easy to use and debug.
 
 **File: `src/utils/tokenStorage.ts`**
 
 ```typescript
-// localStorage Strategy
+// localStorage Strategy - Used for demo project
 export const tokenStorage = {
   getAccessToken: (): string | null => {
     return localStorage.getItem("access_token");
@@ -145,18 +129,32 @@ export const tokenStorage = {
   removeAccessToken: (): void => {
     localStorage.removeItem("access_token");
   },
+  getRefreshToken: (): string | null => {
+    return localStorage.getItem("refresh_token");
+  },
+  setRefreshToken: (token: string): void => {
+    localStorage.setItem("refresh_token", token);
+  },
+  removeRefreshToken: (): void => {
+    localStorage.removeItem("refresh_token");
+  },
+  getUser: (): any => {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
+  },
+  setUser: (user: any): void => {
+    localStorage.setItem("user", JSON.stringify(user));
+  },
+  removeUser: (): void => {
+    localStorage.removeItem("user");
+  },
+  clearAll: (): void => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user");
+  },
 };
 ```
-
-**Storage Comparison**:
-
-| Storage Type         | Pros                                     | Cons                                   | Best For                        |
-| -------------------- | ---------------------------------------- | -------------------------------------- | ------------------------------- |
-| **localStorage**     | Persists across tabs, easy to use        | Vulnerable to XSS, accessible to JS    | Development, non-sensitive data |
-| **sessionStorage**   | Cleared on tab close, easy to use        | Vulnerable to XSS, accessible to JS    | Temporary data, single session  |
-| **httpOnly Cookies** | Protected from XSS, not accessible to JS | Requires CSRF protection, server setup | Production, sensitive tokens    |
-
-**Best Practice**: For production apps, use httpOnly cookies for refresh tokens and short-lived access tokens in memory or secure storage.
 
 ### Example 3: Protected Routes
 
@@ -211,68 +209,6 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 - Redirects to login if not authenticated
 - Preserves attempted location for redirect after login
 - Uses `replace` to avoid adding login page to history
-
-### Example 4: Token Refresh Flow
-
-**When to use**: When you need to automatically refresh access tokens before they expire.
-
-**File: `src/hooks/useTokenRefresh.ts`**
-
-```typescript
-import { useEffect, useRef } from "react";
-import { tokenStorage } from "../utils/tokenStorage";
-import { getTokenExpiration } from "../utils/tokenUtils";
-import { authApi } from "../api/authApi";
-
-export const useTokenRefresh = (refreshInterval: number = 60000) => {
-  const intervalRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    const checkAndRefreshToken = async () => {
-      const accessToken = tokenStorage.getAccessToken();
-      const refreshToken = tokenStorage.getRefreshToken();
-
-      if (!accessToken || !refreshToken) return;
-
-      const expiration = getTokenExpiration(accessToken);
-      const fiveMinutesFromNow = Date.now() + 5 * 60 * 1000;
-
-      // Refresh if token expires within 5 minutes
-      if (expiration && expiration < fiveMinutesFromNow) {
-        try {
-          const response = await authApi.refreshToken(refreshToken);
-          tokenStorage.setAccessToken(response.accessToken);
-          tokenStorage.setRefreshToken(response.refreshToken);
-        } catch (error) {
-          tokenStorage.clearAll();
-          window.location.href = "/login";
-        }
-      }
-    };
-
-    checkAndRefreshToken();
-    intervalRef.current = window.setInterval(
-      checkAndRefreshToken,
-      refreshInterval
-    );
-
-    return () => {
-      if (intervalRef.current !== null) {
-        window.clearInterval(intervalRef.current);
-      }
-    };
-  }, [refreshInterval]);
-};
-```
-
-**Explanation**:
-
-- Uses `useRef` to store interval ID (number type for browser environment)
-- Checks token expiration periodically (default: every 60 seconds)
-- Refreshes token before it expires (5 minutes buffer)
-- Uses `window.setInterval` and `window.clearInterval` for browser compatibility
-- Handles refresh failures by clearing storage and redirecting to login
-- Cleans up interval on unmount to prevent memory leaks
 
 ---
 
@@ -525,11 +461,14 @@ axiosInstance.interceptors.response.use(
 
 **Explanation**:
 
-- Request interceptor attaches access token to all requests
-- Response interceptor handles 401 errors (unauthorized)
-- Automatically refreshes token and retries failed request
-- Logs out user if refresh fails
+- **Recommended approach**: This is the preferred method for token refresh in production applications
+- Request interceptor attaches access token to all requests automatically
+- Response interceptor handles 401 errors (unauthorized/expired token)
+- **On-demand refresh**: Only refreshes tokens when actually needed (when API call fails with 401)
+- Automatically retries the failed request after successful token refresh
+- Logs out user if refresh fails or refresh token is expired
 - Prevents infinite retry loops with `_retry` flag
+- **Efficient**: No unnecessary API calls or periodic checks - refresh happens only when required
 
 ### Example 3: Role-Based Access Control (RBAC)
 
@@ -653,51 +592,25 @@ export const decodeToken = (token: string | null): any => {
 
 ### Common Security Concerns
 
-**XSS (Cross-Site Scripting)**:
+**XSS (Cross-Site Scripting)**: Attackers can inject malicious scripts that steal tokens from localStorage. To prevent this, use httpOnly cookies, sanitize user inputs, and implement Content Security Policy (CSP).
 
-- **Risk**: Attackers inject malicious scripts that steal tokens from localStorage
-- **Prevention**: Use httpOnly cookies, sanitize user inputs, use Content Security Policy (CSP)
+**CSRF (Cross-Site Request Forgery)**: Attackers can trick users into making unwanted requests. Prevent this by using CSRF tokens, setting the SameSite cookie attribute, and verifying origin headers.
 
-**CSRF (Cross-Site Request Forgery)**:
-
-- **Risk**: Attackers trick users into making unwanted requests
-- **Prevention**: Use CSRF tokens, SameSite cookie attribute, verify origin headers
-
-**Token Theft**:
-
-- **Risk**: Tokens stolen via XSS or man-in-the-middle attacks
-- **Prevention**: Use httpOnly cookies, HTTPS only, short token expiration, token rotation
+**Token Theft**: Tokens can be stolen via XSS or man-in-the-middle attacks. Mitigate this risk by using httpOnly cookies, enforcing HTTPS only, implementing short token expiration times, and using token rotation.
 
 ### Best Practices
 
-1. **Never store sensitive data in localStorage**
+1. **Never store sensitive data in localStorage**: Use httpOnly cookies for tokens instead, as they are not accessible via JavaScript and are protected from XSS attacks. Only store non-sensitive data in localStorage.
 
-   - Use httpOnly cookies for tokens
-   - Store only non-sensitive data in localStorage
+2. **Implement token expiration**: Use short-lived access tokens (15-60 minutes) and longer-lived refresh tokens (7-30 days). This limits the window of opportunity if a token is compromised.
 
-2. **Implement token expiration**
+3. **Use HTTPS only**: Never send tokens over HTTP, as they can be intercepted. Always enforce HTTPS in production environments to ensure encrypted communication.
 
-   - Short-lived access tokens (15-60 minutes)
-   - Longer-lived refresh tokens (7-30 days)
+4. **Validate tokens on server**: Never trust client-side token validation alone. Always verify tokens on the backend to ensure their authenticity and validity.
 
-3. **Use HTTPS only**
+5. **Sanitize user inputs**: Prevent XSS attacks by validating and sanitizing all user data before processing or displaying it. Use libraries designed for input sanitization.
 
-   - Never send tokens over HTTP
-   - Enforce HTTPS in production
-
-4. **Validate tokens on server**
-
-   - Never trust client-side token validation
-   - Always verify tokens on backend
-
-5. **Sanitize user inputs**
-
-   - Prevent XSS attacks
-   - Validate and sanitize all user data
-
-6. **Rate limiting**
-   - Limit login attempts
-   - Prevent brute force attacks
+6. **Rate limiting**: Implement rate limiting on authentication endpoints to limit login attempts and prevent brute force attacks. This helps protect against automated attacks.
 
 ---
 
@@ -721,100 +634,33 @@ After mastering the basic and advanced concepts above, you can continue learning
 
 ### 1. OAuth 2.0 and Social Login
 
-**OAuth Flow**:
+**OAuth 2.0** is an authorization framework that enables applications to obtain limited access to user accounts. It supports various flows including **Authorization Code flow** and **PKCE (Proof Key for Code Exchange)** for enhanced security. **Social login integration** allows users to authenticate using their existing accounts from providers like Google, GitHub, and Facebook.
 
-- Authorization Code flow
-- PKCE (Proof Key for Code Exchange)
-- Social login integration (Google, GitHub, Facebook)
-
-**Example**:
-
-```typescript
-// Redirect to OAuth provider
-window.location.href = `https://oauth.provider.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=openid profile email`;
-
-// Handle callback
-const code = new URLSearchParams(window.location.search).get("code");
-const response = await axios.post("/auth/oauth/callback", { code });
-```
-
-**Documentation**: [OAuth 2.0](https://oauth.net/2/)
+**Documentation**: [OAuth 2.0 Specification](https://oauth.net/2/)
 
 ### 2. Multi-Factor Authentication (MFA)
 
-**MFA Methods**:
+**Multi-Factor Authentication (MFA)** adds an extra layer of security by requiring users to provide multiple forms of verification. Common MFA methods include **TOTP (Time-based One-Time Password)**, **SMS verification**, **email verification**, and **biometric authentication** using **WebAuthn** standards.
 
-- TOTP (Time-based One-Time Password)
-- SMS verification
-- Email verification
-- Biometric authentication (WebAuthn)
-
-**Example**:
-
-```typescript
-// Enable 2FA
-const response = await axios.post("/auth/mfa/enable");
-const { secret, qrCode } = response.data;
-
-// Verify TOTP code
-await axios.post("/auth/mfa/verify", { code: totpCode });
-```
+**Documentation**: [WebAuthn Guide](https://webauthn.guide/)
 
 ### 3. Passwordless Authentication
 
-**Passwordless Methods**:
+**Passwordless authentication** eliminates the need for traditional passwords by using alternative verification methods. These include **magic links** sent via email, **SMS codes**, **biometric authentication**, and **WebAuthn (FIDO2)** protocols. This approach improves user experience while maintaining security.
 
-- Magic links via email
-- SMS codes
-- Biometric authentication
-- WebAuthn (FIDO2)
-
-**Example**:
-
-```typescript
-// Request magic link
-await axios.post("/auth/passwordless/request", { email });
-
-// Verify magic link token
-await axios.post("/auth/passwordless/verify", { token });
-```
+**Documentation**: [WebAuthn Guide](https://webauthn.guide/)
 
 ### 4. Session Management
 
-**Session Strategies**:
+Effective **session management** involves implementing strategies such as **server-side sessions**, **token-based sessions**, **refresh token rotation**, and **concurrent session limits**. These techniques help maintain security and control over user sessions across multiple devices and applications.
 
-- Server-side sessions
-- Token-based sessions
-- Refresh token rotation
-- Concurrent session limits
-
-**Example**:
-
-```typescript
-// View active sessions
-const sessions = await axios.get("/auth/sessions");
-
-// Revoke specific session
-await axios.delete(`/auth/sessions/${sessionId}`);
-```
+**Documentation**: [OWASP Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 
 ### 5. Security Headers and CSP
 
-**Security Headers**:
+**Security headers** provide additional protection layers for web applications. Important headers include **Content Security Policy (CSP)** to prevent XSS attacks, **X-Frame-Options** to prevent clickjacking, **X-Content-Type-Options** to prevent MIME sniffing, and **Strict-Transport-Security (HSTS)** to enforce HTTPS connections.
 
-- Content Security Policy (CSP)
-- X-Frame-Options
-- X-Content-Type-Options
-- Strict-Transport-Security (HSTS)
-
-**Example**:
-
-```html
-<meta
-  http-equiv="Content-Security-Policy"
-  content="default-src 'self'; script-src 'self' 'unsafe-inline';"
-/>
-```
+**Documentation**: [OWASP Secure Headers](https://owasp.org/www-project-secure-headers/)
 
 ---
 

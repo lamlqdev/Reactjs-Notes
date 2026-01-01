@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { RoleGuard } from "./components/RoleGuard";
-import { useTokenRefresh } from "./hooks/useTokenRefresh";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Login from "./components/Login";
@@ -11,17 +10,10 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 
-// Component to enable token refresh
-function AppWithTokenRefresh() {
-  useTokenRefresh();
-  return null;
-}
-
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <AppWithTokenRefresh />
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
