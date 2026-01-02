@@ -149,13 +149,14 @@ import { render, screen } from "@testing-library/react";
 import Greeting from "./Greeting";
 
 test("renders Hello World as a text", () => {
-  // Arrange: Render the component
+  // Arrange
   render(<Greeting />);
 
-  // Act: Query for the element (implicit - component already rendered)
-  const helloWorldElement = screen.getByText("Hello World!");
+  // Act
+  // ... nothing
 
-  // Assert: Verify the element exists
+  // Assert
+  const helloWorldElement = screen.getByText("Hello World!");
   expect(helloWorldElement).toBeInTheDocument();
 });
 ```
@@ -177,15 +178,15 @@ test("renders Hello World as a text", () => {
 import userEvent from "@testing-library/user-event";
 
 test('renders "Changed!" if the button was clicked', async () => {
-  // Arrange: Set up user instance and render component
+  // Arrange
   const user = userEvent.setup();
   render(<Greeting />);
   const buttonElement = screen.getByRole("button");
 
-  // Act: Simulate user clicking the button
+  // Act
   await user.click(buttonElement);
 
-  // Assert: Verify the text changed
+  // Assert
   const outputElement = screen.getByText("Changed!", { exact: true });
   expect(outputElement).toBeInTheDocument();
 });
@@ -207,15 +208,15 @@ test('renders "Changed!" if the button was clicked', async () => {
 
 ```typescript
 test('does not render "Good to see you!" if the button was clicked', async () => {
-  // Arrange: Set up and render component
+  // Arrange
   const user = userEvent.setup();
   render(<Greeting />);
   const buttonElement = screen.getByRole("button");
 
-  // Act: Click the button to change state
+  // Act
   await user.click(buttonElement);
 
-  // Assert: Verify the element is no longer present
+  // Assert
   const outputElement = screen.queryByText("Good to see you!");
   expect(outputElement).toBeNull();
 });
@@ -235,16 +236,17 @@ test('does not render "Good to see you!" if the button was clicked', async () =>
 
 ```typescript
 test("renders posts if request succeeds", async () => {
-  // Arrange: Mock the fetch API
+  // Arrange
   window.fetch = jest.fn();
   (window.fetch as jest.Mock).mockResolvedValueOnce({
     json: async () => [{ id: "p1", title: "First Post" }],
   });
-
-  // Act: Render component (triggers useEffect with fetch)
   render(<Async />);
 
-  // Assert: Wait for async elements to appear
+  // Act
+  // ... nothing (render triggers useEffect which fetches data)
+
+  // Assert
   const listItems = await screen.findAllByRole("listitem");
   expect(listItems).not.toHaveLength(0);
 });
@@ -278,18 +280,20 @@ import userEvent from "@testing-library/user-event";
 import LoginForm from "./LoginForm";
 
 test("shows validation errors when fields are empty", async () => {
+  // Arrange
   const user = userEvent.setup();
   const mockOnSubmit = jest.fn();
   render(<LoginForm onSubmit={mockOnSubmit} />);
-
   const submitButton = screen.getByRole("button", { name: /submit/i });
+
+  // Act
   await user.click(submitButton);
 
+  // Assert
   await waitFor(() => {
     expect(screen.getByText(/email is required/i)).toBeInTheDocument();
     expect(screen.getByText(/password is required/i)).toBeInTheDocument();
   });
-
   expect(mockOnSubmit).not.toHaveBeenCalled();
 });
 ```
@@ -305,17 +309,19 @@ test("shows validation errors when fields are empty", async () => {
 
 ```typescript
 test("calls onSubmit with correct values when form is valid", async () => {
+  // Arrange
   const user = userEvent.setup();
   const mockOnSubmit = jest.fn();
   render(<LoginForm onSubmit={mockOnSubmit} />);
-
   const emailInput = screen.getByLabelText(/email/i);
   const passwordInput = screen.getByLabelText(/password/i);
 
+  // Act
   await user.type(emailInput, "test@example.com");
   await user.type(passwordInput, "password123");
   await user.click(screen.getByRole("button", { name: /submit/i }));
 
+  // Assert
   await waitFor(() => {
     expect(mockOnSubmit).toHaveBeenCalledWith(
       "test@example.com",
@@ -341,14 +347,19 @@ test("calls onSubmit with correct values when form is valid", async () => {
 
 ```typescript
 test("shows loading state initially", () => {
+  // Arrange
   (global.fetch as jest.Mock).mockImplementation(
     () =>
       new Promise(() => {
         // Never resolves to keep loading state
       })
   );
-
   render(<UserProfile userId={1} />);
+
+  // Act
+  // ... nothing (render triggers useEffect which starts fetch)
+
+  // Assert
   expect(screen.getByRole("status")).toHaveTextContent("Loading...");
 });
 ```
@@ -364,12 +375,16 @@ test("shows loading state initially", () => {
 
 ```typescript
 test("displays error message when fetch fails", async () => {
+  // Arrange
   (global.fetch as jest.Mock).mockResolvedValueOnce({
     ok: false,
   });
-
   render(<UserProfile userId={1} />);
 
+  // Act
+  // ... nothing (render triggers useEffect which fetches data)
+
+  // Assert
   await waitFor(() => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       /error: failed to fetch user/i
@@ -401,12 +416,15 @@ const renderWithTheme = (ui: React.ReactElement) => {
 };
 
 test("toggles theme when button is clicked", async () => {
+  // Arrange
   const user = userEvent.setup();
   renderWithTheme(<ThemeToggle />);
-
   const toggleButton = screen.getByRole("button", { name: /toggle theme/i });
+
+  // Act
   await user.click(toggleButton);
 
+  // Assert
   expect(screen.getByText(/current theme: dark/i)).toBeInTheDocument();
 });
 ```
@@ -429,12 +447,15 @@ import { renderHook, act } from "@testing-library/react";
 import { useCounter } from "./useCounter";
 
 test("increments count", () => {
+  // Arrange
   const { result } = renderHook(() => useCounter(0));
 
+  // Act
   act(() => {
     result.current.increment();
   });
 
+  // Assert
   expect(result.current.count).toBe(1);
 });
 ```
@@ -452,19 +473,24 @@ test("increments count", () => {
 
 ```typescript
 test("resets count to initial value", () => {
+  // Arrange
   const { result } = renderHook(() => useCounter(10));
 
+  // Act
   act(() => {
     result.current.increment();
     result.current.increment();
   });
 
+  // Assert
   expect(result.current.count).toBe(12);
 
+  // Act
   act(() => {
     result.current.reset();
   });
 
+  // Assert
   expect(result.current.count).toBe(10);
 });
 ```
