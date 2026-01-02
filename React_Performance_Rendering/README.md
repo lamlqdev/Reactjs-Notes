@@ -220,17 +220,11 @@ When working with React, you may notice:
 
 React uses the Diffing algorithm to efficiently compare Virtual DOM trees:
 
-1. **Compare by element type**:
+1. **Compare by element type**: If types differ → Unmount old component, mount new component. If types are the same → Only update props/attributes.
 
-   - If types differ → Unmount old component, mount new component
-   - If types are the same → Only update props/attributes
+2. **Compare by key**: Key helps React identify which element corresponds to which element.
 
-2. **Compare by key**:
-
-   - Key helps React identify which element corresponds to which element
-
-3. **Compare by level**:
-   - React compares each level of the tree, doesn't compare the entire tree
+3. **Compare by level**: React compares each level of the tree, doesn't compare the entire tree.
 
 ### Benefits of Virtual DOM
 

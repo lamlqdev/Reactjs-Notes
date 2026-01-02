@@ -356,11 +356,7 @@ if (previousCount !== undefined && count > previousCount) {
 
 Custom Hooks enable code reuse and logic extraction in React:
 
-1. **Custom Hooks**: Functions starting with "use" that can call other hooks
-2. **Rules**: Follow Rules of Hooks (top level, React functions only)
-3. **Reusability**: Share logic between components
-4. **TypeScript**: Use generics for type-safe hooks
-5. **Common Hooks**: useLocalStorage, useDebounce, useToggle, useWindowSize, useFetch, usePrevious
+![Custom Hooks Summary](./public/summary.png)
 
 ---
 

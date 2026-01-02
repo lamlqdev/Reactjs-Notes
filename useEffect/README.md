@@ -36,13 +36,7 @@ Side effects are operations that occur outside the normal React rendering flow. 
 
 ## Basic: Basic useEffect Usage
 
-This section guides you through using useEffect in the most basic scenarios.
-
 ### Example 1: Effect runs once on mount (Empty Dependency Array)
-
-**When to use**: When you want to perform an operation only once after the component mounts.
-
-**Example**:
 
 ```javascript
 import { useState, useEffect } from "react";
@@ -73,10 +67,6 @@ function App() {
 
 ### Example 2: Effect runs when dependency changes
 
-**When to use**: When you want the effect to re-run whenever a specific value changes.
-
-**Example**:
-
 ```javascript
 import { useRef, useEffect } from "react";
 
@@ -105,8 +95,6 @@ function Modal({ open, onClose, children }) {
 - Suitable for: synchronizing with props/state, updating DOM based on state
 
 ### Example 3: Cleanup Function - Cleaning up resources
-
-**When to use**: When the effect creates resources that need to be cleaned up such as timers, subscriptions, event listeners.
 
 **Example with setTimeout**:
 
@@ -157,16 +145,37 @@ function ProgressBar() {
 **Explanation**:
 
 - Cleanup function is returned from effect
-- Runs before:
-  - Effect re-runs (when dependency changes)
-  - Component unmounts
+- Runs before effect re-runs (when dependency changes) or component unmounts
 - **Important**: Always cleanup timers, subscriptions to avoid memory leaks
+
+### Example 4: Effect runs after every render (no dependency array)
+
+**When to use**: Rarely needed. Usually only for logging or non-critical operations.
+
+**Example**:
+
+```javascript
+function Component() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    // Runs after every render
+    console.log("Component rendered");
+  }); // No dependency array
+
+  return <button onClick={() => setCount(count + 1)}>Count: {count}</button>;
+}
+```
+
+**Explanation**:
+
+- No dependency array → effect runs after every render
+- **Warning**: Can cause performance issues if effect performs heavy operations
+- **Best practice**: Always have dependency array unless truly necessary
 
 ---
 
 ## Advanced: Advanced useEffect Usage
-
-This section guides you through more complex patterns and best practices when using useEffect.
 
 ### Example 1: Effect with multiple dependencies
 
@@ -278,31 +287,6 @@ function UserProfile({ userId }) {
 - Functions are compared by reference
 - **Best practice**: Use `useCallback` or define function inside effect
 
-### Example 5: Effect runs after every render (no dependency array)
-
-**When to use**: Rarely needed. Usually only for logging or non-critical operations.
-
-**Example**:
-
-```javascript
-function Component() {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    // Runs after every render
-    console.log("Component rendered");
-  }); // No dependency array
-
-  return <button onClick={() => setCount(count + 1)}>Count: {count}</button>;
-}
-```
-
-**Explanation**:
-
-- No dependency array → effect runs after every render
-- **Warning**: Can cause performance issues if effect performs heavy operations
-- **Best practice**: Always have dependency array unless truly necessary
-
 ---
 
 ## Summary
@@ -349,95 +333,7 @@ function Tooltip({ children }) {
 
 **Documentation**: [useLayoutEffect](https://react.dev/reference/react/useLayoutEffect)
 
-### 2. Custom Hooks with useEffect
-
-**Custom Hooks** allow you to reuse effect logic between components.
-
-**Example**:
-
-```javascript
-// Custom hook: useWindowSize
-function useWindowSize() {
-  const [size, setSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  });
-
-  useEffect(() => {
-    function handleResize() {
-      setSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    }
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  return size;
-}
-
-// Using custom hook
-function Component() {
-  const { width, height } = useWindowSize();
-  return (
-    <div>
-      Window size: {width} x {height}
-    </div>
-  );
-}
-```
-
-**Documentation**: [Custom Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks)
-
-### 3. useEffect with API calls and Data Fetching
-
-**Patterns** for fetching data with useEffect: Loading states, Error handling, Cancellation, Pagination, Refetching.
-
-**Example**:
-
-```javascript
-function useFetch(url) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchData() {
-      try {
-        setLoading(true);
-        const response = await fetch(url);
-        const json = await response.json();
-        if (!cancelled) {
-          setData(json);
-          setError(null);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err.message);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    fetchData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [url]);
-
-  return { data, loading, error };
-}
-```
-
-### 4. useEffect with Event Listeners
+### 2. useEffect with Event Listeners
 
 **Pattern** for adding and removing event listeners:
 
@@ -473,7 +369,7 @@ function useKeyPress(targetKey) {
 }
 ```
 
-### 5. useEffect with localStorage/sessionStorage
+### 3. useEffect with localStorage/sessionStorage
 
 **Pattern** for synchronizing state with localStorage:
 
@@ -502,18 +398,7 @@ function useLocalStorage(key, initialValue) {
 }
 ```
 
-### 6. useEffect Dependencies Best Practices
-
-**Rules**:
-
-- Always include all values from component scope used in effect
-- Use ESLint rule `react-hooks/exhaustive-deps` for warnings
-- For functions: use `useCallback` or define inside effect
-- For objects/arrays: use primitive values or `useMemo`/`useRef`
-
-**Documentation**: [Rules of Hooks](https://react.dev/reference/rules/rules-of-hooks)
-
-### 7. Performance Optimization with useEffect
+### 4. Performance Optimization with useEffect
 
 **Techniques**:
 
@@ -542,7 +427,7 @@ function useDebounce(value, delay) {
 }
 ```
 
-### 8. Testing Components with useEffect
+### 5. Testing Components with useEffect
 
 **Testing** components using useEffect:
 

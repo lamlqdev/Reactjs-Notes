@@ -2,9 +2,7 @@
 
 ## Core Terminology
 
-**Refs**:
-
-Refs (references) are a way to access DOM elements or store mutable values that persist across renders without causing re-renders. Unlike state, updating a ref does not trigger a component re-render.
+**Refs (references)** are a way to access DOM elements or store mutable values that persist across renders without causing re-renders. Unlike state, updating a ref does not trigger a component re-render.
 
 ![Why refs are useful](./public/refs-useful.png)
 
@@ -26,42 +24,39 @@ This section guides you through using useRef in the most basic scenarios.
 
 **When to use**: When you need to directly interact with a DOM element (focus, scroll, measure, etc.)
 
-**Example from project**:
+**Example**:
 
-```1:24:src/components/Player.tsx
-import { useState, useRef } from "react";
+```typescript
+import { useRef } from "react";
 
-export default function Player() {
+function Player() {
   const name = useRef<HTMLInputElement>(null);
-  const [playerName, setPlayerName] = useState<string>("Unknown");
 
   function handleClick() {
     if (name.current) {
-      setPlayerName(name.current.value || "Unknown");
+      console.log(name.current.value);
       name.current.value = "";
     }
   }
 
   return (
-    <section id="player">
-      <h2>Welcome {playerName || "Unknown"}</h2>
-      <p>
-        <input type="text" ref={name} />
-        <button onClick={handleClick}>Set Name</button>
-      </p>
-    </section>
+    <div>
+      <input type="text" ref={name} />
+      <button onClick={handleClick}>Submit</button>
+    </div>
   );
 }
 ```
 
-**Explanation**:
+**How to use**:
 
-- `useRef<HTMLInputElement>(null)` creates a typed ref object
-- `ref={name}` attaches the ref to the input element
-- `name.current` gives direct access to the DOM element (may be null)
-- Always check `if (name.current)` before accessing properties
-- `name.current.value` accesses/modifies the input value
-- Updating `name.current.value` does NOT trigger re-render
+1. **Create ref**: `const name = useRef<HTMLInputElement>(null)` - Initialize ref with DOM element type
+2. **Attach to element**: `ref={name}` - Connect ref to input element in JSX
+3. **Access DOM**: `name.current` - Get DOM element (may be null)
+4. **Check safely**: `if (name.current)` - Always check before accessing properties
+5. **Manipulate DOM**: `name.current.value` - Read/write input value
+
+**Note**: Updating `ref.current` does NOT trigger component re-render.
 
 **Common DOM operations**:
 
@@ -70,100 +65,53 @@ export default function Player() {
 - `ref.current?.value` - Get/set input value
 - `ref.current?.offsetHeight` - Measure element height
 
+**Tip**: For DOM operations after mount, use `useEffect(() => { ref.current?.focus(); }, [])`.
+
 ### Example 2: Storing Mutable Values (Timer IDs)
 
 **When to use**: When you need to store values that persist across renders but don't need to trigger re-renders.
 
-**Example from project**:
+**Example**:
 
-```1:73:src/components/TimeChallenge.tsx
-import { useState, useRef } from "react";
-import ResultModal, { ModalRef } from "./ResultModal";
+```typescript
+import { useRef } from "react";
 
-interface TimeChallengeProps {
-  title: string;
-  targetime: number;
-}
-
-export default function TimeChallenge({
-  title,
-  targetime,
-}: TimeChallengeProps) {
+function Timer() {
   const timer = useRef<number | undefined>(undefined);
-  const dialog = useRef<ModalRef | null>(null);
-
-  const [timeRemaining, setTimeRemaining] = useState<number>(
-    targetime * 1000
-  );
-
-  const isTimerActive =
-    timeRemaining > 0 && timeRemaining < targetime * 1000;
-
-  if (timeRemaining <= 0) {
-    if (timer.current) {
-      clearInterval(timer.current);
-    }
-    dialog.current?.open();
-  }
-
-  function handleReset() {
-    setTimeRemaining(targetime * 1000);
-  }
 
   function handleStart() {
     timer.current = setInterval(() => {
-      setTimeRemaining((prevTimeRemaining) => prevTimeRemaining - 10);
-    }, 10);
+      console.log("Tick");
+    }, 1000);
   }
 
   function handleStop() {
     if (timer.current) {
       clearInterval(timer.current);
     }
-    dialog.current?.open();
   }
 
   return (
-    <>
-      <ResultModal
-        ref={dialog}
-        targetTime={targetime}
-        remainingTime={timeRemaining}
-        onReset={handleReset}
-      />
-      <section className="challenge">
-        <h2>{title}</h2>
-        <p className="challenge-time">
-          {targetime} second{targetime > 1 ? "s" : ""}
-        </p>
-        <p>
-          <button onClick={isTimerActive ? handleStop : handleStart}>
-            {isTimerActive ? "Stop" : "Start"} challenge
-          </button>
-        </p>
-        <p className={isTimerActive ? "active" : undefined}>
-          {isTimerActive ? "Timer is running..." : "Timer inactive"}
-        </p>
-      </section>
-    </>
+    <div>
+      <button onClick={handleStart}>Start</button>
+      <button onClick={handleStop}>Stop</button>
+    </div>
   );
 }
 ```
 
-**Explanation**:
+**How to use**:
 
-- `timer.current` stores the interval ID returned by `setInterval`
-- Type `useRef<number | undefined>` ensures type safety
-- The interval ID persists across renders without causing re-renders
-- `clearInterval(timer.current)` cleans up the timer (with null check)
-- `dialog.current` stores a reference to the child component (ref can be passed as a prop in React 19)
-- Use optional chaining `?.` to safely call methods
+1. **Create ref for value**: `const timer = useRef<number | undefined>(undefined)` - Store interval ID
+2. **Assign value**: `timer.current = setInterval(...)` - Save ID to ref when starting timer
+3. **Use value**: `clearInterval(timer.current)` - Use stored value for cleanup
+4. **Check safely**: `if (timer.current)` - Always check before cleanup
 
-**Why not useState?**:
+**Why ref instead of state?**
 
-- Timer ID doesn't affect UI rendering
-- Storing in state would cause unnecessary re-renders
-- Ref persists the value without triggering updates
+- Timer ID doesn't affect UI → no re-render needed
+- State would cause unnecessary re-renders on every update
+- Ref persists value without triggering updates
 
 ### Example 3: Storing Previous Values
 
@@ -194,14 +142,26 @@ function Counter() {
 }
 ```
 
-**Explanation**:
+**How to use**:
 
-- `prevCountRef.current` stores the previous count value
-- Type `useRef<number | undefined>` ensures type safety
-- Updated in `useEffect` to run after render
-- Doesn't trigger re-render when updated
-- Useful for tracking changes
-- Use nullish coalescing `??` to handle undefined values
+1. **Create ref**: `const prevCountRef = useRef<number | undefined>(undefined)` - Store previous value
+2. **Update after render**: Use `useEffect` to update `prevCountRef.current = count` after each render
+3. **Read value**: `const prevCount = prevCountRef.current` - Get previous value
+4. **Handle undefined**: Use `??` for initial value: `prevCount ?? "N/A"`
+
+**Note**: Update in `useEffect` to ensure value is saved after render completes.
+
+**Custom hook pattern**:
+
+```typescript
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T | undefined>(undefined);
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+```
 
 ---
 
@@ -215,16 +175,13 @@ This section guides you through more advanced patterns with useRef, including `u
 
 ![useImperativeHandle syntax](./public/useImperativeHandle.png)
 
-**Example from project** (React 19 - ref as prop):
+**Example** (React 19 - ref as prop):
 
-```1:63:src/components/ResultModal.tsx
+```typescript
 import { useImperativeHandle, useRef } from "react";
 import { createPortal } from "react-dom";
 
-interface ResultModalProps {
-  targetTime: number;
-  remainingTime: number;
-  onReset: () => void;
+interface ModalProps {
   ref: React.Ref<ModalRef>;
 }
 
@@ -232,17 +189,8 @@ export interface ModalRef {
   open: () => void;
 }
 
-function ResultModal({
-  targetTime,
-  remainingTime,
-  onReset,
-  ref,
-}: ResultModalProps) {
+function Modal({ ref }: ModalProps) {
   const dialog = useRef<HTMLDialogElement>(null);
-
-  const userLost = remainingTime <= 0;
-  const formattedRemainingTime = (remainingTime / 1000).toFixed(2);
-  const score = Math.round((1 - remainingTime / (targetTime * 1000)) * 100);
 
   useImperativeHandle(ref, () => {
     return {
@@ -252,63 +200,48 @@ function ResultModal({
     };
   });
 
-  const modalContainer = document.getElementById("modal");
-
-  if (!modalContainer) {
-    console.error("Modal container not found");
-    return null;
-  }
+  const container = document.getElementById("modal");
+  if (!container) return null;
 
   return createPortal(
-    <dialog ref={dialog} className="result-modal" onClose={onReset}>
-      {userLost && <h2>You lost</h2>}
-      {!userLost && <h2>You score: {score}</h2>}
-      <p>
-        The target time was <strong>{targetTime} seconds.</strong>
-      </p>
-      <p>
-        You stopped the timer with{" "}
-        <strong>{formattedRemainingTime} second left.</strong>
-      </p>
-      <form method="dialog" onSubmit={onReset}>
-        <button>Close</button>
-      </form>
+    <dialog ref={dialog}>
+      <h2>Modal Content</h2>
+      <button onClick={() => dialog.current?.close()}>Close</button>
     </dialog>,
-    modalContainer
+    container
   );
 }
-
-export default ResultModal;
 ```
 
 **Note**: In React 19, you can pass `ref` as a regular prop. No need for `forwardRef` anymore.
 
-**Explanation**:
+**How to use**:
 
-- `useImperativeHandle` customizes what the parent can access via ref
-- Returns an object with `open()` method typed via `ModalRef` interface
-- Parent can call `dialog.current?.open()` to open the modal (with optional chaining)
-- Only exposes what you want, not the entire component instance
-- Always check if modal container exists before using `createPortal`
+1. **Define interface**: Create `ModalRef` interface with methods you want to expose
+2. **Type ref prop**: `ref: React.Ref<ModalRef>` - Type the ref prop (React 19)
+3. **Create DOM ref**: `const dialog = useRef<HTMLDialogElement>(null)` - Ref for dialog element
+4. **Expose methods**: `useImperativeHandle(ref, () => ({ open() { ... } }))` - Only expose `open()` method
+5. **Use from parent**: `dialog.current?.open()` - Call method from parent component
+
+**Note**: React 19 allows passing `ref` as a regular prop, no need for `forwardRef`.
 
 **Usage in parent**:
 
-```19:23:src/components/TimeChallenge.tsx
-  if (timeRemaining <= 0) {
-    if (timer.current) {
-      clearInterval(timer.current);
-    }
-    dialog.current?.open();
-  }
-```
+```typescript
+function Parent() {
+  const modalRef = useRef<ModalRef | null>(null);
 
-```40:45:src/components/TimeChallenge.tsx
-  function handleStop() {
-    if (timer.current) {
-      clearInterval(timer.current);
-    }
-    dialog.current?.open();
+  function handleOpen() {
+    modalRef.current?.open();
   }
+
+  return (
+    <>
+      <button onClick={handleOpen}>Open Modal</button>
+      <Modal ref={modalRef} />
+    </>
+  );
+}
 ```
 
 **Why use useImperativeHandle?**:
@@ -338,56 +271,112 @@ Portals provide a way to render children into a DOM node that exists outside the
 
 ![Portal syntax](./public/createPortal.png)
 
-**Example from project**:
+**Example**:
 
-```47:62:src/components/ResultModal.tsx
+```typescript
+import { createPortal } from "react-dom";
+
+function Modal() {
+  const container = document.getElementById("modal");
+  if (!container) return null;
+
   return createPortal(
-    <dialog ref={dialog} className="result-modal" onClose={onReset}>
-      {userLost && <h2>You lost</h2>}
-      {!userLost && <h2>You score: {score}</h2>}
-      <p>
-        The target time was <strong>{targetTime} seconds.</strong>
-      </p>
-      <p>
-        You stopped the timer with{" "}
-        <strong>{formattedRemainingTime} second left.</strong>
-      </p>
-      <form method="dialog" onSubmit={onReset}>
-        <button>Close</button>
-      </form>
+    <dialog>
+      <h2>Modal Title</h2>
+      <p>Modal content</p>
     </dialog>,
-    modalContainer
+    container
   );
+}
 ```
 
 **HTML structure**:
 
-```10:16:index.html
-    <div id="modal"></div>
-    <div id="content">
-      <header>
-        <h1>The <em>Almost</em> Final Countdown</h1>
-        <p>Stop the timer once you estimate that time is (almost) up</p>
-      </header>
-      <div id="root"></div>
-    </div>
+```html
+<div id="modal"></div>
+<div id="root"></div>
 ```
 
-**Explanation**:
+**How to use**:
 
-- Modal is rendered into `<div id="modal">` instead of inside the component tree
-- Modal appears at root level, outside `#content` container
-- Escapes parent's CSS constraints (overflow, z-index, positioning)
-- Events still bubble through React component tree (not DOM tree)
-- Always check if container exists before using `createPortal` (TypeScript safety)
+1. **Get container**: `const modalContainer = document.getElementById("modal")` - Find target DOM node
+2. **Check existence**: `if (!modalContainer) return null` - Always verify container exists
+3. **Render portal**: `createPortal(<dialog>...</dialog>, modalContainer)` - Render into target container
+4. **Result**: Modal appears at root level, outside parent component's DOM hierarchy
 
-**Common use cases**:
+**Benefits**: Escapes CSS constraints (overflow, z-index), better semantic HTML, improved accessibility. React events still bubble through component tree.
 
-- Modals and dialogs
-- Tooltips
-- Dropdown menus
-- Loading overlays
-- Notifications
+**Common use cases**: Modals and dialogs, tooltips, dropdown menus, loading overlays, notifications.
+
+### Example 3: Ref Callback Pattern
+
+**When to use**: When you need to do something when ref is attached/detached.
+
+**Example**:
+
+```typescript
+import { useState } from "react";
+
+function Component() {
+  const [node, setNode] = useState<HTMLDivElement | null>(null);
+
+  return (
+    <div ref={(el) => setNode(el)}>
+      {node && <p>Element mounted: {node.offsetHeight}px</p>}
+    </div>
+  );
+}
+```
+
+**How to use**:
+
+1. **Create state**: `const [node, setNode] = useState<HTMLDivElement | null>(null)` - Store element
+2. **Use callback ref**: `ref={(el) => setNode(el)}` - Set state when ref attaches
+3. **Use element**: `{node && <p>Height: {node.offsetHeight}px</p>}` - Access element safely
+
+### Example 4: Multiple Refs
+
+**When to use**: When you need to access multiple DOM elements.
+
+**Example**:
+
+```typescript
+import { useRef } from "react";
+
+function Form() {
+  const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (nameRef.current && emailRef.current && messageRef.current) {
+      const data = {
+        name: nameRef.current.value,
+        email: emailRef.current.value,
+        message: messageRef.current.value,
+      };
+      // Submit data
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input ref={nameRef} type="text" />
+      <input ref={emailRef} type="email" />
+      <textarea ref={messageRef} />
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+```
+
+**How to use**:
+
+1. **Create multiple refs**: `const nameRef = useRef<HTMLInputElement>(null)` - One ref per element
+2. **Attach to elements**: `ref={nameRef}` - Connect each ref in JSX
+3. **Check all refs**: `if (nameRef.current && emailRef.current)` - Verify all exist before access
+4. **Access values**: `nameRef.current.value` - Read form values safely
 
 ---
 
@@ -416,191 +405,6 @@ Portals provide a way to render children into a DOM node that exists outside the
 2. **Purpose**: Render children into DOM node outside parent hierarchy
 3. **Benefits**: Escape CSS constraints, better semantic HTML, improved accessibility
 4. **Events**: React events still bubble through component tree
-
-### TypeScript Best Practices
-
-1. **Always type refs**: `useRef<ElementType>(null)` for DOM elements
-2. **Check null before access**: Use `if (ref.current)` or optional chaining `?.`
-3. **Define interfaces**: Create interfaces for ref types with `useImperativeHandle`
-4. **Type props**: Always type component props for better type safety
-5. **Generic hooks**: Use generics for reusable hooks like `usePrevious<T>`
-
----
-
-## Common Patterns and Best Practices
-
-### Pattern 1: Ref for DOM Element with useEffect
-
-**Example**:
-
-```typescript
-import { useRef, useEffect } from "react";
-
-function AutoFocusInput() {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
-  return <input ref={inputRef} type="text" />;
-}
-```
-
-**When to use**: When you need to perform DOM operations after component mounts.
-
-**TypeScript key points**:
-
-- `useRef<HTMLInputElement>(null)` - Type the DOM element
-- Use optional chaining `?.` to safely call methods
-- TypeScript ensures type safety for DOM operations
-
-### Pattern 2: Ref for Previous Value
-
-**Example**:
-
-```typescript
-import { useRef, useEffect } from "react";
-
-function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T | undefined>(undefined);
-
-  useEffect(() => {
-    ref.current = value;
-  });
-
-  return ref.current;
-}
-
-// Usage
-function Counter() {
-  const [count, setCount] = useState<number>(0);
-  const prevCount = usePrevious<number>(count);
-
-  return (
-    <div>
-      <p>Current: {count}</p>
-      <p>Previous: {prevCount ?? "N/A"}</p>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
-    </div>
-  );
-}
-```
-
-**When to use**: When you need to track previous values for comparison.
-
-**TypeScript key points**:
-
-- Generic function `<T>` makes it reusable for any type
-- Return type `T | undefined` handles initial undefined state
-- Type-safe for any value type
-- Use nullish coalescing `??` to handle undefined values
-
-### Pattern 3: Ref Callback Pattern
-
-**Example**:
-
-```typescript
-import { useState } from "react";
-
-function Component() {
-  const [node, setNode] = useState<HTMLDivElement | null>(null);
-
-  return (
-    <div ref={(el) => setNode(el)}>
-      {node && <p>Element mounted: {node.offsetHeight}px</p>}
-    </div>
-  );
-}
-```
-
-**When to use**: When you need to do something when ref is attached/detached.
-
-**TypeScript key points**:
-
-- Type the state: `useState<HTMLDivElement | null>(null)`
-- TypeScript infers the ref callback parameter type
-- Type-safe DOM measurements
-
-### Pattern 4: Multiple Refs
-
-**Example**:
-
-```typescript
-function Form() {
-  const nameRef = useRef<HTMLInputElement>(null);
-  const emailRef = useRef<HTMLInputElement>(null);
-  const messageRef = useRef<HTMLTextAreaElement>(null);
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (nameRef.current && emailRef.current && messageRef.current) {
-      const data = {
-        name: nameRef.current.value,
-        email: emailRef.current.value,
-        message: messageRef.current.value,
-      };
-      // Submit data
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <input ref={nameRef} type="text" />
-      <input ref={emailRef} type="email" />
-      <textarea ref={messageRef} />
-      <button type="submit">Submit</button>
-    </form>
-  );
-}
-```
-
-**When to use**: When you need to access multiple DOM elements.
-
-**TypeScript key points**:
-
-- Different element types: `HTMLInputElement`, `HTMLTextAreaElement`
-- Type the form event: `React.FormEvent`
-- Check all refs before accessing to satisfy TypeScript
-- Type-safe form handling
-
-### Pattern 5: Portal with Backdrop
-
-**Example**:
-
-```typescript
-import { createPortal } from "react-dom";
-
-interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-}
-
-function Modal({ isOpen, onClose, children }: ModalProps) {
-  if (!isOpen) return null;
-
-  const container = document.body;
-
-  return createPortal(
-    <>
-      <div className="backdrop" onClick={onClose} />
-      <div className="modal">{children}</div>
-    </>,
-    container
-  );
-}
-```
-
-**When to use**: When creating modals with backdrop overlays.
-
-**TypeScript key points**:
-
-- Type props with interface
-- `React.ReactNode` for children prop
-- `document.body` is always available, no null check needed
-- Type-safe component props
 
 ---
 

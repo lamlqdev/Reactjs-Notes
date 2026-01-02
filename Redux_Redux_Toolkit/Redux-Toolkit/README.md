@@ -44,9 +44,7 @@
 
 ## Basic: Implement Auth Feature
 
-This section guides you through implementing a simple feature with Redux Toolkit, without async operations.
-
-**Why this order?** We create the slice first because the store setup needs to import the reducer from the slice. This follows the natural development flow: define your feature logic (slice) → combine reducers → setup store → use in components.
+This section guides you through implementing a simple feature with Redux Toolkit, without async operations. We create the slice first because the store setup needs to import the reducer from the slice. This follows the natural development flow: define your feature logic (slice) → combine reducers → setup store → use in components.
 
 ### Step 1: Create Auth Slice with `createSlice`
 
@@ -90,7 +88,6 @@ export default authSlice.reducer;
 - `createSlice` automatically creates action types: `"auth/login"`, `"auth/logout"`
 - Automatically creates action creators: `login(user)`, `logout()`
 - Automatically creates reducer to handle those actions
-- **Benefit**: Instead of writing separate action types, action creators, and reducer, you only need to define reducers in an object
 - `PayloadAction<T>` helps TypeScript know the type of `action.payload`
 - Can write "mutating" logic (like `state.isAuthenticated = true`) thanks to Immer automatically converting to immutable update
 
@@ -116,7 +113,6 @@ export const rootReducer = combineReducers({
 - `combineReducers` combines multiple reducers into a single reducer
 - State will have the structure: `{ auth: {...} }`
 - Each reducer only manages its own part of the state
-- **Note**: You can add more reducers later (e.g., `articles: articlesReducer`)
 
 #### 2.2. Create Store with `configureStore`
 
@@ -199,9 +195,7 @@ export const selectUser = createSelector(
 
 **Explanation**:
 
-- `createSelector` creates a memoized selector: only recalculates when input changes
-- First parameter: selector that gets value from state
-- Second parameter: transform function (here it's an identity function, doesn't change the value)
+- `createSelector` creates a memoized selector: only recalculates when input changes. The first parameter is a selector that gets a value from the state, the second parameter is a transform function (here it's an identity function, doesn't change the value).
 - **Benefit**: Optimizes performance, prevents unnecessary re-renders
 
 ### Step 4: Use in Component

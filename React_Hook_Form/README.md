@@ -1,4 +1,4 @@
-# REACT HOOK FORM + ZOD
+# React Hook Form + Zod
 
 ## Core terminology
 
@@ -9,7 +9,6 @@
 - Adapter from `@hookform/resolvers` to integrate Zod with React Hook Form.
 - Converts Zod schema into format that React Hook Form understands.
 - Automatically maps Zod errors to React Hook Form errors.
-- Syntax: `zodResolver(schema)` where `schema` is a Zod schema object.
 
 **Zod**:
 

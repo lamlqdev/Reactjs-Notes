@@ -2,62 +2,7 @@
 
 A learning project to understand the fundamentals of Redux state management in React applications. This project demonstrates how to implement Redux from scratch using TypeScript, covering core concepts, folder structure, and best practices.
 
-## Core Terminology
-
-**State**:
-
-- Application data stored in a single Javascript object.
-- Often written as a `state` or `store state`.
-
-**Store**:
-
-- Container that holds the entire application state.
-- Only one store per application.
-
-**Action**:
-
-- Object describing what happened.
-- Must have a `type` property (string), may include `payload` (data).
-
-**Action Creator**:
-
-- Function that creates and returns an action object.
-- Reducers boilerplate and improve maintainability.
-
-**Reducer**:
-
-- Pure function that takes current state and an action, returns new state.
-- Must not mutate existing state, must return a new state object.
-
-**Dispatch**:
-
-- Function that sends an action to the reducer to update the state.
-
-**Selector**:
-
-- Function that extracts and derives data from the state.
-- Used to create derived state for components.
-
-**Provider**:
-
-- `React context provider` that makes the store available to all components in the application.
-
-**Middleware**:
-
-- Extension machanism for Redux (asynchronous handling, logging,...)
-- Eg: Redux Thunk, Redux Saga.
-
-**Immutability**:
-
-- Do not mutate state directly, instead return a new state object.
-- Redux requires state to be immutable.
-
-**Pure Function:**
-
-- Function with no side effects, same input always produces the same output.
-- Reducers must be pure functions.
-
-### Redux Data Flow
+## Redux Data Flow
 
 The diagram below illustrates the one-way data flow in Redux:
 
@@ -66,22 +11,30 @@ The diagram below illustrates the one-way data flow in Redux:
 In Redux, data flows in one direction only: **Action → Reducer → State → Component**.
 
 1. **User Interaction** → Component receives user input (e.g., button click)
-2. **Dispatch Action** → Component dispatches an action object describing what happened
-3. **Middleware Processing** (optional) → Action passes through middleware chain, which can:
+
+2. **Dispatch Action** → Component uses **dispatch** (function that sends an action to update state) to send an **action** object (object describing what happened, must have a `type` property, may include `payload`). Actions are typically created by **action creators** (functions that create and return action objects, reducing boilerplate).
+
+3. **Middleware Processing** (optional) → Action passes through **middleware** chain (extension mechanism for Redux - asynchronous handling, logging, etc. Examples: Redux Thunk, Redux Saga), which can:
+
    - Handle asynchronous operations (API calls, timers)
    - Log actions for debugging
    - Transform or filter actions
    - Dispatch additional actions based on conditions
-4. **Reducer Processing** → Action reaches the reducer, which:
-   - Takes the current state and action as inputs
-   - Computes and returns a new state object (immutably)
-   - Must be a pure function (no side effects, same input = same output)
-5. **State Update** → Store updates with the new state returned by the reducer
+
+4. **Reducer Processing** → Action reaches the **reducer** (pure function - no side effects, same input = same output), which:
+
+   - Takes the current **state** (application data stored in a single Javascript object) and action as inputs
+   - Computes and returns a new state object (**immutability**: must not mutate existing state, must return a new state object)
+
+5. **State Update** → **Store** (container that holds the entire application state, only one store per application) updates with the new state returned by the reducer. The store is made available to all components via **Provider** (React context provider).
+
 6. **Component Subscription** → Components subscribed to the store receive the updated state
-7. **State Access via Selectors** → Components use selectors to extract specific pieces of state they need
+
+7. **State Access via Selectors** → Components use **selectors** (functions that extract and derive data from the state, used to create derived state for components) to extract specific pieces of state they need
+
 8. **Component Re-render** → Components automatically re-render with the new state
 
-**Important**: Components never directly modify the state. They can only dispatch actions, which then flow through the system to update state.\*\*\*\*
+**Important**: Components never directly modify the state. They can only dispatch actions, which then flow through the system to update state.
 
 ## Folder Structure
 

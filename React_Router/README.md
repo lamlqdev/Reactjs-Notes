@@ -605,17 +605,36 @@ function NotFound() {
 
 ## Summary
 
-React Router enables client-side routing in React applications:
+React Router enables client-side routing in React applications, allowing you to build single-page applications (SPAs) with multiple views that update without full page reloads.
 
-1. **BrowserRouter**: Wraps the app to enable routing
-2. **Routes & Route**: Define route mappings
-3. **Link & NavLink**: Navigate declaratively
-4. **Navigate**: Redirect programmatically
-5. **Outlet**: Render nested routes
-6. **Dynamic Routes**: Use `:param` for URL parameters
-7. **Nested Routes**: Create route hierarchies
-8. **Protected Routes**: Restrict access with authentication
-9. **Query Parameters**: Handle search params with `useSearchParams`
+### Core Components
+
+1. **BrowserRouter**: Wraps the entire application to enable routing features. Uses HTML5 history API to keep UI in sync with URL without page reloads.
+
+2. **Routes & Route**: Define route mappings between URL paths and React components. `Routes` contains multiple `Route` components, rendering the first matching route.
+
+3. **Link & NavLink**: Navigate declaratively between routes. `Link` creates navigation links, while `NavLink` adds active styling when the route matches. Both prevent default browser navigation.
+
+4. **Navigate**: Component that redirects to a new location when rendered. Useful for conditional redirects and protected routes.
+
+5. **Outlet**: Renders child route components in parent route components. Essential for nested routing and layout routes.
+
+### Advanced Features
+
+- **Dynamic Routes**: Use `:param` syntax in paths to capture URL parameters. Access parameters with `useParams()` hook for type-safe parameter extraction.
+
+- **Nested Routes**: Create route hierarchies where child routes share a parent layout. Use `index` routes for default child routes and relative paths.
+
+- **Protected Routes**: Restrict access to routes based on authentication or authorization. Use `Navigate` with state to redirect unauthenticated users and preserve intended destination.
+
+- **Query Parameters**: Handle search params with `useSearchParams()` hook. Read and update query string parameters without affecting the route path.
+
+### Key Hooks
+
+- **useNavigate()**: Programmatic navigation - navigate to paths, go back/forward in history, pass state
+- **useParams()**: Extract URL parameters from dynamic routes
+- **useLocation()**: Access current location object including pathname, search, and state
+- **useSearchParams()**: Read and update URL query parameters
 
 ---
 
