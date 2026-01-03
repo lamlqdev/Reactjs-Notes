@@ -61,11 +61,11 @@ Headers provide metadata about the request and the client making it. Common head
 ```javascript
 fetch("http://localhost:3000/user-places", {
   method: "PUT",
-  body: JSON.stringify({ places: places }),
   headers: {
     "Content-Type": "application/json",
-    Authorization: "Bearer token123",
+    "Authorization": "Bearer token123",
   },
+  body: JSON.stringify({ places }),
 });
 ```
 
@@ -79,10 +79,11 @@ fetch("http://localhost:3000/user-places", {
 // Sending JSON data
 fetch("http://localhost:3000/user-places", {
   method: "PUT",
-  body: JSON.stringify({ places: places }),
+
   headers: {
     "Content-Type": "application/json",
   },
+  body: JSON.stringify({ places }),
 });
 ```
 
@@ -196,7 +197,7 @@ export async function fetchSelectedPlace() {
 export async function updateUserPlace(places) {
   const response = await fetch("http://localhost:3000/user-places", {
     method: "PUT",
-    body: JSON.stringify({ places: places }),
+    body: JSON.stringify({ places }),
     headers: {
       "Content-Type": "application/json",
     },
@@ -456,47 +457,6 @@ export default function AvailablePlaces({ onSelectPlace }) {
 - Returns sorted places as a Promise
 - `useFetch` handles the async operation and states
 - **Benefit**: Combines multiple async operations, handles complex data processing
-
-### Example 4: Updating Data After Fetch
-
-**When to use**: When you need to update fetched data locally and sync with backend.
-
-**File: `src/App.jsx`**
-
-```javascript
-const handleRemovePlace = useCallback(
-  async function handleRemovePlace() {
-    // Update local state
-    setUserPlaces((prevPickedPlaces) =>
-      prevPickedPlaces.filter((place) => place.id !== selectedPlace.current.id)
-    );
-
-    try {
-      // Sync with backend
-      await updateUserPlace(
-        userPlaces.filter((place) => place.id !== selectedPlace.current.id)
-      );
-    } catch (error) {
-      // Rollback on error
-      setUserPlaces(userPlaces);
-      setErrorUpdatingPlaces({
-        message: error.message || "Failed to delete place",
-      });
-    }
-    setModalIsOpen(false);
-  },
-  [userPlaces, setUserPlaces]
-);
-```
-
-**Explanation**:
-
-- `setUserPlaces` updates local state immediately (optimistic update)
-- Filter out the removed place from the array
-- Call `updateUserPlace` to sync changes with backend
-- If backend update fails, rollback to previous state
-- `useCallback` memoizes the function to prevent unnecessary re-renders
-- **Benefit**: Consistent state management, error recovery, performance optimization
 
 ---
 
