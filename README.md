@@ -44,6 +44,14 @@ A comprehensive collection of React.js learning materials and practical examples
 
 - **[React Performance & Rendering](./React_Performance_Rendering/README.md)** - Optimization techniques, memoization, and rendering performance
 
-### 9. Testing
+### 9. Styling
+
+- **[Styling React Components](./Styling/README.md)** - Comparison of styling approaches: Inline Styles, Vanilla CSS, CSS Modules, Styled Components, and Tailwind CSS
+
+### 10. TypeScript
+
+- **[TypeScript Fundamentals](./TypeScript/README.md)** - Basic types, narrowing, compiler configuration, generics, interfaces, utility types, functions, and classes
+
+### 11. Testing
 
 - **[Unit Testing](./Unit_Testing/README.md)** - Testing React components and applications

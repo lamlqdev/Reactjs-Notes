@@ -38,10 +38,6 @@ let undefinedValue: undefined = undefined;
 let testVar: string | undefined;
 console.log(testVar); // shows undefined
 console.log(typeof testVar); // shows "undefined"
-
-// Variables without initialization are undefined
-let x: number;
-console.log(x); // undefined
 ```
 
 **`null`** is an assignment value. It can be assigned to a variable as a representation of no value:
@@ -50,9 +46,6 @@ console.log(x); // undefined
 let testVar: string | null = null;
 console.log(testVar); // shows null
 console.log(typeof testVar); // shows "object" (JavaScript quirk)
-
-// null is explicitly assigned
-let y: number | null = null;
 ```
 
 **Key Differences:**
@@ -66,12 +59,6 @@ console.log(null === null); // true (both type and value are the same)
 // typeof behavior
 typeof undefined; // "undefined"
 typeof null; // "object" (this is a bug in JavaScript, but kept for compatibility)
-
-// Assignment behavior
-let a: undefined = undefined; // OK
-let b: null = null; // OK
-// a = null; // Error in strict mode
-// b = undefined; // Error in strict mode
 ```
 
 **When to use:**
@@ -164,84 +151,6 @@ vAny.method(); // Ok; anything goes with any
 vUnknown.method(); // Not ok; we don't know anything about this variable
 ```
 
-**Detailed Comparison:**
-
-```typescript
-let vAny: any = 10;
-let vUnknown: unknown = 10;
-
-// Both can be assigned any value
-vAny = "hello"; // OK
-vAny = true; // OK
-vUnknown = "hello"; // OK
-vUnknown = true; // OK
-
-// Assigning to other types
-let str1: string = vAny; // OK - any is assignable to anything
-// let str2: string = vUnknown; // Error: Type 'unknown' is not assignable to type 'string'
-
-// With type assertion
-let str3: string = vUnknown as string; // OK - explicit assertion
-let str4: string = <string>vUnknown; // OK - alternative syntax
-
-// Operations
-vAny.method(); // OK - no type checking (dangerous!)
-// vUnknown.method(); // Error: Object is of type 'unknown'
-
-vAny.foo.bar; // OK - no type checking (dangerous!)
-// vUnknown.foo; // Error: Object is of type 'unknown'
-
-vAny(); // OK - no type checking (dangerous!)
-// vUnknown(); // Error: Object is of type 'unknown'
-
-// Type narrowing (control flow based)
-if (typeof vUnknown === "string") {
-  vUnknown.toUpperCase(); // OK - type narrowed to string
-  let s: string = vUnknown; // OK - narrowed to string
-}
-
-if (typeof vUnknown === "object" && vUnknown !== null) {
-  // Can safely work with object after narrowing
-}
-```
-
-**Suggested Usage:**
-
-`unknown` is useful for describing the **least-capable type** in TypeScript. This is particularly useful for APIs that want to signal:
-
-> **"This can be any value, so you must perform some type of checking before you use it"**
-
-This forces users to safely introspect returned values:
-
-```typescript
-// API function that returns unknown
-function parseJSON(json: string): unknown {
-  return JSON.parse(json);
-}
-
-// User must check the type before using
-const result = parseJSON('{"name": "John", "age": 30}');
-
-// result.name; // Error: Object is of type 'unknown'
-
-// Type guard function
-function isPerson(obj: unknown): obj is { name: string; age: number } {
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    "name" in obj &&
-    "age" in obj &&
-    typeof (obj as any).name === "string" &&
-    typeof (obj as any).age === "number"
-  );
-}
-
-if (isPerson(result)) {
-  console.log(result.name); // OK - type narrowed
-  console.log(result.age); // OK - type narrowed
-}
-```
-
 **When to use:**
 
 - **Use `unknown`** when:
@@ -258,11 +167,7 @@ if (isPerson(result)) {
   - With legacy code that cannot be properly typed
   - When you absolutely need maximum flexibility and accept the risks
 
-**Summary:**
-
-`unknown` is the type-safe alternative to `any`. It allows any assignment but requires type assertions or narrowing before use, forcing safe introspection of values. This prevents runtime errors while maintaining flexibility.
-
-Reference: [TypeScript PR/RC Announcement](https://github.com/microsoft/TypeScript/pull/24439), [Stack Overflow - unknown vs any](https://stackoverflow.com/questions/51439843/unknown-vs-any)
+Reference: [Stack Overflow - unknown vs any](https://stackoverflow.com/questions/51439843/unknown-vs-any)
 
 ### Never
 
@@ -419,6 +324,8 @@ Type narrowing is the process of refining types to more specific types than decl
 
 ### typeof Guards
 
+Use `typeof` operator to check the runtime type of a value and narrow the type accordingly. TypeScript recognizes `typeof` checks and narrows the type in the corresponding branches.
+
 ```typescript
 function padLeft(value: string, padding: string | number) {
   if (typeof padding === "number") {
@@ -432,6 +339,8 @@ function padLeft(value: string, padding: string | number) {
 ```
 
 ### instanceof Guards
+
+Use `instanceof` operator to check if an object is an instance of a specific class. TypeScript narrows the type to that class within the checked branch, allowing access to class-specific properties and methods.
 
 ```typescript
 class Animal {
@@ -459,6 +368,8 @@ function move(animal: Animal) {
 
 ### in Operator Guards
 
+Use the `in` operator to check if a property exists on an object. TypeScript narrows the type based on which properties are present, useful for distinguishing between union types with different properties.
+
 ```typescript
 interface Bird {
   fly(): void;
@@ -480,6 +391,8 @@ function move(pet: Bird | Fish) {
 ```
 
 ### Discriminated Unions
+
+Use a common literal property (discriminant) to distinguish between union members. By checking the discriminant property, TypeScript can narrow the type to the specific union member, enabling safe access to member-specific properties.
 
 ```typescript
 interface Circle {
@@ -507,6 +420,8 @@ function getArea(shape: Shape): number {
 
 ### Truthiness Narrowing
 
+Use truthiness checks (like `if`, `&&`, `||`) to narrow types by excluding falsy values (`null`, `undefined`, `0`, `false`, `""`, `NaN`). TypeScript understands that after a truthiness check, the value must be truthy, allowing safe access to properties and methods.
+
 ```typescript
 function printAll(strs: string | string[] | null) {
   if (strs && typeof strs === "object") {
@@ -523,6 +438,8 @@ function printAll(strs: string | string[] | null) {
 
 ### Equality Narrowing
 
+Use equality checks (`===`, `!==`, `==`, `!=`) to narrow types. When comparing two values with `===`, TypeScript narrows both to their common type. This is particularly useful for finding the intersection of union types.
+
 ```typescript
 function example(x: string | number, y: string | boolean) {
   if (x === y) {
@@ -534,6 +451,8 @@ function example(x: string | number, y: string | boolean) {
 ```
 
 ### Assertion Functions
+
+Create custom type guards using assertion functions with `asserts` keyword. These functions throw an error if the assertion fails, and TypeScript narrows the type after the function call. Useful for runtime type validation and ensuring type safety.
 
 ```typescript
 function assertIsString(val: unknown): asserts val is string {
@@ -590,8 +509,8 @@ tsc
     "esModuleInterop": true, // Enable ES module interop
     "resolveJsonModule": true // Allow importing JSON files
   },
-  "include": ["src/**/*"], // Files to include
-  "exclude": ["node_modules", "dist"] // Files to exclude
+  "include": ["src/**/*"], // Glob patterns for files to include
+  "exclude": ["node_modules", "dist", "**/*.test.ts"] // Glob patterns for files to exclude
 }
 ```
 
@@ -613,6 +532,10 @@ tsc
 **`moduleResolution`**: How TypeScript resolves modules. Use `"node"` for Node.js-style resolution.
 
 **`esModuleInterop`**: Allows default imports from CommonJS modules (e.g., `import React from 'react'`).
+
+**`include`**: Glob patterns to include files. Works with `exclude`. Default: all `.ts`, `.tsx`, `.d.ts` files if not specified.
+
+**`exclude`**: Glob patterns to exclude files from `include`.
 
 ---
 
@@ -654,98 +577,6 @@ interface Pair<T, U> {
   first: T;
   second: U;
 }
-```
-
-### Generic Classes
-
-```typescript
-class Stack<T> {
-  private items: T[] = [];
-
-  push(item: T): void {
-    this.items.push(item);
-  }
-
-  pop(): T | undefined {
-    return this.items.pop();
-  }
-
-  peek(): T | undefined {
-    return this.items[this.items.length - 1];
-  }
-
-  isEmpty(): boolean {
-    return this.items.length === 0;
-  }
-}
-
-let numberStack = new Stack<number>();
-numberStack.push(1);
-numberStack.push(2);
-numberStack.push(3);
-
-let stringStack = new Stack<string>();
-stringStack.push("hello");
-```
-
-### Generic Constraints
-
-```typescript
-// Constraint: T must have length property
-interface Lengthwise {
-  length: number;
-}
-
-function logLength<T extends Lengthwise>(arg: T): T {
-  console.log(arg.length);
-  return arg;
-}
-
-logLength("hello"); // OK
-logLength([1, 2, 3]); // OK
-logLength({ length: 5 }); // OK
-// logLength(42);          // Error: number doesn't have length
-
-// Using type parameters in constraints
-function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
-  return obj[key];
-}
-
-const person = { name: "John", age: 30 };
-let name = getProperty(person, "name"); // OK
-// let invalid = getProperty(person, "email"); // Error
-```
-
-### Default Type Parameters
-
-```typescript
-interface ApiResponse<T = any> {
-  data: T;
-  status: number;
-  message: string;
-}
-
-let response1: ApiResponse = { data: {}, status: 200, message: "OK" };
-let response2: ApiResponse<string> = {
-  data: "result",
-  status: 200,
-  message: "OK",
-};
-```
-
-### Conditional Types
-
-```typescript
-type NonNullable<T> = T extends null | undefined ? never : T;
-
-type Flatten<T> = T extends (infer U)[] ? U : T;
-
-type ReturnType<T> = T extends (...args: any[]) => infer R ? R : any;
-
-// Example usage
-type Str = NonNullable<string | null>; // string
-type Num = Flatten<number[]>; // number
-type FuncReturn = ReturnType<() => string>; // string
 ```
 
 ### Mapped Types
@@ -974,68 +805,6 @@ const pages: Record<Page, PageInfo> = {
   about: { title: "About", likes: 50 },
   contact: { title: "Contact", likes: 25 },
 };
-```
-
-### Exclude<T, U>
-
-Excludes types from T that are assignable to U.
-
-```typescript
-type T0 = Exclude<"a" | "b" | "c", "a">; // "b" | "c"
-type T1 = Exclude<string | number | (() => void), Function>; // string | number
-```
-
-### Extract<T, U>
-
-Extracts types from T that are assignable to U.
-
-```typescript
-type T0 = Extract<"a" | "b" | "c", "a" | "f">; // "a"
-type T1 = Extract<string | number | (() => void), Function>; // () => void
-```
-
-### NonNullable<T>
-
-Excludes null and undefined from T.
-
-```typescript
-type T0 = NonNullable<string | number | undefined>; // string | number
-type T1 = NonNullable<string[] | null | undefined>; // string[]
-```
-
-### Parameters<T>
-
-Extracts the parameter types of a function type.
-
-```typescript
-type T0 = Parameters<() => string>; // []
-type T1 = Parameters<(s: string) => void>; // [string]
-type T2 = Parameters<<T>(arg: T) => T>; // [unknown]
-```
-
-### ReturnType<T>
-
-Extracts the return type of a function type.
-
-```typescript
-type T0 = ReturnType<() => string>; // string
-type T1 = ReturnType<(s: string) => void>; // void
-type T2 = ReturnType<<T>() => T>; // unknown
-```
-
-### InstanceType<T>
-
-Extracts the instance type of a constructor function type.
-
-```typescript
-class C {
-  x = 0;
-  y = 0;
-}
-
-type T0 = InstanceType<typeof C>; // C
-type T1 = InstanceType<any>; // any
-type T2 = InstanceType<never>; // never
 ```
 
 ---
@@ -1398,6 +1167,5 @@ console.log(temp.fahrenheit); // 77
 
 - [TypeScript Official Documentation](https://www.typescriptlang.org/docs/)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
-- [TypeScript Playground](https://www.typescriptlang.org/play)
 - [TypeScript Compiler Options](https://www.typescriptlang.org/tsconfig)
 - [TypeScript Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html)
