@@ -398,36 +398,7 @@ function useLocalStorage(key, initialValue) {
 }
 ```
 
-### 4. Performance Optimization with useEffect
-
-**Techniques**:
-
-- Avoid unnecessary effect re-runs with correct dependency array
-- Use cleanup to prevent memory leaks
-- Debounce/throttle for expensive operations
-- Use `useMemo` and `useCallback` to stabilize dependencies
-
-**Example - Debounce**:
-
-```javascript
-function useDebounce(value, delay) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-}
-```
-
-### 5. Testing Components with useEffect
+### 4. Testing Components with useEffect
 
 **Testing** components using useEffect:
 

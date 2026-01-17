@@ -716,34 +716,6 @@ After state changes, React re-renders and recalculates:
 
 ## 📝 Summary
 
-### Concepts Learned
-
-1. **Derived State**: Calculate values from state instead of storing them
-2. **Functional State Updates**: Use callbacks to update state based on previous values
-3. **Immutable Updates**: Always create a new copy when updating state
-4. **Lifting State Up**: Manage shared state in parent component
-5. **Controlled Components**: Two-way binding with input elements
-6. **Local vs Shared State**: Distinguish between state used only in component and shared state
-7. **Conditional Rendering**: Display content based on conditions
-8. **Key Prop**: Helps React identify elements in lists
-9. **Event Handlers with Parameters**: Pass parameters to event handlers
-10. **Separation of Concerns**: Separate domain logic from components
-
-### Techniques Practiced
-
-- Calculate derived state from single source of truth
-- Use functional updates to avoid stale closures
-- Create immutable updates with spread operator
-- Manage state in parent component and pass callbacks down to children
-- Use controlled components for two-way binding
-- Distinguish local state and shared state
-- Conditional rendering with logical operators
-- Render nested lists with key prop
-- Handle events with parameters
-- Separate domain logic into separate modules
-
-### Important Notes
-
 1. **Single Source of Truth**: Only store necessary data, calculate the rest
 2. **Functional Updates**: Always use callbacks when updating state depends on previous values
 3. **Immutable Updates**: Never mutate state directly

@@ -760,31 +760,7 @@ test("renders home page", () => {
 
 **Documentation**: [Testing React Router](https://reactrouter.com/en/main/start/testing)
 
-### 5. Server-Side Rendering (SSR)
-
-**SSR with React Router**:
-
-- Use `StaticRouter` for SSR
-- Handle redirects on server
-- Hydrate on client
-
-**Example**:
-
-```typescript
-import { StaticRouter } from "react-router-dom/server";
-
-function renderApp(url: string) {
-  return (
-    <StaticRouter location={url}>
-      <App />
-    </StaticRouter>
-  );
-}
-```
-
-**Documentation**: [React Router SSR](https://reactrouter.com/en/main/guides/ssr)
-
-### 6. Route Configuration Objects
+### 5. Route Configuration Objects
 
 **Declarative Routes**:
 

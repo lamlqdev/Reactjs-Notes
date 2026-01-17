@@ -2,57 +2,13 @@
 
 A demo application for managing UI preferences using **Context API** combined with **useReducer** in React + TypeScript.
 
-## Core Terminology
-
-**createContext**:
-
-- Function that creates a Context object for sharing state between components.
-- Avoids prop drilling by providing a way to pass data through the component tree.
-
-![Create Context](./public/createContext.png)
-
-**Provider**:
-
-- Component that provides values to a Context.
-- Wraps child components that need access to the Context.
-- Receives a `value` prop containing the data to share.
-
-**useContext**:
-
-- Hook that consumes values from a Context.
-- Returns the value provided by the nearest Provider.
-
-![useContext](./public/useContext.png)
-
-**useReducer**:
-
-- Hook for managing complex state, alternative to `useState`.
-- Takes a reducer function and initial state.
-- Returns current state and dispatch function.
-
-![useReducer](./public/useReducer.png)
-
-**reducer**:
-
-- Pure function that takes `(state, action)` and returns new state.
-- Handles state updates based on action type.
-- Must be immutable (no mutations).
-
-![Reducer Function](./public/appReducer.png)
-
-**action**:
-
-- Object describing "what happened".
-- Has `type` (required) and optional `payload`.
-- Dispatched to trigger state updates.
-
----
-
 ## Basic: Implement Dashboard Preferences Feature
 
 This section guides you through implementing a simple feature with Context API and useReducer, managing UI preferences synchronously.
 
 ### Step 1: Define State Structure
+
+An **action** is an object describing "what happened". It has a `type` (required) and optional `payload`. Actions are dispatched to trigger state updates.
 
 **File: `src/context/appTypes.ts`**: Define the state structure and action types.
 
@@ -95,9 +51,11 @@ export type AppAction = SetThemeAction | SetPrimaryColorAction | ...;
 
 ### Step 2: Create Reducer Function
 
-**File: `src/context/appReducer.ts`**: Create reducer function to handle state updates.
+A **reducer** is a pure function that takes `(state, action)` and returns new state. It handles state updates based on action type and must be immutable (no mutations).
 
-**Example**:
+![Reducer Function](./public/appReducer.png)
+
+**File: `src/context/appReducer.ts`**: Create reducer function to handle state updates.
 
 ```typescript
 export function appReducer(state: AppState, action: AppAction): AppState {
@@ -125,9 +83,11 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
 #### 3.1. Create Context with `createContext`
 
-**File: `src/context/AppContext.tsx`**
+`createContext` is a function that creates a Context object for sharing state between components. It avoids prop drilling by providing a way to pass data through the component tree.
 
-**Example**:
+![Create Context](./public/createContext.png)
+
+**File: `src/context/AppContext.tsx`**: Define Context value type and create Context object.
 
 ```typescript
 // 1. Define Context Value type
@@ -149,9 +109,13 @@ export const AppContext = createContext<AppContextValue | undefined>(undefined);
 
 #### 3.2. Create Provider with `useReducer`
 
-**File: `src/context/AppContext.tsx`**
+`useReducer` is a hook for managing complex state, alternative to `useState`. It takes a reducer function and initial state, and returns current state and dispatch function.
 
-**Example**:
+![useReducer](./public/useReducer.png)
+
+A **Provider** is a component that provides values to a Context. It wraps child components that need access to the Context and receives a `value` prop containing the data to share.
+
+**File: `src/context/AppContext.tsx`: Create Provider component with `useReducer` to manage state.**
 
 ```typescript
 // 3. Create Provider component
@@ -175,9 +139,11 @@ export function AppProvider({ children }: AppProviderProps) {
 
 ### Step 4: Create Custom Hook
 
-**File: `src/hooks/useAppContext.ts`**
+`useContext` is a hook that consumes values from a Context. It returns the value provided by the nearest Provider.
 
-**Example**:
+![useContext](./public/useContext.png)
+
+**File: `src/hooks/useAppContext.ts`: Create custom hook to access Context value.**
 
 ```typescript
 export function useAppContext(): AppContextValue {
@@ -411,104 +377,6 @@ function App() {
 ## Summary
 
 ![Context API + useReducer](./public/summary.png)
-
----
-
-## Learn More
-
-After mastering the basic and advanced concepts above, you can continue learning the following topics:
-
-### 1. State Management Patterns
-
-**Common Patterns**:
-
-- **Single Context**: One context for entire app state
-- **Multiple Contexts**: Split by domain (theme, user, UI state)
-- **Context + useReducer**: For complex state logic
-- **Context + useState**: For simple state
-
-**Best Practices**:
-
-- Keep contexts focused on specific domains
-- Use custom hooks to abstract context usage
-- Memoize context values to prevent unnecessary re-renders
-- Split contexts when performance becomes an issue
-
-### 2. Testing Context and Reducers
-
-**Testing** includes:
-
-- **Unit test** for reducers: Test state handling logic
-- **Unit test** for context: Test Provider and value
-
-**Supporting Tools**:
-
-- `@testing-library/react`: Test React components
-- Mock Provider for testing components in isolation
-- Test reducer functions independently
-
-**Documentation**: [Testing React Components](https://react.dev/learn/testing)
-
-### 3. Performance Optimization Techniques
-
-**Performance optimization** strategies:
-
-- Split contexts by update frequency
-- Memoize context values with `useMemo`
-- Create selector hooks for granular subscriptions
-- Use `React.memo` for components that consume context
-- Avoid creating new objects in Provider on every render
-
-**Documentation**: [React Performance](https://react.dev/learn/render-and-commit)
-
-### 4. TypeScript Best Practices
-
-**TypeScript** with Context API:
-
-- Define proper types for Context value
-- Use union types for actions
-- Create typed custom hooks
-- Use `ReturnType` to infer types from state
-
-**Documentation**: [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-
-### 5. Error Handling in Context
-
-**Error handling** strategies:
-
-- Throw errors in custom hooks if context is undefined
-- Provide default values for optional contexts
-- Handle errors in reducer for invalid actions
-- Use error boundaries for context-related errors
-
-### 6. Persisting State with Context
-
-**Persistence** techniques:
-
-- Save state to localStorage in reducer
-- Load state from localStorage on initialization
-- Sync state changes to external storage
-- Handle persistence errors gracefully
-
-**Example**:
-
-```typescript
-// Load initial state from localStorage
-const loadState = (): AppState => {
-  const saved = localStorage.getItem("appState");
-  return saved ? JSON.parse(saved) : initialState;
-};
-
-// Save state to localStorage
-const saveState = (state: AppState) => {
-  localStorage.setItem("appState", JSON.stringify(state));
-};
-
-// Use in reducer or effect
-useEffect(() => {
-  saveState(state);
-}, [state]);
-```
 
 ---
 

@@ -122,8 +122,6 @@ export const tokenStorage = {
 
 ### Step 3: Protected Routes
 
-**When to use**: When you need to restrict access to certain routes based on authentication status.
-
 **File: `src/components/ProtectedRoute.tsx`**
 
 ```typescript
@@ -162,8 +160,6 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 This section covers more complex authentication patterns and features.
 
 ### Step 1: Context API + useReducer for Auth State
-
-**When to use**: When you need global authentication state management across your application.
 
 **File: `src/context/AuthContext.tsx`**
 
@@ -231,8 +227,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 ### Step 2: Axios Interceptors for Token Management
 
-**When to use**: When you need to automatically attach tokens to requests and handle token refresh.
-
 **File: `src/api/axiosInstance.ts`**
 
 ```typescript
@@ -273,8 +267,6 @@ axiosInstance.interceptors.response.use(
 
 ### Step 3: Role-Based Access Control (RBAC)
 
-**When to use**: When you need to restrict access based on user roles (admin, user, guest).
-
 **File: `src/components/RoleGuard.tsx`**
 
 ```typescript
@@ -312,8 +304,6 @@ export const RoleGuard = ({
 **Explanation**: Checks authentication first, verifies user role against allowed roles, and redirects unauthorized users. Can be combined with ProtectedRoute for layered protection.
 
 ### Step 4: Token Utilities
-
-**When to use**: When you need to decode, validate, or check token expiration.
 
 **File: `src/utils/tokenUtils.ts`**
 

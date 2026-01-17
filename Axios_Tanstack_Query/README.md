@@ -155,21 +155,6 @@ axios
   .catch((error) => console.error("Error:", error));
 ```
 
-**When to use Axios:**
-
-- Need interceptors for auth tokens, error handling, or request/response transformation
-- Want built-in timeout, progress tracking, or request cancellation
-- Prefer cleaner, more concise syntax
-- Need consistent error handling across the application
-- Working with TypeScript and want better type safety
-
-**When to use Fetch:**
-
-- Want zero external dependencies
-- Simple requests without advanced features
-- Bundle size is critical
-- Only need basic HTTP requests
-
 ---
 
 ### 2. TanStack Query Terminology
@@ -190,9 +175,7 @@ axios
 
 #### Query Fundamentals
 
-**Query**:
-
-`useQuery` binds an async read operation to a unique cache key, manages its lifecycle, and exposes the result to React components. It takes an options object as input, some common properties are:
+**Query**: `useQuery` binds an async read operation to a unique cache key, manages its lifecycle, and exposes the result to React components. It takes an options object as input, some common properties are:
 
 ![useQuery options](./public/useQuery-input.png)
 
@@ -200,9 +183,7 @@ axios
 
 ![useQuery result](./public/useQuery-output.png)
 
-**Mutations**:
-
-`useMutation` manages write operations (create, update, delete) and their side effects on server state. It takes an options object as input, some common properties are:
+**Mutations**: `useMutation` manages write operations (create, update, delete) and their side effects on server state. It takes an options object as input, some common properties are:
 
 ![useMutation input](./public/useMutation-input.png)
 
@@ -293,13 +274,7 @@ const handleMouseEnter = () => {
 
 ### 4. Combining Axios + TanStack Query + TypeScript
 
-When combining all three, you'll encounter these concepts frequently:
-
-#### API Layer / Service Layer
-
-- **Axios**: Responsible for HTTP communication
-- **TanStack Query**: Responsible for cache + sync state
-- **TypeScript**: Responsible for ensuring data contract
+![Architecture](./public/architecture.png)
 
 **Example Structure**:
 
@@ -341,82 +316,6 @@ src/
 │   └── ...
 │
 └── App.tsx                # Root component
-```
-
-**Example API Layer**:
-
-```typescript
-// API layer - handles HTTP communication
-export const usersApi = {
-  getUsers: async (): Promise<User[]> => {
-    const response = await axiosInstance.get<User[]>("/users");
-    return response.data;
-  },
-  createUser: async (data: CreateUserDTO): Promise<User> => {
-    const response = await axiosInstance.post<User>("/users", data);
-    return response.data;
-  },
-};
-```
-
-#### Typed API Response
-
-- Every API call should have typed response, prevents `any` types
-- Ensures type safety throughout app
-
-**Example**:
-
-```typescript
-// Typed response with generic
-const response: AxiosResponse<User[]> = await axiosInstance.get<User[]>(
-  "/users"
-);
-// response.data is typed as User[]
-// response.status is typed as number
-return response.data;
-```
-
-#### Error Normalization
-
-- Convert all errors to consistent format
-- Makes error handling easier
-- Prevents inconsistent error types
-
-**Example**:
-
-```typescript
-function normalizeError(error: unknown): ApiError {
-  if (error instanceof AxiosError) {
-    return {
-      message: error.response?.data?.message || error.message,
-      status: error.response?.status || 500,
-    };
-  }
-  if (error instanceof Error) {
-    return { message: error.message, status: 500 };
-  }
-  return { message: "An unknown error occurred", status: 500 };
-}
-```
-
-#### DTO (Data Transfer Object)
-
-DTOs are TypeScript interfaces that define the structure of data transferred between frontend and backend API. They provide type safety and serve as contracts for API requests and responses.
-
-**Example**:
-
-```typescript
-export interface CreateUserDTO {
-  name: string;
-  email: string;
-  age: number;
-}
-
-export interface UpdateUserDTO {
-  name?: string;
-  email?: string;
-  age?: number;
-}
 ```
 
 ---
@@ -479,6 +378,24 @@ axiosInstance.interceptors.response.use(
 ```
 
 ### Step 2: Create API Functions with DTOs (API Layer)
+
+**DTO (Data Transfer Object)**: TypeScript interfaces that define the structure of data transferred between frontend and backend API. They provide type safety and serve as contracts for API requests and responses.
+
+**Example**:
+
+```typescript
+export interface CreateUserDTO {
+  name: string;
+  email: string;
+  age: number;
+}
+
+export interface UpdateUserDTO {
+  name?: string;
+  email?: string;
+  age?: number;
+}
+```
 
 **File: `src/api/user.api.ts`** (Example - similar structure for other API files)
 
@@ -888,12 +805,6 @@ export function usePrefetchPost() {
   };
 }
 ```
-
----
-
-## Architecture Pattern
-
-![Architecture](./public/architecture.png)
 
 ---
 

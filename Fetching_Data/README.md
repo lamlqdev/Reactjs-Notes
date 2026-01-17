@@ -491,32 +491,7 @@ const response = await fetch("http://localhost:3000/protected", {
 
 **Documentation**: [MDN HTTP Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers)
 
-### 2. Error Handling Strategies
-
-**Error Handling Patterns**:
-
-- **Try-Catch**: Catch errors in async functions
-- **Error Boundaries**: React components that catch errors in child components
-- **Retry Logic**: Automatically retry failed requests
-- **Error Logging**: Log errors to monitoring service
-
-**Example with Retry Logic**:
-
-```javascript
-async function fetchWithRetry(url, retries = 3) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const response = await fetch(url);
-      if (response.ok) return await response.json();
-    } catch (error) {
-      if (i === retries - 1) throw error;
-      await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
-    }
-  }
-}
-```
-
-### 3. Data Fetching Libraries
+### 2. Data Fetching Libraries
 
 **Popular Libraries**:
 
@@ -536,35 +511,7 @@ const data = response.data;
 
 **Documentation**: [Axios](https://axios-http.com/) | [SWR](https://swr.vercel.app/) | [React Query](https://tanstack.com/query/latest)
 
-### 4. Caching and Revalidation
-
-**Caching Strategies**:
-
-- **Browser Cache**: HTTP cache headers
-- **Memory Cache**: Store data in component state or context
-- **SWR/React Query**: Automatic caching and revalidation
-- **localStorage**: Persist data in browser storage
-
-**Example with localStorage Cache**:
-
-```javascript
-async function fetchWithCache(url) {
-  const cached = localStorage.getItem(url);
-  if (cached) {
-    const { data, timestamp } = JSON.parse(cached);
-    if (Date.now() - timestamp < 5 * 60 * 1000) {
-      return data; // Return cached data if less than 5 minutes old
-    }
-  }
-
-  const response = await fetch(url);
-  const data = await response.json();
-  localStorage.setItem(url, JSON.stringify({ data, timestamp: Date.now() }));
-  return data;
-}
-```
-
-### 5. Request Cancellation
+### 3. Request Cancellation
 
 **Canceling Requests**:
 
@@ -601,7 +548,7 @@ useEffect(() => {
 
 **Documentation**: [MDN AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController)
 
-### 6. CORS (Cross-Origin Resource Sharing)
+### 4. CORS (Cross-Origin Resource Sharing)
 
 **CORS**:
 
@@ -622,7 +569,7 @@ app.use((req, res, next) => {
 
 **Documentation**: [MDN CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)
 
-### 7. Testing API Calls
+### 5. Testing API Calls
 
 **Testing Strategies**:
 

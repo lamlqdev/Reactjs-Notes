@@ -174,67 +174,7 @@ toggle();
 setIsOpen(true);
 ```
 
-### Example 4: useWindowSize Hook
-
-**When to use**: When you need to track window dimensions for responsive design.
-
-**File: `src/hooks/useWindowSize.ts`**
-
-```typescript
-import { useState, useEffect } from "react";
-
-interface WindowSize {
-  width: number;
-  height: number;
-}
-
-function useWindowSize(): WindowSize {
-  const [windowSize, setWindowSize] = useState<WindowSize>({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  });
-
-  useEffect(() => {
-    function handleResize() {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    }
-
-    window.addEventListener("resize", handleResize);
-    handleResize(); // Call immediately to set initial size
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  return windowSize;
-}
-```
-
-**Explanation**:
-
-- Initializes state with current window dimensions
-- Adds resize event listener on mount
-- Updates state when window is resized
-- Removes event listener on cleanup
-- Returns object with `width` and `height`
-
-**Usage**:
-
-```typescript
-const { width, height } = useWindowSize();
-
-// Conditional rendering based on window size
-{
-  width < 768 && <MobileView />;
-}
-{
-  width >= 768 && <DesktopView />;
-}
-```
-
-### Example 5: useFetch Hook
+### Example 4: useFetch Hook
 
 **When to use**: When you need to fetch data from APIs with loading and error states.
 
@@ -311,7 +251,7 @@ if (error) return <Error message={error.message} />;
 return <div>{data.name}</div>;
 ```
 
-### Example 6: usePrevious Hook
+### Example 5: usePrevious Hook
 
 **When to use**: When you need to track the previous value of a state or prop.
 

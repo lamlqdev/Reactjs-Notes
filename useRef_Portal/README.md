@@ -308,33 +308,7 @@ function Modal() {
 
 **Common use cases**: Modals and dialogs, tooltips, dropdown menus, loading overlays, notifications.
 
-### Example 3: Ref Callback Pattern
-
-**When to use**: When you need to do something when ref is attached/detached.
-
-**Example**:
-
-```typescript
-import { useState } from "react";
-
-function Component() {
-  const [node, setNode] = useState<HTMLDivElement | null>(null);
-
-  return (
-    <div ref={(el) => setNode(el)}>
-      {node && <p>Element mounted: {node.offsetHeight}px</p>}
-    </div>
-  );
-}
-```
-
-**How to use**:
-
-1. **Create state**: `const [node, setNode] = useState<HTMLDivElement | null>(null)` - Store element
-2. **Use callback ref**: `ref={(el) => setNode(el)}` - Set state when ref attaches
-3. **Use element**: `{node && <p>Height: {node.offsetHeight}px</p>}` - Access element safely
-
-### Example 4: Multiple Refs
+### Example 3: Multiple Refs
 
 **When to use**: When you need to access multiple DOM elements.
 
