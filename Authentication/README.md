@@ -26,15 +26,23 @@ A comprehensive demo application demonstrating **Frontend Authentication** patte
 
 ![Refresh Token vs Access Token](./public/refresh-token-vs-access-token.png)
 
-**Storage Comparison**:
+---
 
-| Storage Type         | Pros                                     | Cons                                   | Best For                        |
-| -------------------- | ---------------------------------------- | -------------------------------------- | ------------------------------- |
-| **localStorage**     | Persists across tabs, easy to use        | Vulnerable to XSS, accessible to JS    | Development, non-sensitive data |
-| **sessionStorage**   | Cleared on tab close, easy to use        | Vulnerable to XSS, accessible to JS    | Temporary data, single session  |
-| **httpOnly Cookies** | Protected from XSS, not accessible to JS | Requires CSRF protection, server setup | Production, sensitive tokens    |
+## Learning Objectives
 
-**Best Practice**: For production apps, use httpOnly cookies for refresh tokens and short-lived access tokens in memory or secure storage.
+Now that you have a high-level understanding of how Authentication works, we can clearly define the objectives of Authentication from a frontend perspective.
+
+**At a basic level:**
+
+- Build a basic login flow and obtain authentication tokens securely.
+- Compare common client-side token storage strategies and their trade-offs.
+- Protect sensitive routes from unauthenticated access.
+
+**At an advanced level:**
+
+- Manage authentication state using Context API or Redux.
+- Handle token lifecycle events such as expiration and refresh.
+- Implement role-based access control.
 
 ---
 
@@ -111,6 +119,16 @@ export const tokenStorage = {
   },
 };
 ```
+
+**Storage Comparison**:
+
+| Storage Type         | Pros                                     | Cons                                   | Best For                        |
+| -------------------- | ---------------------------------------- | -------------------------------------- | ------------------------------- |
+| **localStorage**     | Persists across tabs, easy to use        | Vulnerable to XSS, accessible to JS    | Development, non-sensitive data |
+| **sessionStorage**   | Cleared on tab close, easy to use        | Vulnerable to XSS, accessible to JS    | Temporary data, single session  |
+| **httpOnly Cookies** | Protected from XSS, not accessible to JS | Requires CSRF protection, server setup | Production, sensitive tokens    |
+
+**Best Practice**: For production apps, use httpOnly cookies for refresh tokens and short-lived access tokens in memory or secure storage.
 
 ### Step 3: Protected Routes
 
