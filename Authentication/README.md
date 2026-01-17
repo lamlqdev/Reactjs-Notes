@@ -40,7 +40,7 @@ A comprehensive demo application demonstrating **Frontend Authentication** patte
 
 ## Basic: Authentication Implementation
 
-### Example 1: Simple Login Form with JWT
+### Step 1: Create Login Form
 
 **File: `src/components/Login.tsx`**
 
@@ -84,7 +84,7 @@ function Login() {
 
 **Explanation**: Form collects credentials, calls `login` from `useAuth` hook, handles loading/error states, and navigates to dashboard on success.
 
-### Example 2: Token Storage Implementation
+### Step 2: Store Token
 
 This project is a demo, so it uses `localStorage` to store tokens. Although `localStorage` has security risks (vulnerable to XSS attacks), it's suitable for learning and demo purposes because it's easy to use and debug.
 
@@ -112,7 +112,7 @@ export const tokenStorage = {
 };
 ```
 
-### Example 3: Protected Routes
+### Step 3: Protected Routes
 
 **When to use**: When you need to restrict access to certain routes based on authentication status.
 
@@ -153,7 +153,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
 This section covers more complex authentication patterns and features.
 
-### Example 1: Context API + useReducer for Auth State
+### Step 1: Context API + useReducer for Auth State
 
 **When to use**: When you need global authentication state management across your application.
 
@@ -221,7 +221,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 **Explanation**: Centralized auth state with Context API and useReducer. Initializes from localStorage on mount, handles login/logout, and persists tokens. Use `useAuth()` hook to access auth state and methods.
 
-### Example 2: Axios Interceptors for Token Management
+### Step 2: Axios Interceptors for Token Management
 
 **When to use**: When you need to automatically attach tokens to requests and handle token refresh.
 
@@ -263,7 +263,7 @@ axiosInstance.interceptors.response.use(
 
 **Explanation**: Request interceptor attaches access token automatically. Response interceptor handles 401 errors by refreshing token on-demand (only when needed), retries failed request, and logs out if refresh fails. This is the recommended approach for production.
 
-### Example 3: Role-Based Access Control (RBAC)
+### Step 3: Role-Based Access Control (RBAC)
 
 **When to use**: When you need to restrict access based on user roles (admin, user, guest).
 
@@ -303,7 +303,7 @@ export const RoleGuard = ({
 
 **Explanation**: Checks authentication first, verifies user role against allowed roles, and redirects unauthorized users. Can be combined with ProtectedRoute for layered protection.
 
-### Example 4: Token Utilities
+### Step 4: Token Utilities
 
 **When to use**: When you need to decode, validate, or check token expiration.
 
@@ -360,75 +360,9 @@ export const decodeToken = (token: string | null): any => {
 
 ---
 
-## Summary
-
-Frontend Authentication is a crucial component in building secure web applications. This documentation has covered the key concepts and patterns for implementing authentication in React with TypeScript.
-
-### Authentication Methods
-
-1. **Session-based Authentication**: Traditional method using server-side sessions and httpOnly cookies. Suitable for traditional web applications where the server controls session lifecycle and security is a top priority.
-
-2. **JWT-based Authentication**: Stateless token-based method, ideal for SPAs, mobile apps, and stateless APIs. Enables scalability without server-side session storage.
-
-### Best Practices for Authentication
-
-- **Storage**: Use httpOnly cookies for refresh tokens in production, avoid localStorage for sensitive data
-- **Token Expiration**: Use short-lived access tokens (15-60 minutes) and longer-lived refresh tokens (7-30 days)
-- **HTTPS Only**: Always use HTTPS in production to encrypt communication
-- **Server Validation**: Always validate tokens on the server, never fully trust client-side validation
-- **Input Sanitization**: Sanitize user inputs to prevent XSS attacks
-- **Rate Limiting**: Implement rate limiting on authentication endpoints to prevent brute force attacks
-
-### Security Considerations
-
-Common security vulnerabilities to be aware of:
-
-- **XSS (Cross-Site Scripting)**: Prevent with httpOnly cookies, input sanitization, and CSP
-- **CSRF (Cross-Site Request Forgery)**: Prevent with CSRF tokens, SameSite cookie attribute
-- **Token Theft**: Mitigate with httpOnly cookies, HTTPS, short token expiration, and token rotation
-
----
-
-## Learn More
-
-After mastering the basic and advanced concepts above, you can continue learning the following topics:
-
-### 1. OAuth 2.0 and Social Login
-
-**OAuth 2.0** is an authorization framework that enables applications to obtain limited access to user accounts. It supports various flows including **Authorization Code flow** and **PKCE (Proof Key for Code Exchange)** for enhanced security. **Social login integration** allows users to authenticate using their existing accounts from providers like Google, GitHub, and Facebook.
-
-**Documentation**: [OAuth 2.0 Specification](https://oauth.net/2/)
-
-### 2. Multi-Factor Authentication (MFA)
-
-**Multi-Factor Authentication (MFA)** adds an extra layer of security by requiring users to provide multiple forms of verification. Common MFA methods include **TOTP (Time-based One-Time Password)**, **SMS verification**, **email verification**, and **biometric authentication** using **WebAuthn** standards.
-
-**Documentation**: [WebAuthn Guide](https://webauthn.guide/)
-
-### 3. Passwordless Authentication
-
-**Passwordless authentication** eliminates the need for traditional passwords by using alternative verification methods. These include **magic links** sent via email, **SMS codes**, **biometric authentication**, and **WebAuthn (FIDO2)** protocols. This approach improves user experience while maintaining security.
-
-**Documentation**: [WebAuthn Guide](https://webauthn.guide/)
-
-### 4. Session Management
-
-Effective **session management** involves implementing strategies such as **server-side sessions**, **token-based sessions**, **refresh token rotation**, and **concurrent session limits**. These techniques help maintain security and control over user sessions across multiple devices and applications.
-
-**Documentation**: [OWASP Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
-
-### 5. Security Headers and CSP
-
-**Security headers** provide additional protection layers for web applications. Important headers include **Content Security Policy (CSP)** to prevent XSS attacks, **X-Frame-Options** to prevent clickjacking, **X-Content-Type-Options** to prevent MIME sniffing, and **Strict-Transport-Security (HSTS)** to enforce HTTPS connections.
-
-**Documentation**: [OWASP Secure Headers](https://owasp.org/www-project-secure-headers/)
-
----
-
 ## References
 
 - [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
 - [JWT.io](https://jwt.io/)
-- [OAuth 2.0 Specification](https://oauth.net/2/)
 - [WebAuthn Guide](https://webauthn.guide/)
 - [React Security Best Practices](https://react.dev/learn/escape-hatches)
