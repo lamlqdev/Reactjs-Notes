@@ -32,17 +32,7 @@ A comprehensive demo application demonstrating **Frontend Authentication** patte
 
 Now that you have a high-level understanding of how Authentication works, we can clearly define the objectives of Authentication from a frontend perspective.
 
-**At a basic level:**
-
-- Build a basic login flow and obtain authentication tokens securely.
-- Compare common client-side token storage strategies and their trade-offs.
-- Protect sensitive routes from unauthenticated access.
-
-**At an advanced level:**
-
-- Manage authentication state using Context API or Redux.
-- Handle token lifecycle events such as expiration and refresh.
-- Implement role-based access control.
+![Learning Objectives](./public/learning-objectives.png)
 
 ---
 
