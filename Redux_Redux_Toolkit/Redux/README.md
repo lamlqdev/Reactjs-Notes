@@ -14,7 +14,7 @@ In Redux, data flows in one direction only: **Action → Reducer → State → C
 
 2. **Dispatch Action** → Component uses **dispatch** (function that sends an action to update state) to send an **action** object (object describing what happened, must have a `type` property, may include `payload`). Actions are typically created by **action creators** (functions that create and return action objects, reducing boilerplate).
 
-3. **Middleware Processing** (optional) → Action passes through **middleware** chain (extension mechanism for Redux - asynchronous handling, logging, etc. Examples: Redux Thunk, Redux Saga), which can:
+3. **Middleware Processing** (optional) → Action passes through **middleware** chain (extension mechanism for Redux. Examples: Redux Thunk, Redux Saga), which can:
 
    - Handle asynchronous operations (API calls, timers)
    - Log actions for debugging
@@ -68,16 +68,6 @@ src/
 ├── App.tsx            # Root component
 └── index.tsx          # Application entry point
 ```
-
-### Key Directories Explained
-
-- **`actions/`**: Contains action creator functions that return action objects
-- **`constants/`**: Stores action type constants to avoid typos and ensure consistency
-- **`reducers/`**: Contains reducer functions that handle state updates
-- **`selectors/`**: Functions that extract and derive data from the state
-- **`store/`**: Store configuration and setup
-- **`types/`**: TypeScript interfaces and types for type safety
-- **`hooks/`**: Custom hooks wrapping Redux hooks with proper typing
 
 ## How to Use Redux
 
