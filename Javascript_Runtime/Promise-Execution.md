@@ -8,27 +8,23 @@ This document walks through promise execution and what happens behind the scenes
 
 ## Creating a Promise: The Promise Constructor
 
-One way to create a promise is by using the **new Promise constructor**.
+One way to create a promise is by using the **new Promise constructor**. This constructor receives an **executor function**.
 
 ```javascript
 new Promise((resolve, reject) => {
-  // Executor function
+  // Executor body
 });
 ```
 
-This constructor receives an **executor function**.
+### What happens when the constructor is executed
 
-### What Happens When the Constructor is Executed
+When the `new Promise` constructor is executed, a **new promise object is created in memory**. This object contains some **internal slots**:
 
-When the `new Promise` constructor is executed, a **new promise object is created in memory**.
-
-This object contains some **internal slots**:
-
-- **Promise State**: The current state of the promise
-- **Promise Result**: The result value of the promise
-- **Promise Fulfill Reactions**: List of handlers for fulfillment
-- **Promise Reject Reactions**: List of handlers for rejection
-- **Promise Is Handled**: Whether the promise has handlers
+- **Promise State**: The current state of the promise (`pending`, `fulfilled`, `rejected`)
+- **Promise Result**: The result value of the promise (the value that we pass to `resolve` or `reject`)
+- **Promise Fulfill Reactions**: List of handlers for fulfillment (`.then`)
+- **Promise Reject Reactions**: List of handlers for rejection (`.catch`)
+- **Promise Is Handled**: Whether the promise has handlers (`true` or `false`)
 
 We also get some additional functionality to either **resolve** or **reject** this promise.
 
@@ -66,9 +62,7 @@ When we call `reject`:
 
 Cool, nothing special here. We're just calling a function to change some object property. So what's so special about promises?
 
-That's actually in those two fields we skipped so far: **Promise Fulfill Reactions** and **Promise Reject Reactions**.
-
-These fields contain something called **Promise Reaction Records**.
+That's actually in those two fields we skipped so far: **Promise Fulfill Reactions** and **Promise Reject Reactions**. These fields contain something called **Promise Reaction Records**.
 
 ## Promise Reaction Records
 
@@ -80,19 +74,19 @@ promise.then(callback);
 
 Whenever we chain `then`, the `then` method is responsible for creating that **promise reaction record**.
 
-### Promise Reaction Record Structure
+### Promise reaction record structure
 
 Among many other fields, this reaction record contains a **handler**, and this has some code—that code is that **callback that we passed to `then`**.
 
-### What Happens When We Resolve
+### What happens when we resolve
 
 When we resolve the promise (call `resolve`):
 
 1. `resolve` is added to the call stack
 2. Promise state is set to `fulfilled`
 3. Promise result is set to the value we pass to `resolve`
-4. The **promise reaction record's handler receives that promise result** (the string "done" in this case)
-5. The **handler is now added to the microtask queue**
+4. The promise reaction record's handler **receives** that promise result (the string "done" in this case)
+5. The handler is now added to the microtask queue
 
 **This is where the asynchronous part of promises comes into play.**
 
@@ -101,15 +95,13 @@ When we resolve the promise (call `resolve`):
 Whenever the call stack is empty:
 
 - The event loop **first checks** the microtask queue
-- When this queue is empty, it goes to the task queue (also called the callback queue, macro task queue)
+- When this queue is empty, it goes to the task queue (also called the callback queue, macrotask queue)
 
 **What's important**: The **microtask queue gets priority**.
 
 ## Asynchronous Tasks in Promises
 
-So far we've only been calling `resolve` and `reject` synchronously (right in the promise constructor).
-
-Usually, you want to **initiate some kind of asynchronous task** in this constructor.
+So far we've only been calling `resolve` and `reject` synchronously (right in the promise constructor). Usually, you want to **initiate some kind of asynchronous task** in this constructor.
 
 ### What is an Asynchronous Task?
 
@@ -185,9 +177,7 @@ It can keep performing important tasks and stays interactive. Only when the call
 
 ## Chaining Then Methods
 
-Another cool thing is that **`then` itself also returns a promise**.
-
-Besides just creating that promise reaction record, it also creates a promise object.
+Another cool thing is that **`then` itself also returns a promise**. Besides just creating that promise reaction record, it also creates a promise object.
 
 This allows us to **chain those `then`s to each other** and have this incremental promise result handling.
 

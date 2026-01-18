@@ -15,7 +15,7 @@ The event loop is a pretty notorious topic in JavaScript, but when we zoom out, 
 
 All these components together allow us to use asynchronous tasks in a non-blocking way in JavaScript.
 
-## Why This Matters: JavaScript is Single-Threaded
+## Why this matters: JavaScript is Single-threaded
 
 JavaScript itself is **single-threaded**. We're only working with a single call stack.
 
@@ -53,11 +53,9 @@ logThreeAndFour();
    - `4` gets logged
    - The `logThreeAndFour()` execution context is popped off the call stack
 
-## The Problem: Long-Running Tasks
+## The problem: Long-running tasks
 
-**Important**: JavaScript can handle a **single task at a time**.
-
-If we have a long-running task with heavy computation, it takes a while before JavaScript can continue with the rest of our program.
+**Important**: JavaScript can handle a **single task at a time**. If we have a long-running task with heavy computation, it takes a while before JavaScript can continue with the rest of our program.
 
 ```javascript
 // Heavy computation - takes a while
@@ -68,7 +66,7 @@ console.log("Long task done"); // Only logged after several seconds
 
 This is not what we want because in the meantime, **our entire program is frozen**.
 
-### Real-World Long-Running Tasks
+### Real-world Long-running tasks
 
 In a real-life application, we often have to use long-running tasks like:
 
@@ -109,11 +107,9 @@ The browser is a very powerful platform with a lot of features:
 - Geolocation
 - And more
 
-### How Web APIs Handle Long-Running Tasks
+### How Web APIs handle Long-running tasks
 
-Some of these Web APIs allow us to **offload long-running tasks to the browser**.
-
-When we invoke such an API, we're kind of just **initiating that offloading**.
+Some of these Web APIs allow us to **offload long-running tasks to the browser**. When we invoke such an API, we're kind of just **initiating that offloading**.
 
 Web APIs that expose these asynchronous capabilities are either:
 
