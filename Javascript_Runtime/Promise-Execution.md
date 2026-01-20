@@ -2,18 +2,34 @@
 
 ## Introduction
 
-Promises in JavaScript are known to be a little daunting, intimidating, or annoying. But once you understand what happens behind the scenes under the hood, they're actually not that complicated.
+Promises in JavaScript are known to be a little daunting. But once you understand what happens under the hood, they're actually not that complicated. This document walks through promise execution and what happens behind the scenes when we interact and work with promises.
 
-This document walks through promise execution and what happens behind the scenes when we interact and work with promises.
+## What is Promise
+
+A **Promise** is a special object in JavaScript that represents the eventual completion (or failure) of an asynchronous operation and its resulting value. Essentially, a Promise is a placeholder for a value that is not yet available but will be in the future.
+
+Think of a Promise like ordering a pizza: you dont't get it right away, but the delivery person promises to bring it to you later. You don't know exactly when, but you know the outcome will either be "pizza delivered" or "something went wrong".
+
+### Promise States:
+
+A Promise can be in one of three states:
+
+- **Pending**: The initial state, where the asynchronous operation is still running.
+- **Fullfilled**: The operation completed successfully, and the Promise is now resolved with a value.
+- **Rejected**: The operation failed, and the Promise is settled with a reason (usually an error).
+
+![Promise States](./public/promise.png)
+
+When you order the pizza, you're in the pending state, hungry and hopeful. If the pizza arrives hot and cheesy, you've entered the fullfilled state. But if the restaurant calls to say they've dropped yours pizza on floor, you're in the rejected state.
+
+Regardless of whether your dinner ends in joy or disappointment, once there's a final outcome, the Promise is considered **settled**.
 
 ## Creating a Promise: The Promise Constructor
 
 One way to create a promise is by using the **new Promise constructor**. This constructor receives an **executor function**.
 
 ```javascript
-new Promise((resolve, reject) => {
-  // Executor body
-});
+new Promise((resolve, reject) => {});
 ```
 
 ### What happens when the constructor is executed
@@ -57,6 +73,8 @@ When we call `reject`:
 
 - **Promise State** is set to `rejected`
 - **Promise Result** is set to the value that we passed to `reject` (the string "fail")
+
+> Note: Whether a promise is resolved or rejected, it is considered handled, so **PromiseIsHandled** becomes `true`.
 
 ### So What's Special?
 
@@ -116,6 +134,8 @@ Whenever they return that data, we can use their callback function to either:
 - **Resolve** with the data that they returned
 - **Reject** if an error occurred
 
+![Asynchronous tasks](./public/async-tasks.png)
+
 ## Example: Promise with setTimeout
 
 Let's see how the execution goes for this promise constructor:
@@ -123,7 +143,7 @@ Let's see how the execution goes for this promise constructor:
 ```javascript
 new Promise((resolve) => {
   setTimeout(() => resolve("done"), 100);
-}).then(result => console.log(result));
+}).then((result) => console.log(result));
 ```
 
 ### Step-by-Step Execution
@@ -185,9 +205,9 @@ This allows us to **chain those `then`s to each other** and have this incrementa
 
 ```javascript
 Promise.resolve(1)
-  .then(result => result * 2)
-  .then(result => result * 2)
-  .then(result => console.log(result));
+  .then((result) => result * 2)
+  .then((result) => result * 2)
+  .then((result) => console.log(result));
 ```
 
 ### Step-by-Step Execution
@@ -225,78 +245,78 @@ Promise.resolve(1)
 
 That's just something to keep in mind: we can **chain those `then`s together** and incrementally handle that promise result in a non-blocking way.
 
-In a real application, you won't use numbers like this. Instead, you want to **incrementally handle that promise result**. Maybe you have some kind of image that you:
-
-1. First want to resize
-2. Then add a filter
-3. Then change the format
-
-You can do all that by chaining `then` in a non-blocking way. That's pretty powerful.
-
-## Challenge
-
-What gets logged when we execute this code?
+In a real application, you won't use numbers like this. Instead, you want to **incrementally handle that promise result**. For example, you might want to take a series of incremental steps that modify an image's appearance through operations like resizing, applying filters, adding watermarks, etc.
 
 ```javascript
-new Promise((resolve) => {
-  console.log(1);
-  resolve(2);
-}).then(result => console.log(result));
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
 
-console.log(3);
+loadImage(src)
+  .then((image) => resizeImage(image))
+  .then((image) => applyGrayscaleFilter(image))
+  .then((image) => addWatermark(image));
 ```
 
-### Answer: 1, 3, 2
+These types of tasks often involve async operations, which makes promises a good choice for managing this in a non-blocking way.
 
-### Detailed Explanation
+## Advanced Promise Methods
 
-**Step 1**: `new Promise` constructor
+### Promise.all()
 
-- Added to the call stack
-- New promise object is created
+This method accepts an array of Promises and returns a new Promise that resolves once all the Promises are fulfilled. If any Promise is rejected, `Promise.all()` will immediately reject. However, even if rejection occurs, the Promises continue to execute. When handling a large number of Promises, especially in batch processing, using this function can strain the system's memory.
 
-**Step 2**: Executor function
+```javascript
+const { setTimeout: delay } = require("node:timers/promises");
 
-- Gets added to the call stack
-- On the very first line: `console.log(1)`
-- Gets added to the call stack
-- **Logs 1**
+const fetchData1 = delay(1000).then(() => "Data from API 1");
+const fetchData2 = delay(2000).then(() => "Data from API 2");
 
-**Step 3**: Call `resolve(2)`
+Promise.all([fetchData1, fetchData2])
+  .then((results) => {
+    console.log(results); // ["Data from API 1", "Data from API 2"]
+  })
+  .catch((error) => {
+    console.error("Error:", error);
+  });
+```
 
-- Promise state is changed to `fulfilled`
-- Promise result is set to `2`
-- We don't have a promise fulfill reaction **yet** (that only happens on the next line)
-- `resolve` is popped off the call stack
-- Executor function is popped off
-- `new Promise` constructor is popped off
+### Promise.allSettled()
 
-**Step 4**: Next line, finally `then`
+This method waits for all promises to either resolve or reject and returns an array of objects that describe the outcome of each Promise.
 
-- Creates that promise reaction record
-- It doesn't get added to that list because the promise is already resolved (this would just take up unnecessary memory)
-- But it still has access to that promise result
-- This promise reaction record has the handler with the result being `2`, then `console.log(result)`
-- **Immediately added to the microtask queue**
+```javascript
+const promise1 = Promise.resolve("Success");
+const promise2 = Promise.reject("Failed");
 
-**Important**: It's not immediately executed—no, it is immediately **scheduled** to the microtask queue.
+Promise.allSettled([promise1, promise2]).then((results) => {
+  console.log(results);
+  // [ { status: 'fulfilled', value: 'Success' }, { status: 'rejected', reason: 'Failed' } ]
+});
+```
 
-**Step 5**: Next line (our script isn't done yet, call stack isn't empty yet)
+Unlike `Promise.all()`, `Promise.allSettled()` does not short-circuit on failure. It waits for all promises to settle, even if some reject. This provides better error handling for batch operations, where you may want to know the status of all tasks, regardless of failure.
 
-- `console.log(3)` in a normal way
-- Added to the call stack
-- **Logs 3**
+### Promise.race()
 
-We now have: **1, 3**
+This method resolves or rejects as soon as the first Promise settles, whether it resolves or rejects. Regardless of which promise settles first, all promises are fully executed.
 
-**Step 6**: Finally our script is done, nothing on the call stack
+```javascript
+const { setTimeout: delay } = require("node:timers/promises");
 
-- First task in the microtask queue is added to the call stack
-- That's the `then` handler
-- Console logs the result being `2`
-- **Logs 2**
+const task1 = delay(2000).then(() => "Task 1 done");
+const task2 = delay(1000).then(() => "Task 2 done");
 
-**Final result**: 1, 3, 2
+Promise.race([task1, task2]).then((result) => {
+  console.log(result);
+  // 'Task 2 done' (since task2 finishes first)
+});
+```
 
 ## Key Takeaways
 
@@ -334,7 +354,3 @@ We now have: **1, 3**
 - `resolve()`/`reject()` schedules handlers to microtask queue
 - Remaining synchronous code completes first
 - Microtask queue executes when call stack is empty
-
----
-
-*Promises enable non-blocking asynchronous operations through the microtask queue mechanism.*
