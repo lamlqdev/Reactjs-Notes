@@ -1,48 +1,28 @@
-import { axiosInstance } from "./axios";
-import { AxiosResponse } from "axios";
+import axiosInstance from "./axios-instance";
 import { User, CreateUserDTO, UpdateUserDTO } from "../types/user";
 
 export const userApi = {
   getUsers: async (): Promise<User[]> => {
-    const response: AxiosResponse<User[]> = await axiosInstance.get<User[]>(
-      "/users"
-    );
-    return response.data;
+    const res = await axiosInstance.get<User[]>("/users");
+    return res.data;
   },
 
   getUserById: async (id: number): Promise<User> => {
-    const response: AxiosResponse<User> = await axiosInstance.get<User>(
-      `/users/${id}`
-    );
-    return response.data;
+    const res = await axiosInstance.get<User>(`/users/${id}`);
+    return res.data;
   },
 
   createUser: async (data: CreateUserDTO): Promise<User> => {
-    const response: AxiosResponse<User> = await axiosInstance.post<User>(
-      "/users",
-      data
-    );
-    return response.data;
+    const res = await axiosInstance.post<User>("/users", data);
+    return res.data;
   },
 
   updateUser: async (id: number, data: UpdateUserDTO): Promise<User> => {
-    const response: AxiosResponse<User> = await axiosInstance.put<User>(
-      `/users/${id}`,
-      data
-    );
-    return response.data;
-  },
-
-  patchUser: async (id: number, data: UpdateUserDTO): Promise<User> => {
-    const response: AxiosResponse<User> = await axiosInstance.patch<User>(
-      `/users/${id}`,
-      data
-    );
-    return response.data;
+    const res = await axiosInstance.put<User>(`/users/${id}`, data);
+    return res.data;
   },
 
   deleteUser: async (id: number): Promise<void> => {
     await axiosInstance.delete(`/users/${id}`);
   },
 };
-

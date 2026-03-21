@@ -18,12 +18,11 @@ Axios Instance is a reusable, pre-configured HTTP client created by `axios.creat
 
 ```typescript
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: import.meta.env.VITE_API_URL,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: false,
 });
 ```
 
@@ -47,113 +46,28 @@ Interceptors are functions from `axiosInstance` that run **before a request is s
 
 **Request Interceptor**:
 
-- Request interceptor executes before the HTTP request is sent.
+- Executes before the HTTP request is sent.
 - Common use cases: attach auth tokens, set headers, log requests, or modify config.
-- Must return config or Promise that resolves to config
-
-**Example**:
-
-```typescript
-axiosInstance.interceptors.request.use(
-  async (config) => {
-    // Add auth token to every request
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-```
+- Must return config or a Promise that resolves to config.
 
 **Response Interceptor**:
 
-- Response interceptor executes **after a response is received** (success or error).
-- Common use cases: unwrap response.data, normalize errors, handle token refresh, or global error handling.
-
-**Example**:
-
-```typescript
-axiosInstance.interceptors.response.use(
-  (response) => {
-    // Success - can transform data here
-    return response;
-  },
-  async (error) => {
-    // Handle 401 - Refresh token flow
-    if (error.response?.status === 401) {
-      // Refresh token and retry original request
-      const newToken = await refreshToken();
-      error.config.headers.Authorization = `Bearer ${newToken}`;
-      return axiosInstance(error.config);
-    }
-    return Promise.reject(error);
-  }
-);
-```
+- Executes after a response is received (success or error).
+- Common use cases: normalize errors, handle token refresh, or global error handling.
 
 #### Axios vs Fetch API
-
-Before diving into Axios, let's understand why Axios is often preferred over the native Fetch API:
 
 | Aspect                              | Axios                                                      | Fetch API                                                          |
 | ----------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------ |
 | **Package**                         | External library (axios)                                   | Built-in browser API (fetch)                                       |
 | **Request/Response**                | Automatically transforms JSON data                         | Requires manual `.json()` call                                     |
-| **Error Handling**                  | Rejects only on network errors; treats 4xx/5xx as errors   | Only rejects on network errors; 4xx/5xx are "successful" responses |
+| **Error Handling**                  | Treats 4xx/5xx as errors automatically                     | Only rejects on network errors; 4xx/5xx are "successful" responses |
 | **Request Timeout**                 | Built-in timeout support                                   | Requires `AbortController` for timeout                             |
 | **Interceptors**                    | Built-in request/response interceptors                     | No built-in interceptors (need manual wrapper)                     |
-| **Request Cancellation**            | Built-in with `CancelToken` (v0.22+) or `AbortController`  | Uses `AbortController`                                             |
-| **Progress Tracking**               | Built-in support for upload/download progress              | No built-in support                                                |
-| **Automatic JSON**                  | Automatically stringifies request body and parses response | Manual `JSON.stringify()` and `.json()`                            |
-| **Request/Response Transformation** | Built-in transform functions                               | Manual transformation needed                                       |
+| **Request Cancellation**            | Built-in with `AbortController`                            | Uses `AbortController`                                             |
 | **Instance & Config**               | Can create instances with default config                   | No instance concept; need to wrap in function                      |
-| **Browser Support**                 | Works in Node.js and browsers                              | Browser-only (Node.js needs `node-fetch`)                          |
 | **TypeScript Support**              | Excellent TypeScript support                               | Basic TypeScript support                                           |
 | **Bundle Size**                     | ~13KB (minified + gzipped)                                 | 0KB (native API)                                                   |
-| **Syntax**                          | More concise and intuitive                                 | More verbose                                                       |
-
-**Example Comparison**:
-
-```typescript
-// Fetch API
-fetch("http://localhost:3000/posts", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  },
-  body: JSON.stringify({ title: "New Post", body: "Content" }),
-})
-  .then((response) => {
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    return response.json();
-  })
-  .then((data) => console.log(data))
-  .catch((error) => console.error("Error:", error));
-
-// Axios
-axios
-  .post(
-    "http://localhost:3000/posts",
-    {
-      title: "New Post",
-      body: "Content",
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  )
-  .then((response) => console.log(response.data))
-  .catch((error) => console.error("Error:", error));
-```
 
 ---
 
@@ -168,26 +82,18 @@ axios
 | **Source of Truth** | Server is the source of truth                       | Component state is the source of truth                  |
 | **Synchronization** | Needs sync with server, caching, background updates | No sync needed, local only                              |
 | **Examples**        | Posts list, user profile, product data              | Form inputs, UI toggles, modal open/close, selected tab |
-| **Lifecycle**       | Persists across page refreshes (from server)        | Resets on page refresh (unless persisted)               |
-| **Sharing**         | Shared across components via TanStack Query cache   | Local to component (unless lifted up or Context)        |
-| **Updates**         | Invalidated and refetched when server data changes  | Updated directly via setState/dispatch                  |
-| **Use Case**        | Data fetched from API, needs caching and sync       | UI interactions, temporary state, form state            |
 
 #### Query Fundamentals
 
-**Query**: `useQuery` binds an async read operation to a unique cache key, manages its lifecycle, and exposes the result to React components. It takes an options object as input, some common properties are:
+**Query**: `useQuery` binds an async read operation to a unique cache key, manages its lifecycle, and exposes the result to React components.
 
 ![useQuery options](./public/useQuery-input.png)
 
-`useQuery` returns an object containing query state and data:
-
 ![useQuery result](./public/useQuery-output.png)
 
-**Mutations**: `useMutation` manages write operations (create, update, delete) and their side effects on server state. It takes an options object as input, some common properties are:
+**Mutations**: `useMutation` manages write operations (create, update, delete) and their side effects on server state.
 
 ![useMutation input](./public/useMutation-input.png)
-
-`useMutation` returns an object containing mutation state and methods:
 
 ![useMutation result](./public/useMutation-output.png)
 
@@ -197,78 +103,13 @@ axios
 
 ![Use Query Client](./public/useQueryClient.png)
 
-**Cache Invalidation**:
+**Cache Invalidation**: Marking cached data as stale so TanStack Query refetches it. Done via `queryClient.invalidateQueries()`.
 
-Cache invalidation is the process of marking cached data as stale, which tells TanStack Query that the data may be outdated and needs to be refreshed. This is done using the `invalidateQueries()` method on the query client.
+**Polling**: Automatically refetch data at regular intervals using `refetchInterval`.
 
-When you invalidate a query, TanStack Query automatically triggers a refetch of that data in the background, ensuring your UI stays synchronized with the server state. You can invalidate all queries matching a certain key pattern, or target specific queries precisely.
+**Deduplication**: When multiple components request the same query key simultaneously, only one HTTP request is made.
 
-**Example**:
-
-```typescript
-// Invalidate all queries starting with ["posts"]
-queryClient.invalidateQueries({ queryKey: ["posts"] });
-// Invalidate specific query
-queryClient.invalidateQueries({ queryKey: ["posts", "detail", 1] });
-```
-
-**Automatic Refetch**:
-
-TanStack Query automatically refetches stale data to keep your application synchronized with the server. This automatic refetching happens in several scenarios:
-
-- When a component mounts and the query is stale,
-- When the browser window regains focus (user switches back to the tab),
-- When the network reconnects after being offline,
-- Or when a query is explicitly invalidated.
-
-This ensures that users always see up-to-date data without manual intervention.
-
-**Refetch on Window Focus**:
-
-One of the most useful automatic refetch behaviors is refetching when the user returns to the tab. This is particularly valuable for applications where data changes frequently, as it ensures users see the latest information when they come back to your application.
-
-However, if this behavior is not desired for your use case, you can disable it by setting `refetchOnWindowFocus: false` in your query options.
-
-**Polling**:
-
-Polling allows you to automatically refetch data at regular intervals, which is useful for real-time applications or dashboards that need to display frequently changing data.
-
-By setting the `refetchInterval` option in your query configuration, TanStack Query will continuously refetch the data at the specified interval (in milliseconds). You can also control whether polling should continue when the browser tab is in the background using `refetchIntervalInBackground`.
-
-**Example**:
-
-```typescript
-useQuery({
-  queryKey: ["posts"],
-  queryFn: fetchPosts,
-  refetchInterval: 5000, // Refetch every 5 seconds
-  refetchIntervalInBackground: false, // Don't poll when tab is in background
-});
-```
-
-**Deduplication**:
-
-Deduplication is a powerful feature that prevents unnecessary API calls when multiple components request the same data simultaneously. When several components use `useQuery` with the same query key at the same time, TanStack Query intelligently deduplicates these requests, making only one actual HTTP request to the server.
-
-All components that requested the data will receive the same result, improving performance and reducing server load. For example, if three components call `useQuery({ queryKey: ["posts"], queryFn: fetchPosts })` at the same time, only one API request is made, and all three components receive the same data.
-
-**Prefetch**:
-
-Prefetching is a performance optimization technique where data is fetched before the user actually needs it, making the application feel faster and more responsive. By prefetching data that users are likely to request next (such as when they hover over a link or button), you can have the data ready in the cache by the time they navigate to that page or component.
-
-This eliminates loading states and creates a smoother user experience. Prefetching is done using `queryClient.prefetchQuery()`, which fetches and caches the data without triggering any loading states in components that might be using that query.
-
-**Example**:
-
-```typescript
-// Prefetch on hover
-const handleMouseEnter = () => {
-  queryClient.prefetchQuery({
-    queryKey: ["post", postId],
-    queryFn: () => fetchPost(postId),
-  });
-};
-```
+**Prefetch**: Fetch and cache data before the user navigates to it using `queryClient.prefetchQuery()`.
 
 ---
 
@@ -276,164 +117,359 @@ const handleMouseEnter = () => {
 
 ![Architecture](./public/architecture.png)
 
-**Example Structure**:
+**Recommended Structure**:
 
 ```text
 src/
-├── api/                    # Axios layer - HTTP communication
-│   ├── axios.ts           # Axios instance & interceptors
-│   ├── auth.api.ts        # Auth API functions
-│   ├── user.api.ts        # User API functions
-│   └── product.api.ts     # Product API functions
+├── api/
+│   ├── axios-instance.ts   # Axios instance, interceptors, AppError
+│   ├── token.ts            # Token read/write helpers
+│   ├── auth.api.ts
+│   ├── user.api.ts
+│   └── post.api.ts
 │
-├── hooks/                  # TanStack Query layer - State management
-│   ├── queries/           # Query hooks (read operations)
-│   │   ├── useUserQuery.ts
-│   │   └── useProductsQuery.ts
-│   └── mutations/         # Mutation hooks (write operations)
+├── hooks/
+│   ├── queries/
+│   │   └── useUserQuery.ts
+│   └── mutations/
 │       ├── useLoginMutation.ts
 │       └── useUpdateProfileMutation.ts
 │
-├── providers/             # React providers
-│   └── react-query.provider.tsx  # QueryClientProvider wrapper
+├── providers/
+│   └── react-query.provider.tsx
 │
-├── lib/                    # Library configurations
-│   └── queryClient.ts     # QueryClient instance configuration
+├── lib/
+│   └── queryClient.ts
 │
-├── constants/             # Constants
-│   └── queryKeys.ts       # Query keys factory
+├── constants/
+│   └── queryKeys.ts
 │
-├── types/                  # TypeScript layer - Type definitions
-│   ├── api.ts             # API response types
-│   ├── auth.ts            # Auth types
-│   └── user.ts            # User types
-│
-├── components/            # React components
-│   ├── common/
-│   └── user/
-│
-├── pages/                 # Page components (React Router)
-│   └── ...
-│
-└── App.tsx                # Root component
+└── types/
+    └── post.ts
+    └── user.ts
+
 ```
 
 ---
 
 ## Basic Setup and Usage
 
-### Step 1: Configure Axios Instance (API Layer)
+### Step 1: Token Helpers (`token.ts`)
 
-**File: `src/api/axios.ts`**
+Centralize all token read/write logic in a dedicated file. No need for a wrapper object — export each function directly for cleaner imports.
+
+**File: `src/api/token.ts`**
+
+```typescript
+const ACCESS_TOKEN_KEY = "access_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
+
+export const getAccessToken = (): string | null =>
+  localStorage.getItem(ACCESS_TOKEN_KEY);
+
+export const getRefreshToken = (): string | null =>
+  localStorage.getItem(REFRESH_TOKEN_KEY);
+
+export const setTokens = (accessToken: string, refreshToken?: string): void => {
+  localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+  if (refreshToken) {
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  }
+};
+
+export const clearTokens = (): void => {
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+};
+```
+
+---
+
+### Step 2: Configure Axios Instance (`axios-instance.ts`)
+
+**File: `src/api/axios-instance.ts`**
+
+#### AppError — Normalized Error Class
+
+Instead of catching raw `AxiosError` everywhere in the app, normalize all HTTP errors into a consistent `AppError` shape at the interceptor level. Every `catch` block then only needs to handle one type.
+
+```typescript
+export class AppError extends Error {
+  status: number;
+  code: string;
+
+  constructor(message: string, status: number, code = "UNKNOWN_ERROR") {
+    super(message);
+    this.name = "AppError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+const normalizeError = (error: AxiosError): AppError => {
+  const status = error.response?.status ?? 0;
+  const data = error.response?.data as Record<string, unknown> | undefined;
+  const message = (data?.message as string) || error.message || "Something went wrong";
+  const code = (data?.code as string) || `HTTP_${status}`;
+  return new AppError(message, status, code);
+};
+```
+
+#### Refresh Token Queue — Handling Concurrent 401s
+
+A common production bug: when the access token expires and multiple requests are in-flight simultaneously, all of them receive `401` at the same time. Without proper handling, the app calls the refresh endpoint multiple times in parallel — the backend may reject subsequent calls, causing the user to be logged out unexpectedly.
+
+**The fix**: use a queue + flag pattern. Only the first `401` triggers a refresh; all other concurrent requests wait in a queue and retry once the new token is ready.
+
+```typescript
+let isRefreshing = false;
+let failedQueue: QueueItem[] = [];
+
+// Flush the queue after refresh succeeds or fails
+const processQueue = (error: unknown, token: string | null): void => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    error ? reject(error) : resolve(token!);
+  });
+  failedQueue = [];
+};
+```
+
+**Flow**:
+```
+Requests A, B, C all receive 401
+
+A → isRefreshing = false → starts refresh, sets isRefreshing = true
+B → isRefreshing = true  → pushed to failedQueue, waits...
+C → isRefreshing = true  → pushed to failedQueue, waits...
+
+Refresh succeeds → processQueue(null, newToken)
+  → B gets new token, retries
+  → C gets new token, retries
+  → isRefreshing = false
+```
+
+#### Session Expiry — Use Custom Event Instead of `window.location.href`
+
+In a React SPA, avoid `window.location.href` for navigation — it causes a full page reload and loses React state. Instead, dispatch a custom event and let the app-level router listener handle the redirect.
+
+```typescript
+const dispatchSessionExpired = (): void => {
+  clearTokens();
+  window.dispatchEvent(new Event("session:expired"));
+};
+
+// In App.tsx or a top-level component:
+// useEffect(() => {
+//   const handler = () => navigate("/login", { replace: true });
+//   window.addEventListener("session:expired", handler);
+//   return () => window.removeEventListener("session:expired", handler);
+// }, [navigate]);
+```
+
+#### Full Instance
 
 ```typescript
 import axios, {
-  AxiosError,
-  AxiosResponse,
+  AxiosInstance,
   InternalAxiosRequestConfig,
+  AxiosResponse,
+  AxiosError,
 } from "axios";
-import {
-  tokenStorage,
-  refreshAccessToken,
-  isTokenExpired,
-} from "../utils/auth";
-import { createRetryLogic, defaultRetryCondition } from "../utils/retry";
+import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "./token";
 
-// Create axios instance with default configuration
-export const axiosInstance = axios.create({
-  baseURL: "http://localhost:3000",
-  timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
+// --- Types ---
+
+interface QueueItem {
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+}
+
+interface RefreshTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+}
+
+interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
+// --- AppError ---
+
+export class AppError extends Error {
+  status: number;
+  code: string;
+
+  constructor(message: string, status: number, code = "UNKNOWN_ERROR") {
+    super(message);
+    this.name = "AppError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+const normalizeError = (error: AxiosError): AppError => {
+  const status = error.response?.status ?? 0;
+  const data = error.response?.data as Record<string, unknown> | undefined;
+  const message = (data?.message as string) || error.message || "Something went wrong";
+  const code = (data?.code as string) || `HTTP_${status}`;
+  return new AppError(message, status, code);
+};
+
+// --- Refresh token queue ---
+
+let isRefreshing = false;
+let failedQueue: QueueItem[] = [];
+
+const processQueue = (error: unknown, token: string | null): void => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    error ? reject(error) : resolve(token!);
+  });
+  failedQueue = [];
+};
+
+// --- Refresh token API call ---
+// Use base axios (not the instance) to avoid interceptor loop
+
+const callRefreshToken = async (): Promise<string> => {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    throw new AppError("No refresh token", 401, "NO_REFRESH_TOKEN");
+  }
+
+  const response = await axios.post<RefreshTokenResponse>(
+    `${import.meta.env.VITE_API_URL}/auth/refresh`,
+    { refresh_token: refreshToken }
+  );
+
+  const { access_token, refresh_token } = response.data;
+  setTokens(access_token, refresh_token);
+  return access_token;
+};
+
+// --- Session expiry ---
+
+const dispatchSessionExpired = (): void => {
+  clearTokens();
+  window.dispatchEvent(new Event("session:expired"));
+};
+
+// --- Axios instance ---
+
+const axiosInstance: AxiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  timeout: 10_000,
+  headers: { "Content-Type": "application/json" },
 });
 
-// Request interceptor - Auth token injection
+// Request interceptor — attach access token
 axiosInstance.interceptors.request.use(
-  async (config: InternalAxiosRequestConfig) => {
-    const token = tokenStorage.getToken();
-    if (token && !isTokenExpired(token)) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  (config: InternalAxiosRequestConfig) => {
+    const token = getAccessToken();
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
   (error: AxiosError) => Promise.reject(error)
 );
 
-// Response interceptor - Refresh token flow & retry logic
+// Response interceptor — handle 401 + refresh queue
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
-    // Handle 401 - Refresh token
-    if (error.response?.status === 401) {
-      // Refresh token logic...
+    const originalRequest = error.config as CustomAxiosRequestConfig;
+
+    // Non-401: normalize and reject
+    if (error.response?.status !== 401) {
+      return Promise.reject(normalizeError(error));
     }
-    // Retry logic for network/5xx errors
-    if (defaultRetryCondition(error)) {
-      // Retry with exponential backoff...
+
+    // Already retried → refresh token is also expired
+    if (originalRequest._retry) {
+      dispatchSessionExpired();
+      return Promise.reject(normalizeError(error));
     }
-    return Promise.reject(error);
+
+    // Refresh in progress → queue this request
+    if (isRefreshing) {
+      return new Promise<string>((resolve, reject) => {
+        failedQueue.push({ resolve, reject });
+      }).then((token) => {
+        originalRequest.headers!.Authorization = `Bearer ${token}`;
+        return axiosInstance(originalRequest);
+      });
+    }
+
+    // First 401 → start refresh
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      const newToken = await callRefreshToken();
+      processQueue(null, newToken);
+      originalRequest.headers!.Authorization = `Bearer ${newToken}`;
+      return axiosInstance(originalRequest);
+    } catch (refreshError) {
+      processQueue(refreshError, null);
+      dispatchSessionExpired();
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
   }
 );
+
+export default axiosInstance;
 ```
 
-### Step 2: Create API Functions with DTOs (API Layer)
+---
 
-**DTO (Data Transfer Object)**: TypeScript interfaces that define the structure of data transferred between frontend and backend API. They provide type safety and serve as contracts for API requests and responses.
+### Step 3: Create API Functions with DTOs
 
-**Example**:
+**DTO (Data Transfer Object)**: TypeScript interfaces defining the shape of data exchanged with the API. They act as a contract between frontend and backend.
 
 ```typescript
+// types/user.ts
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
 export interface CreateUserDTO {
   name: string;
   email: string;
-  age: number;
 }
 
 export interface UpdateUserDTO {
   name?: string;
   email?: string;
-  age?: number;
 }
 ```
 
-**File: `src/api/user.api.ts`** (Example - similar structure for other API files)
+**File: `src/api/user.api.ts`**
 
 ```typescript
-import { axiosInstance } from "./axios";
-import { AxiosResponse } from "axios";
+import axiosInstance from "./axios-instance";
 import { User, CreateUserDTO, UpdateUserDTO } from "../types/user";
 
-// API functions with typed responses
 export const userApi = {
   getUsers: async (): Promise<User[]> => {
-    const response: AxiosResponse<User[]> = await axiosInstance.get<User[]>(
-      "/users"
-    );
-    return response.data;
+    const res = await axiosInstance.get<User[]>("/users");
+    return res.data;
   },
 
   getUserById: async (id: number): Promise<User> => {
-    const response: AxiosResponse<User> = await axiosInstance.get<User>(
-      `/users/${id}`
-    );
-    return response.data;
+    const res = await axiosInstance.get<User>(`/users/${id}`);
+    return res.data;
   },
 
   createUser: async (data: CreateUserDTO): Promise<User> => {
-    const response: AxiosResponse<User> = await axiosInstance.post<User>(
-      "/users",
-      data
-    );
-    return response.data;
+    const res = await axiosInstance.post<User>("/users", data);
+    return res.data;
   },
 
   updateUser: async (id: number, data: UpdateUserDTO): Promise<User> => {
-    const response: AxiosResponse<User> = await axiosInstance.put<User>(
-      `/users/${id}`,
-      data
-    );
-    return response.data;
+    const res = await axiosInstance.put<User>(`/users/${id}`, data);
+    return res.data;
   },
 
   deleteUser: async (id: number): Promise<void> => {
@@ -442,48 +478,38 @@ export const userApi = {
 };
 ```
 
-**File: `src/api/auth.api.ts`** (Example for auth endpoints)
+**File: `src/api/auth.api.ts`**
 
 ```typescript
-import { axiosInstance } from "./axios";
-import { AxiosResponse } from "axios";
+import axiosInstance from "./axios-instance";
 import { LoginDTO, AuthResponse } from "../types/auth";
 
 export const authApi = {
   login: async (data: LoginDTO): Promise<AuthResponse> => {
-    const response: AxiosResponse<AuthResponse> =
-      await axiosInstance.post<AuthResponse>("/auth/login", data);
-    return response.data;
+    const res = await axiosInstance.post<AuthResponse>("/auth/login", data);
+    return res.data;
   },
 
   logout: async (): Promise<void> => {
     await axiosInstance.post("/auth/logout");
   },
-
-  refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
-    const response: AxiosResponse<AuthResponse> =
-      await axiosInstance.post<AuthResponse>("/auth/refresh", { refreshToken });
-    return response.data;
-  },
 };
 ```
 
-### Step 3: Setup QueryClient and Wrap App with QueryClientProvider (TanStack Query Layer)
+---
 
-> **Important**: You **MUST** wrap your application with `QueryClientProvider` to use TanStack Query hooks (`useQuery`, `useMutation`, etc.). Without wrapping, the hooks will throw an error when you try to use them.
+### Step 4: Setup QueryClient
 
 **File: `src/lib/queryClient.ts`**
 
 ```typescript
 import { QueryClient } from "@tanstack/react-query";
 
-// Create QueryClient instance with default configuration
-// QueryClient manages cache and state of all queries/mutations
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 10, // 10 minutes
+      staleTime: 1000 * 60 * 5,      // 5 minutes
+      gcTime: 1000 * 60 * 10,        // 10 minutes
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
       retry: 3,
@@ -503,11 +529,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode } from "react";
 import { queryClient } from "../lib/queryClient";
 
-interface ReactQueryProviderProps {
-  children: ReactNode;
-}
-
-export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
+export function ReactQueryProvider({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
@@ -517,48 +539,49 @@ export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
 **File: `src/main.tsx`**
 
 ```typescript
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App";
-import "./index.css";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ReactQueryProvider } from "./providers/react-query.provider";
+
+// Top-level listener for session expiry dispatched by the axios interceptor
+function SessionGuard({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handler = () => navigate("/login", { replace: true });
+    window.addEventListener("session:expired", handler);
+    return () => window.removeEventListener("session:expired", handler);
+  }, [navigate]);
+
+  return <>{children}</>;
+}
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ReactQueryProvider>
-      <App />
+      <BrowserRouter>
+        <SessionGuard>
+          <App />
+        </SessionGuard>
+      </BrowserRouter>
     </ReactQueryProvider>
   </React.StrictMode>
 );
 ```
 
-**Explanation:**
+---
 
-- **`lib/queryClient.ts`**: Centralized QueryClient configuration that can be reused across the application (e.g., for testing, DevTools).
-- **`providers/react-query.provider.tsx`**: Reusable provider component that wraps QueryClientProvider with your configuration.
-- **`main.tsx`**: Root entry point that wraps the app with ReactQueryProvider.
-
-### Step 4: Create Query Keys Factory (TanStack Query Layer)
+### Step 5: Query Keys Factory
 
 **File: `src/constants/queryKeys.ts`**
 
 ```typescript
 export const queryKeys = {
-  // User queries
   users: {
     all: ["users"] as const,
     lists: () => [...queryKeys.users.all, "list"] as const,
     detail: (id: number) => [...queryKeys.users.all, "detail", id] as const,
   },
-
-  // Product queries
-  products: {
-    all: ["products"] as const,
-    lists: () => [...queryKeys.products.all, "list"] as const,
-    detail: (id: number) => [...queryKeys.products.all, "detail", id] as const,
-  },
-
-  // Auth queries
   auth: {
     all: ["auth"] as const,
     currentUser: () => [...queryKeys.auth.all, "currentUser"] as const,
@@ -566,7 +589,9 @@ export const queryKeys = {
 };
 ```
 
-### Step 5: Create Query Hooks (TanStack Query Layer)
+---
+
+### Step 6: Query & Mutation Hooks
 
 **File: `src/hooks/queries/useUserQuery.ts`**
 
@@ -579,7 +604,6 @@ export function useUsers() {
   return useQuery({
     queryKey: queryKeys.users.lists(),
     queryFn: userApi.getUsers,
-    staleTime: 1000 * 60 * 5,
   });
 }
 
@@ -588,7 +612,6 @@ export function useUser(id: number) {
     queryKey: queryKeys.users.detail(id),
     queryFn: () => userApi.getUserById(id),
     enabled: !!id,
-    staleTime: 1000 * 60 * 5,
   });
 }
 ```
@@ -598,9 +621,10 @@ export function useUser(id: number) {
 ```typescript
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authApi } from "../../api/auth.api";
+import { setTokens } from "../../api/token";
 import { queryKeys } from "../../constants/queryKeys";
+import { AppError } from "../../api/axios-instance";
 import { LoginDTO } from "../../types/auth";
-import { normalizeError } from "../../utils/errorHandler";
 
 export function useLoginMutation() {
   const queryClient = useQueryClient();
@@ -608,14 +632,13 @@ export function useLoginMutation() {
   return useMutation({
     mutationFn: (data: LoginDTO) => authApi.login(data),
     onSuccess: (data) => {
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
-
+      setTokens(data.accessToken, data.refreshToken);
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.currentUser() });
     },
     onError: (error) => {
-      const normalizedError = normalizeError(error);
-      console.error("Login error:", normalizedError);
+      if (error instanceof AppError) {
+        console.error(`[${error.code}] ${error.message}`);
+      }
     },
   });
 }
@@ -627,8 +650,8 @@ export function useLoginMutation() {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { userApi } from "../../api/user.api";
 import { queryKeys } from "../../constants/queryKeys";
+import { AppError } from "../../api/axios-instance";
 import { UpdateUserDTO } from "../../types/user";
-import { normalizeError } from "../../utils/errorHandler";
 
 export function useUpdateProfileMutation() {
   const queryClient = useQueryClient();
@@ -636,35 +659,39 @@ export function useUpdateProfileMutation() {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateUserDTO }) =>
       userApi.updateUser(id, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.users.detail(variables.id),
-      });
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.detail(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
     },
     onError: (error) => {
-      const normalizedError = normalizeError(error);
-      console.error("Update profile error:", normalizedError);
+      if (error instanceof AppError) {
+        console.error(`[${error.code}] ${error.message} (HTTP ${error.status})`);
+      }
     },
   });
 }
 ```
 
-### Step 6: Use in Components (UI Layer)
+---
+
+### Step 7: Use in Components
 
 **File: `src/components/user/UserList.tsx`**
 
 ```typescript
 import { useUsers } from "../../hooks/queries/useUserQuery";
-import { getErrorMessage } from "../../utils/errorHandler";
+import { AppError } from "../../api/axios-instance";
 
 export function UserList() {
-  const { data: users, isLoading, error, isError } = useUsers();
+  const { data: users, isLoading, isError, error } = useUsers();
 
   if (isLoading) return <div>Loading...</div>;
+
   if (isError) {
-    const errorMessage = getErrorMessage(error);
-    return <div>Error: {errorMessage}</div>;
+    const message = error instanceof AppError
+      ? `[${error.code}] ${error.message}`
+      : "Unexpected error";
+    return <div>Error: {message}</div>;
   }
 
   return (
@@ -677,36 +704,27 @@ export function UserList() {
 }
 ```
 
-**File: `src/components/user/UserProfile.tsx`** (Example with mutation)
+**File: `src/components/user/UserProfile.tsx`**
 
 ```typescript
 import { useUser } from "../../hooks/queries/useUserQuery";
 import { useUpdateProfileMutation } from "../../hooks/mutations/useUpdateProfileMutation";
-import { getErrorMessage, isNetworkError } from "../../utils/errorHandler";
+import { AppError } from "../../api/axios-instance";
 
 export function UserProfile({ userId }: { userId: number }) {
-  const { data: user, isLoading, error, isError } = useUser(userId);
+  const { data: user, isLoading, isError, error } = useUser(userId);
   const updateProfile = useUpdateProfileMutation();
 
   if (isLoading) return <div>Loading...</div>;
-  if (isError) {
-    const errorMessage = getErrorMessage(error);
-    return <div>Error: {errorMessage}</div>;
-  }
+  if (isError) return <div>{error instanceof AppError ? error.message : "Error"}</div>;
   if (!user) return <div>User not found</div>;
 
   const handleUpdate = async () => {
     try {
-      await updateProfile.mutateAsync({
-        id: userId,
-        data: { name: "Updated Name" },
-      });
+      await updateProfile.mutateAsync({ id: userId, data: { name: "New Name" } });
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      if (isNetworkError(error)) {
-        alert("Network error. Please check your connection.");
-      } else {
-        alert(`Failed to update: ${errorMessage}`);
+      if (error instanceof AppError) {
+        alert(`Failed (${error.status}): ${error.message}`);
       }
     }
   };
@@ -717,10 +735,8 @@ export function UserProfile({ userId }: { userId: number }) {
       <button onClick={handleUpdate} disabled={updateProfile.isPending}>
         {updateProfile.isPending ? "Updating..." : "Update Profile"}
       </button>
-      {updateProfile.isError && (
-        <div style={{ color: "red" }}>
-          {getErrorMessage(updateProfile.error)}
-        </div>
+      {updateProfile.isError && updateProfile.error instanceof AppError && (
+        <p style={{ color: "red" }}>{updateProfile.error.message}</p>
       )}
     </div>
   );
@@ -733,8 +749,6 @@ export function UserProfile({ userId }: { userId: number }) {
 
 ### 1. Optimistic Updates
 
-**File: `src/hooks/usePosts.ts`**
-
 ```typescript
 export function useUpdatePost() {
   const queryClient = useQueryClient();
@@ -744,30 +758,28 @@ export function useUpdatePost() {
       postsApi.updatePost(id, data),
 
     onMutate: async ({ id, data }) => {
+      // Cancel in-flight queries to avoid overwriting the optimistic update
       await queryClient.cancelQueries({ queryKey: postKeys.detail(id) });
       const previousPost = queryClient.getQueryData<Post>(postKeys.detail(id));
 
-      queryClient.setQueryData<Post>(postKeys.detail(id), (old) => {
-        if (!old) return old;
-        return { ...old, ...data };
-      });
+      // Optimistically update the cache
+      queryClient.setQueryData<Post>(postKeys.detail(id), (old) =>
+        old ? { ...old, ...data } : old
+      );
 
       return { previousPost };
     },
 
-    onError: (err, variables, context) => {
+    onError: (_, { id }, context) => {
+      // Roll back on failure
       if (context?.previousPost) {
-        queryClient.setQueryData(
-          postKeys.detail(variables.id),
-          context.previousPost
-        );
+        queryClient.setQueryData(postKeys.detail(id), context.previousPost);
       }
     },
 
-    onSettled: (data, error, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: postKeys.detail(variables.id),
-      });
+    onSettled: (_, __, { id }) => {
+      // Always sync with server after mutation
+      queryClient.invalidateQueries({ queryKey: postKeys.detail(id) });
     },
   });
 }
@@ -775,10 +787,8 @@ export function useUpdatePost() {
 
 ### 2. Polling
 
-**File: `src/hooks/usePosts.ts`**
-
 ```typescript
-export function usePostsWithPolling(interval: number = 5000) {
+export function usePostsWithPolling(interval = 5000) {
   return useQuery({
     queryKey: postKeys.lists(),
     queryFn: postsApi.getPosts,
@@ -789,8 +799,6 @@ export function usePostsWithPolling(interval: number = 5000) {
 ```
 
 ### 3. Prefetching
-
-**File: `src/hooks/usePosts.ts`**
 
 ```typescript
 export function usePrefetchPost() {
@@ -804,6 +812,11 @@ export function usePrefetchPost() {
     });
   };
 }
+
+// Usage — prefetch on hover before user navigates
+<li onMouseEnter={() => prefetchPost(post.id)}>
+  <Link to={`/posts/${post.id}`}>{post.title}</Link>
+</li>
 ```
 
 ---

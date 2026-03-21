@@ -2,18 +2,14 @@
 
 ## Overview
 
-The event loop is a pretty notorious topic in JavaScript, but when we zoom out, it's just a tiny component within the JavaScript runtime.
+The event loop is a pretty notorious topic in JavaScript, but when we zoom out, it's just a tiny component within the JavaScript runtime. JavaScript Runtime components are:
 
-### JavaScript Runtime Components
-
-- **JavaScript Engine**: Contains the call stack and memory heap
-- **Call Stack**: Manages execution of our program
-- **Web APIs**: Browser-provided interfaces
-- **Task Queue** (also called Callback Queue)
-- **Microtask Queue**
-- **Event Loop**: Coordinates between queues and call stack
-
-All these components together allow us to use asynchronous tasks in a non-blocking way in JavaScript.
+- JavaScript Engine: Contains the call stack and memory heap
+- Call Stack: Manages execution of our program
+- Web APIs: Browser-provided interfaces
+- Task Queue (also called Callback Queue): Used by callback-based Web APIs
+- Microtask Queue: Used by promise handlers
+- Event Loop: Coordinates between queues and call stack
 
 ## Why this matters: JavaScript is Single-threaded
 

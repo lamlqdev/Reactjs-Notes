@@ -1,126 +1,48 @@
-import { useState } from "react";
-import { PostList } from "./components/PostList";
-import { CreatePostForm } from "./components/CreatePostForm";
-import { PostDetail } from "./components/PostDetail";
-import { UpdatePostForm } from "./components/UpdatePostForm";
-import { QueryLifecycleDemo } from "./components/QueryLifecycleDemo";
-import { PollingDemo } from "./components/PollingDemo";
-import { InfiniteScrollDemo } from "./components/InfiniteScrollDemo";
-import { PrefetchDemo } from "./components/PrefetchDemo";
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, NavLink, useNavigate } from "react-router-dom";
+import { UsersPage } from "./pages/UsersPage";
+import { UserDetailPage } from "./pages/UserDetailPage";
+import { PostsPage } from "./pages/PostsPage";
+import { PostDetailPage } from "./pages/PostDetailPage";
 
-function App() {
-  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showUpdateForm, setShowUpdateForm] = useState(false);
-  const [activeDemo, setActiveDemo] = useState<
-    "basic" | "lifecycle" | "polling" | "infinite" | "prefetch"
-  >("basic");
+// Listens for session:expired event dispatched by the axios interceptor
+// and redirects to login without a full page reload
+function SessionGuard({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
 
+  useEffect(() => {
+    const handler = () => navigate("/login", { replace: true });
+    window.addEventListener("session:expired", handler);
+    return () => window.removeEventListener("session:expired", handler);
+  }, [navigate]);
+
+  return <>{children}</>;
+}
+
+function Nav() {
   return (
-    <div className="app-container">
-      <header>
-        <h1>Axios + TanStack Query Comprehensive Demo</h1>
-        <nav className="demo-nav">
-          <button
-            className={activeDemo === "basic" ? "active" : ""}
-            onClick={() => setActiveDemo("basic")}
-          >
-            Basic CRUD
-          </button>
-          <button
-            className={activeDemo === "lifecycle" ? "active" : ""}
-            onClick={() => setActiveDemo("lifecycle")}
-          >
-            Query Lifecycle
-          </button>
-          <button
-            className={activeDemo === "polling" ? "active" : ""}
-            onClick={() => setActiveDemo("polling")}
-          >
-            Polling
-          </button>
-          <button
-            className={activeDemo === "infinite" ? "active" : ""}
-            onClick={() => setActiveDemo("infinite")}
-          >
-            Infinite Scroll
-          </button>
-          <button
-            className={activeDemo === "prefetch" ? "active" : ""}
-            onClick={() => setActiveDemo("prefetch")}
-          >
-            Prefetch
-          </button>
-        </nav>
-      </header>
-      <main>
-        {activeDemo === "basic" && (
-          <>
-            <div className="actions">
-              <button onClick={() => setShowCreateForm(!showCreateForm)}>
-                {showCreateForm ? "Hide" : "Show"} Create Post Form
-              </button>
-              <button onClick={() => setShowUpdateForm(!showUpdateForm)}>
-                {showUpdateForm ? "Hide" : "Show"} Update Form
-              </button>
-            </div>
-
-            {showCreateForm && <CreatePostForm />}
-
-            <div className="content-grid">
-              <div className="left-column">
-                <PostList />
-              </div>
-
-              <div className="right-column">
-                <div className="post-detail-section">
-                  <h3>Post Details</h3>
-                  <input
-                    type="number"
-                    placeholder="Enter post ID"
-                    onChange={(e) =>
-                      setSelectedPostId(
-                        e.target.value ? parseInt(e.target.value) : null
-                      )
-                    }
-                  />
-                  {selectedPostId && <PostDetail postId={selectedPostId} />}
-                </div>
-
-                {showUpdateForm && selectedPostId && (
-                  <UpdatePostForm postId={selectedPostId} />
-                )}
-              </div>
-            </div>
-          </>
-        )}
-
-        {activeDemo === "lifecycle" && (
-          <div className="demo-section">
-            <QueryLifecycleDemo postId={selectedPostId || 1} />
-          </div>
-        )}
-
-        {activeDemo === "polling" && (
-          <div className="demo-section">
-            <PollingDemo />
-          </div>
-        )}
-
-        {activeDemo === "infinite" && (
-          <div className="demo-section">
-            <InfiniteScrollDemo />
-          </div>
-        )}
-
-        {activeDemo === "prefetch" && (
-          <div className="demo-section">
-            <PrefetchDemo />
-          </div>
-        )}
-      </main>
-    </div>
+    <nav>
+      <span className="brand">axios-query demo</span>
+      <NavLink to="/users">Users</NavLink>
+      <NavLink to="/posts">Posts</NavLink>
+    </nav>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <SessionGuard>
+        <Nav />
+        <Routes>
+          <Route path="/" element={<UsersPage />} />
+          <Route path="/users" element={<UsersPage />} />
+          <Route path="/users/:id" element={<UserDetailPage />} />
+          <Route path="/posts" element={<PostsPage />} />
+          <Route path="/posts/:id" element={<PostDetailPage />} />
+          <Route path="/login" element={<p className="status">Login page</p>} />
+        </Routes>
+      </SessionGuard>
+    </BrowserRouter>
+  );
+}

@@ -84,13 +84,11 @@ That's actually in those two fields we skipped so far: **Promise Fulfill Reactio
 
 ## Promise Reaction Records
 
-We can create a promise reaction record by chaining a **then** or a **catch** method to the promise.
+We can create a promise reaction record by chaining a **then** or a **catch** method to the promise. Whenever we chain `then`, the `then` method is responsible for creating that **promise reaction record**.
 
 ```javascript
 promise.then(callback);
 ```
-
-Whenever we chain `then`, the `then` method is responsible for creating that **promise reaction record**.
 
 ### Promise reaction record structure
 
@@ -123,16 +121,7 @@ So far we've only been calling `resolve` and `reject` synchronously (right in th
 
 ### What is an Asynchronous Task?
 
-By asynchronous task, we mean **anything off the main thread**:
-
-- Reading something from a file system
-- A network request
-- Something as simple as a timer
-
-Whenever they return that data, we can use their callback function to either:
-
-- **Resolve** with the data that they returned
-- **Reject** if an error occurred
+By asynchronous task, we mean **anything off the main thread** (e.g. reading something from a file system, a network request, a timer, etc.). Whenever they return that data, we can use their callback function to either **resolve** with the data that they returned or **reject** if an error occurred.
 
 ![Asynchronous tasks](./public/async-tasks.png)
 
@@ -189,17 +178,11 @@ new Promise((resolve) => {
 
 ### Why the Microtask Queue is Nice
 
-The nice thing about the fact that it's added to the microtask queue is that **in the meantime our script can just keep running**.
-
-It can keep performing important tasks and stays interactive. Only when the call stack is empty (when there's nothing important to do) does it get added to the call stack from the microtask queue.
-
-**This means we can handle the promise result in a non-blocking way.**
+The nice thing about the fact that it's added to the microtask queue is that **in the meantime our script can just keep running**. It can keep performing important tasks and stays interactive. Only when the call stack is empty (when there's nothing important to do) does it get added to the call stack from the microtask queue.
 
 ## Chaining Then Methods
 
-Another cool thing is that **`then` itself also returns a promise**. Besides just creating that promise reaction record, it also creates a promise object.
-
-This allows us to **chain those `then`s to each other** and have this incremental promise result handling.
+Another cool thing is that **`then` itself also returns a promise**. Besides just creating that promise reaction record, it also creates a promise object. This allows us to **chain those `then`s to each other** and have this incremental promise result handling.
 
 ### Example: Chaining Multiple Then Calls
 
