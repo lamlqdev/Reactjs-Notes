@@ -14,8 +14,6 @@ A comprehensive demo application demonstrating **Frontend Authentication** patte
 
 ![Session-based Authentication](./public/session-based-authentication.png)
 
-**httpOnly Cookies**: Cookies that cannot be accessed via JavaScript, preventing XSS attacks.
-
 **When to use**: Traditional web applications where server controls session lifecycle and security is critical.
 
 ### JWT-based Authentication
@@ -119,6 +117,8 @@ export const tokenStorage = {
 | **httpOnly Cookies** | Protected from XSS, not accessible to JS | Requires CSRF protection, server setup | Production, sensitive tokens    |
 
 **Best Practice**: For production apps, use httpOnly cookies for refresh tokens and short-lived access tokens in memory or secure storage.
+
+Understand more about [**XSS Attacks**](https://vercel.com/kb/guide/understanding-xss-attacks)
 
 ### Step 3: Protected Routes
 
@@ -302,65 +302,3 @@ export const RoleGuard = ({
 **Usage**: `<RoleGuard allowedRoles={["admin"]}><AdminPanel /></RoleGuard>`
 
 **Explanation**: Checks authentication first, verifies user role against allowed roles, and redirects unauthorized users. Can be combined with ProtectedRoute for layered protection.
-
-### Step 4: Token Utilities
-
-**File: `src/utils/tokenUtils.ts`**
-
-```typescript
-export const isTokenExpired = (token: string | null): boolean => {
-  if (!token) return true;
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return Date.now() >= payload.exp * 1000;
-  } catch {
-    return true;
-  }
-};
-
-export const decodeToken = (token: string | null): any => {
-  if (!token) return null;
-  try {
-    return JSON.parse(atob(token.split(".")[1]));
-  } catch {
-    return null;
-  }
-};
-```
-
-**Explanation**: JWT tokens have three parts (header.payload.signature). Payload is base64 encoded JSON. `atob()` decodes base64, `exp` field contains expiration timestamp. Always handle errors as tokens may be malformed.
-
----
-
-## Security Best Practices
-
-### Common Security Concerns
-
-**XSS (Cross-Site Scripting)**: Attackers can inject malicious scripts that steal tokens from localStorage. To prevent this, use httpOnly cookies, sanitize user inputs, and implement Content Security Policy (CSP).
-
-**CSRF (Cross-Site Request Forgery)**: Attackers can trick users into making unwanted requests. Prevent this by using CSRF tokens, setting the SameSite cookie attribute, and verifying origin headers.
-
-**Token Theft**: Tokens can be stolen via XSS or man-in-the-middle attacks. Mitigate this risk by using httpOnly cookies, enforcing HTTPS only, implementing short token expiration times, and using token rotation.
-
-### Best Practices
-
-1. **Never store sensitive data in localStorage**: Use httpOnly cookies for tokens instead, as they are not accessible via JavaScript and are protected from XSS attacks. Only store non-sensitive data in localStorage.
-
-2. **Implement token expiration**: Use short-lived access tokens (15-60 minutes) and longer-lived refresh tokens (7-30 days). This limits the window of opportunity if a token is compromised.
-
-3. **Use HTTPS only**: Never send tokens over HTTP, as they can be intercepted. Always enforce HTTPS in production environments to ensure encrypted communication.
-
-4. **Validate tokens on server**: Never trust client-side token validation alone. Always verify tokens on the backend to ensure their authenticity and validity.
-
-5. **Sanitize user inputs**: Prevent XSS attacks by validating and sanitizing all user data before processing or displaying it. Use libraries designed for input sanitization.
-
-6. **Rate limiting**: Implement rate limiting on authentication endpoints to limit login attempts and prevent brute force attacks. This helps protect against automated attacks.
-
----
-
-## References
-
-- [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
-- [JWT.io](https://jwt.io/)
-- [WebAuthn Guide](https://webauthn.guide/)
-- [React Security Best Practices](https://react.dev/learn/escape-hatches)
