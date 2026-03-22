@@ -18,13 +18,9 @@
 
 ## Basic: Basic useRef Usage
 
-This section guides you through using useRef in the most basic scenarios.
-
 ### Example 1: Accessing DOM Elements
 
 **When to use**: When you need to directly interact with a DOM element (focus, scroll, measure, etc.)
-
-**Example**:
 
 ```typescript
 import { useRef } from "react";
@@ -71,8 +67,6 @@ function Player() {
 
 **When to use**: When you need to store values that persist across renders but don't need to trigger re-renders.
 
-**Example**:
-
 ```typescript
 import { useRef } from "react";
 
@@ -116,8 +110,6 @@ function Timer() {
 ### Example 3: Storing Previous Values
 
 **When to use**: When you need to compare current value with previous value.
-
-**Example**:
 
 ```typescript
 import { useState, useRef, useEffect } from "react";
@@ -166,8 +158,6 @@ function usePrevious<T>(value: T): T | undefined {
 ---
 
 ## Advanced: Advanced useRef Usage
-
-This section guides you through more advanced patterns with useRef, including `useImperativeHandle`.
 
 ### Example 1: useImperativeHandle - Exposing Methods to Parent
 

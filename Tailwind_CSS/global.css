@@ -1,0 +1,562 @@
+
+@import "tailwindcss";
+
+/* ============================================================
+  @theme
+  Register all design tokens with Tailwind here.
+  Tailwind v4 reads this block to generate utility classes.
+  No more tailwind.config.js — everything lives in CSS.
+  ============================================================ */
+@theme {
+
+  /* --- Fonts --- */
+  --font-sans: "PublicSans", sans-serif;
+  --font-display: "SharpGroteskBook20", sans-serif;
+  --font-body: "FunnelSans", sans-serif;
+
+  /* --- Breakpoints ---
+    Named semantically (s/m/l) instead of the Tailwind defaults (sm/md/lg).
+    Use in JSX like: className="m:flex-row l:grid-cols-3"
+  */
+  --breakpoint-s: 560px;
+  --breakpoint-m: 768px;
+  --breakpoint-l: 960px;
+  --breakpoint-xl: 1440px;
+  --breakpoint-xxl: 1920px;
+
+  /* --- Spacing ---
+    These point to CSS vars defined in :root.
+    The actual pixel values live there and scale per breakpoint automatically.
+    Generates utility classes like: gap-gap-m, px-p-s, mt-m-m
+  */
+  --spacing-gap-xxs: var(--gap-xxs);
+  --spacing-gap-xs: var(--gap-xs);
+  --spacing-gap-s: var(--gap-s);
+  --spacing-gap-m: var(--gap-m);
+  --spacing-gap-l: var(--gap-l);
+  --spacing-gap-xl: var(--gap-xl);
+  --spacing-gap-xxl: var(--gap-xxl);
+
+  --spacing-p-xxxs: var(--padding-xxxs);
+  --spacing-p-xxs: var(--padding-xxs);
+  --spacing-p-xs: var(--padding-xs);
+  --spacing-p-s: var(--padding-s);
+  --spacing-p-m: var(--padding-m);
+  --spacing-p-l: var(--padding-l);
+  --spacing-p-xl: var(--padding-xl);
+  --spacing-p-xxl: var(--padding-xxl);
+  --spacing-p-xxxl: var(--padding-xxxl);
+
+  --spacing-m-m: var(--margin-m);
+
+  /* --- Border Radius ---
+    Semantic scale from sharp (xxs) to pill (full).
+    Generates classes like: rounded-s, rounded-m, rounded-full
+  */
+  --radius-xxs: var(--radius-xxs-val);
+  --radius-xs: var(--radius-xs-val);
+  --radius-s: var(--radius-s-val);
+  --radius-m: var(--radius-m-val);
+  --radius-l: var(--radius-l-val);
+  --radius-full: var(--radius-full-val);
+
+  /* --- Font Sizes ---
+    Two scales: title (headings) and body (content).
+    Values grow at larger breakpoints via :root @media overrides below.
+    Generates classes like: text-title-1, text-body-3
+  */
+  --text-title-1: var(--font-size-title-1);
+  --text-title-2: var(--font-size-title-2);
+  --text-title-3: var(--font-size-title-3);
+  --text-title-4: var(--font-size-title-4);
+  --text-title-5: var(--font-size-title-5);
+  --text-title-6: var(--font-size-title-6);
+  --text-body-1: var(--font-size-body-1);
+  --text-body-2: var(--font-size-body-2);
+  --text-body-3: var(--font-size-body-3);
+  --text-body-4: var(--font-size-body-4);
+  --text-body-5: var(--font-size-body-5);
+
+  /* --- Colors (Semantic) ---
+    Named by role, not by visual appearance.
+    Convention: --color-{role}-{variant}
+    Generates classes like: text-foreground-primary, bg-bg-primary, border-border-focus
+
+    Two-layer pattern:
+      :root  { --fg-primary: #242629; }                          <- raw value (easy to swap)
+      @theme { --color-foreground-primary: var(--fg-primary); }  <- what Tailwind sees
+  */
+
+  /* Text and icon colors */
+  --color-foreground-primary: var(--fg-primary);
+  --color-foreground-secondary: var(--fg-secondary);
+  --color-foreground-tertiary: var(--fg-tertiary);
+  --color-foreground-inverse: var(--fg-inverse);
+  --color-foreground-hover: var(--fg-hover);
+  --color-foreground-critical: var(--fg-critical);
+  --color-foreground-accent: var(--fg-accent);
+
+  /* Surface and background colors */
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-primary-hover: var(--bg-primary-hover);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-overlay: var(--bg-overlay);
+
+  /* Interactive element states (buttons, links) */
+  --color-interactive-primary: var(--interactive-primary);
+  --color-interactive-primary-hover: var(--interactive-primary-hover);
+  --color-interactive-primary-disabled: var(--interactive-primary-disabled);
+  --color-interactive-secondary: var(--interactive-secondary);
+  --color-interactive-secondary-hover: var(--interactive-secondary-hover);
+
+  /* Border colors */
+  --color-border-default: var(--border-default);
+  --color-border-hover: var(--border-hover);
+  --color-border-focus: var(--border-focus);
+  --color-border-critical: var(--border-critical);
+
+  /* Status feedback colors */
+  --color-status-success-bg: var(--status-success-bg);
+  --color-status-warning-bg: var(--status-warning-bg);
+  --color-status-error-bg: var(--status-error-bg);
+
+  /* Brand identity colors */
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-secondary: var(--brand-secondary);
+
+  /* --- Easing Curves ---
+    standard: smooth deceleration, for exits and state changes
+    entrance: snappy feel, for elements entering the screen
+  */
+  --ease-standard: cubic-bezier(0.24, 0.08, 0.32, 0.88);
+  --ease-entrance: cubic-bezier(0.25, 0.24, 0.32, 0.92);
+
+  /* --- Shadows --- */
+  --shadow-modal: 0px 12px 24px 4px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================================
+  :root — Source of Truth
+  All raw values live here.
+  To rebrand or change the design system, only edit this block.
+  Never hardcode these values directly in components.
+  ============================================================ */
+:root {
+
+  /* Declare @font-face blocks here, or import from Google Fonts above */
+
+  /* --- Gap scale ---
+    Used for spacing between elements (flex gap, grid gap)
+  */
+  --gap-xxs: 8px;
+  --gap-xs: 12px;
+  --gap-s: 16px;
+  --gap-m: 24px;
+  --gap-l: 32px;
+  --gap-xl: 52px;
+  --gap-xxl: 64px;
+
+  /* --- Margin --- */
+  --margin-m: 20px;
+
+  /* --- Padding scale ---
+    Used for internal spacing inside components
+  */
+  --padding-xxxs: 6px;
+  --padding-xxs: 8px;
+  --padding-xs: 12px;
+  --padding-s: 16px;
+  --padding-m: 24px;
+  --padding-l: 32px;
+  --padding-xl: 56px;
+  --padding-xxl: 64px;
+  --padding-xxxl: 80px;
+
+  /* --- Border Radius raw values --- */
+  --radius-xxs-val: 4px;
+  --radius-xs-val: 6px;
+  --radius-s-val: 8px;
+  --radius-m-val: 12px;
+  --radius-l-val: 16px;
+  --radius-full-val: 1000px;
+
+  /* --- Font Size raw values ---
+    Grow at larger breakpoints via @media overrides below.
+    No responsive class needed in JSX — these update automatically.
+  */
+  --font-size-title-1: 40px;
+  --font-size-title-2: 32px;
+  --font-size-title-3: 26px;
+  --font-size-title-4: 22px;
+  --font-size-title-5: 16px;
+  --font-size-title-6: 15px;
+
+  --font-size-body-1: 21px;
+  --font-size-body-2: 20px;
+  --font-size-body-3: 18px;
+  --font-size-body-4: 16px;
+  --font-size-body-5: 14px;
+
+  /* --- Color raw values ---
+    Short private names (--fg-*, --bg-*) to keep them easy to update.
+    These are mapped to longer semantic names in @theme above.
+  */
+
+  /* Text and icon */
+  --fg-primary: #242629;
+  --fg-secondary: #7f8183;
+  --fg-tertiary: #b5b6b8;
+  --fg-inverse: #ffffff;
+  --fg-hover: #5e6163;
+  --fg-critical: #d25123;
+  --fg-accent: #366c83;
+
+  /* Backgrounds */
+  --bg-primary: #ffffff;
+  --bg-primary-hover: #fafafa;
+  --bg-secondary: #f6f6f6;
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+
+  /* Interactive states */
+  --interactive-primary: #242629;
+  --interactive-primary-hover: #3f4143;
+  --interactive-primary-disabled: #9d9fa1;
+  --interactive-secondary: #ffffff;
+  --interactive-secondary-hover: #fafafa;
+
+  /* Borders */
+  --border-default: #dedede;
+  --border-hover: #b5b6b8;
+  --border-focus: #7f8183;
+  --border-critical: #e26539;
+
+  /* Status */
+  --status-success-bg: #eefcf5;
+  --status-warning-bg: #f7f0df;
+  --status-error-bg: #fef0ef;
+
+  /* Brand */
+  --brand-primary: #1e3137;
+  --brand-secondary: #ceb699;
+}
+
+/* ============================================================
+  Responsive Scaling
+  Override CSS variables at each breakpoint.
+  Any component using these tokens scales automatically —
+  no breakpoint utility classes needed in JSX.
+  ============================================================ */
+@media (min-width: 768px) {
+  :root {
+    --gap-l: 32px;
+    --gap-xs: 12px;
+    --gap-s: 16px;
+  }
+}
+
+@media (min-width: 960px) {
+  :root {
+    --gap-l: 40px;
+    --gap-xl: 56px;
+    --gap-xxl: 72px;
+
+    --margin-m: 48px;
+
+    --padding-xxs: 12px;
+    --padding-s: 16px;
+    --padding-m: 24px;
+    --padding-l: 32px;
+    --padding-xl: 56px;
+    --padding-xxl: 64px;
+
+    --font-size-title-1: 48px;
+    --font-size-title-2: 40px;
+    --font-size-title-3: 28px;
+    --font-size-title-4: 24px;
+    --font-size-title-5: 18px;
+
+    --font-size-body-1: 24px;
+    --font-size-body-3: 20px;
+
+    --radius-xs-val: 8px;
+    --radius-s-val: 12px;
+    --radius-m-val: 16px;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --gap-xxs: 12px;
+    --gap-xs: 16px;
+    --gap-s: 24px;
+    --gap-m: 32px;
+    --gap-xl: 64px;
+    --gap-xxl: 80px;
+
+    --margin-m: 80px;
+
+    --padding-xs: 16px;
+    --padding-s: 24px;
+    --padding-m: 32px;
+    --padding-l: 40px;
+    --padding-xl: 64px;
+    --padding-xxl: 80px;
+    --padding-xxxl: 120px;
+
+    --font-size-title-1: 56px;
+    --font-size-title-2: 48px;
+    --font-size-title-3: 30px;
+
+    --font-size-body-3: 18px;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --gap-xxs: 16px;
+    --gap-xs: 20px;
+    --gap-s: 32px;
+    --gap-m: 40px;
+    --gap-l: 48px;
+    --gap-xl: 72px;
+    --gap-xxl: 96px;
+
+    --margin-m: 190px;
+
+    --padding-l: 64px;
+    --padding-xl: 80px;
+    --padding-xxl: 120px;
+    --padding-xxxl: 160px;
+
+    --font-size-title-1: 60px;
+    --font-size-title-2: 52px;
+    --font-size-title-3: 30px;
+    --font-size-title-5: 20px;
+
+    --font-size-body-1: 26px;
+    --font-size-body-3: 20px;
+  }
+}
+
+/* ============================================================
+  @layer base — Global resets and defaults
+  ============================================================ */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: var(--font-body);
+    font-weight: 400;
+    color: var(--fg-primary);
+    background-color: var(--bg-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a, button {
+    cursor: pointer;
+  }
+}
+
+/* ============================================================
+  @layer components — Semantic utility classes
+  Bundle multiple CSS properties under one meaningful class name.
+  Keeps JSX clean and enforces consistency across the codebase.
+  ============================================================ */
+@layer components {
+
+  /* --- Layout shortcuts --- */
+  .flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* --- Heading typography ---
+    Uses the display font. Font size is responsive via CSS vars.
+    Pair with a color class: className="header-2 text-foreground-primary"
+  */
+  .header-caps {
+    font-family: var(--font-display);
+    font-size: 13px;
+    line-height: 18px;
+    letter-spacing: 1.04px;
+    text-transform: uppercase;
+  }
+
+  .header-1 {
+    font-family: var(--font-display);
+    font-size: var(--font-size-title-1);
+    line-height: 120%;
+  }
+
+  .header-2 {
+    font-family: var(--font-display);
+    font-size: var(--font-size-title-2);
+    line-height: 125%;
+  }
+
+  .header-3 {
+    font-family: var(--font-display);
+    font-size: var(--font-size-title-3);
+    line-height: 130%;
+  }
+
+  .header-4 {
+    font-family: var(--font-display);
+    font-size: var(--font-size-title-4);
+    line-height: 135%;
+  }
+
+  .header-5 {
+    font-family: var(--font-display);
+    font-size: var(--font-size-title-5);
+    line-height: 135%;
+  }
+
+  /* --- Body typography ---
+    Uses the body font at light weight.
+    Pair with a color class: className="body-3 text-foreground-secondary"
+  */
+  .body-1 {
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: var(--font-size-body-1);
+    line-height: 135%;
+  }
+
+  .body-2 {
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: var(--font-size-body-2);
+    line-height: 140%;
+  }
+
+  .body-3 {
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: var(--font-size-body-3);
+    line-height: 140%;
+  }
+
+  .body-4 {
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: var(--font-size-body-4);
+    line-height: 140%;
+  }
+
+  .body-5 {
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: var(--font-size-body-5);
+    line-height: 140%;
+  }
+
+  /* --- Caption --- */
+  .caption-1 {
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .caption-2 {
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: 10px;
+    line-height: 14px;
+  }
+
+  /* --- Button labels ---
+    Uses display font at medium weight. Apply to <span> inside a <button>.
+  */
+  .btn-label-1 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 24px;
+  }
+
+  .btn-label-2 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 24px;
+  }
+
+  /* --- Transition helpers ---
+    Pre-configured transitions for the most common animated properties.
+  */
+  .transition-bg {
+    transition-property: background-color;
+    transition-duration: 250ms;
+    transition-timing-function: var(--ease-entrance);
+  }
+
+  .transition-transform {
+    transition-property: transform;
+    transition-duration: 250ms;
+    transition-timing-function: var(--ease-entrance);
+  }
+
+  .transition-opacity {
+    transition-property: opacity;
+    transition-duration: 200ms;
+    transition-timing-function: var(--ease-standard);
+  }
+
+  /* --- Scrollbar hide --- */
+  .scrollbar-hide {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
+  ============================================================
+  JSX USAGE — QUICK REFERENCE
+  ============================================================
+
+  Typography:
+    <h1 className="header-1 text-foreground-primary" />
+    <p  className="body-3 text-foreground-secondary" />
+    <span className="caption-1 text-foreground-tertiary" />
+
+  Spacing (generated from @theme tokens):
+    <div className="px-p-m py-p-s gap-gap-m" />
+    <section className="mt-m-m" />
+
+  Colors:
+    <button className="bg-interactive-primary hover:bg-interactive-primary-hover
+                      text-foreground-inverse rounded-s" />
+    <input  className="border border-border-default focus:border-border-focus" />
+
+  Status:
+    <div className="bg-status-success-bg text-foreground-primary" />
+    <div className="bg-status-error-bg text-foreground-critical" />
+
+  Responsive — no breakpoint classes needed, tokens scale automatically:
+    <div className="px-p-m" />
+    At mobile:  24px
+    At 960px:   32px  (set in :root @media override)
+    At 1440px:  40px  (set in :root @media override)
+
+  Dark mode — just override raw values in :root:
+    [data-theme="dark"] {
+      --fg-primary: #ffffff;
+      --bg-primary: #0f0f0f;
+    }
+
+  ============================================================
+*/
