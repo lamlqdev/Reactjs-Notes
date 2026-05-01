@@ -62,20 +62,7 @@ Children props are used to pass content between components.
 
 ### 2.1. Basic Process
 
-**Initialize the application:**
-
-- React finds the `root` element in HTML (`index.html`)
-- Renders the `App` component into that element
-
-**Render component:**
-
-- React reads JSX and converts it into DOM elements
-- Displays them on the screen
-
-**Update UI:**
-
-- When state changes, React automatically re-renders
-- Only updates the parts that changed (efficient)
+![React Process](./public/react-process.png)
 
 ### 2.2. Component Tree
 

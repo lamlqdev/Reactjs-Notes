@@ -5,7 +5,6 @@
   @theme
   Register all design tokens with Tailwind here.
   Tailwind v4 reads this block to generate utility classes.
-  No more tailwind.config.js — everything lives in CSS.
   ============================================================ */
 @theme {
 
@@ -144,6 +143,9 @@
 :root {
 
   /* Declare @font-face blocks here, or import from Google Fonts above */
+  --font-sans: 'PublicSans', sans-serif;
+  --font-display: 'SharpGroteskBook20', sans-serif;
+  --font-body: 'FunnelSans', sans-serif;
 
   /* --- Gap scale ---
     Used for spacing between elements (flex gap, grid gap)
