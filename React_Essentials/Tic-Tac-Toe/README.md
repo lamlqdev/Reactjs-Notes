@@ -25,14 +25,14 @@ function deriveActivePlayer(gameTurns) {
 ```
 
 ```27:34:src/App.js
-  let gameBoard = [...initialGameBoard.map((innerArray) => [...innerArray])];
-  let winner;
+let gameBoard = [...initialGameBoard.map((innerArray) => [...innerArray])];
+let winner;
 
-  for (const turn of gameTurns) {
-    const { square, player } = turn;
-    const { row, col } = square;
-    gameBoard[row][col] = player;
-  }
+for (const turn of gameTurns) {
+  const { square, player } = turn;
+  const { row, col } = square;
+  gameBoard[row][col] = player;
+}
 ```
 
 **Explanation:**
@@ -56,17 +56,17 @@ function deriveActivePlayer(gameTurns) {
 When adding a new turn, we need to rely on the current `gameTurns` to determine the next player:
 
 ```57:67:src/App.js
-  function handleSelectSquare(rowIndex, colIndex) {
-    setGameTurns((preGameTurns) => {
-      const currentPlayer = deriveActivePlayer(preGameTurns);
+function handleSelectSquare(rowIndex, colIndex) {
+  setGameTurns((preGameTurns) => {
+    const currentPlayer = deriveActivePlayer(preGameTurns);
 
-      const updatedGameTurns = [
-        { square: { row: rowIndex, col: colIndex }, player: currentPlayer },
-        ...preGameTurns,
-      ];
-      return updatedGameTurns;
-    });
-  }
+    const updatedGameTurns = [
+      { square: { row: rowIndex, col: colIndex }, player: currentPlayer },
+      ...preGameTurns,
+    ];
+    return updatedGameTurns;
+  });
+}
 ```
 
 **Explanation:**
@@ -90,22 +90,22 @@ When adding a new turn, we need to rely on the current `gameTurns` to determine 
 **Example in this project:**
 
 ```61:65:src/App.js
-      const updatedGameTurns = [
-        { square: { row: rowIndex, col: colIndex }, player: currentPlayer },
-        ...preGameTurns,
-      ];
-      return updatedGameTurns;
+const updatedGameTurns = [
+  { square: { row: rowIndex, col: colIndex }, player: currentPlayer },
+  ...preGameTurns,
+];
+return updatedGameTurns;
 ```
 
 ```73:80:src/App.js
-  function handlePlayerNameChange(symbol, newName) {
-    setPlayers((prevPlayer) => {
-      return {
-        ...prevPlayer,
-        [symbol]: newName,
-      };
-    });
-  }
+function handlePlayerNameChange(symbol, newName) {
+  setPlayers((prevPlayer) => {
+    return {
+      ...prevPlayer,
+      [symbol]: newName,
+    };
+  });
+}
 ```
 
 **Explanation:**
@@ -131,31 +131,31 @@ When adding a new turn, we need to rely on the current `gameTurns` to determine 
 The `App` component manages all important state and passes it down to child components:
 
 ```82:105:src/App.js
-  return (
-    <main>
-      <div id="game-container">
-        <ol id="players" className="highlight-player">
-          <Player
-            initialName="Player 1"
-            symbol="X"
-            isActive={activePlayer === "X"}
-            onChangeName={handlePlayerNameChange}
-          />
-          <Player
-            initialName="Player 2"
-            symbol="O"
-            isActive={activePlayer === "O"}
-            onChangeName={handlePlayerNameChange}
-          />
-        </ol>
-        {(winner || hasDraw) && (
-          <GameOver winner={winner} onRestart={handleRestart} />
-        )}
-        <GameBoard onSelectSquare={handleSelectSquare} board={gameBoard} />
-      </div>
-      <Log turns={gameTurns} />
-    </main>
-  );
+return (
+  <main>
+    <div id="game-container">
+      <ol id="players" className="highlight-player">
+        <Player
+          initialName="Player 1"
+          symbol="X"
+          isActive={activePlayer === "X"}
+          onChangeName={handlePlayerNameChange}
+        />
+        <Player
+          initialName="Player 2"
+          symbol="O"
+          isActive={activePlayer === "O"}
+          onChangeName={handlePlayerNameChange}
+        />
+      </ol>
+      {(winner || hasDraw) && (
+        <GameOver winner={winner} onRestart={handleRestart} />
+      )}
+      <GameBoard onSelectSquare={handleSelectSquare} board={gameBoard} />
+    </div>
+    <Log turns={gameTurns} />
+  </main>
+);
 ```
 
 **Explanation:**
@@ -184,27 +184,27 @@ App (state: players, gameTurns)
 The `Player` component uses a controlled input to edit player names:
 
 ```9:29:src/components/Player.js
-  const [playerName, setPlayerName] = useState(initialName);
-  const [isEditting, setIsEditting] = useState(false);
+const [playerName, setPlayerName] = useState(initialName);
+const [isEditting, setIsEditting] = useState(false);
 
-  const handleClick = () => {
-    setIsEditting((prevIsEditting) => !prevIsEditting);
-    if (isEditting) {
-      onChangeName(symbol, playerName);
-    }
-  };
-
-  const handleChange = (event) => {
-    setPlayerName(event.target.value);
-  };
-
-  let playerNameContainer = <span className="player-name">{playerName}</span>;
-
+const handleClick = () => {
+  setIsEditting((prevIsEditting) => !prevIsEditting);
   if (isEditting) {
-    playerNameContainer = (
-      <input type="text" required value={playerName} onChange={handleChange} />
-    );
+    onChangeName(symbol, playerName);
   }
+};
+
+const handleChange = (event) => {
+  setPlayerName(event.target.value);
+};
+
+let playerNameContainer = <span className="player-name">{playerName}</span>;
+
+if (isEditting) {
+  playerNameContainer = (
+    <input type="text" required value={playerName} onChange={handleChange} />
+  );
+}
 ```
 
 **Explanation:**
@@ -230,8 +230,8 @@ The `Player` component uses a controlled input to edit player names:
 The `Player` component uses both local state and callbacks to sync with shared state:
 
 ```9:10:src/components/Player.js
-  const [playerName, setPlayerName] = useState(initialName);
-  const [isEditting, setIsEditting] = useState(false);
+const [playerName, setPlayerName] = useState(initialName);
+const [isEditting, setIsEditting] = useState(false);
 ```
 
 **Explanation:**
@@ -254,79 +254,37 @@ The `Player` component uses both local state and callbacks to sync with shared s
 
 ## 2. Advanced Techniques
 
-### 2.1. Conditional Rendering & Dynamic Classes
-
-**Conditional Rendering** is a technique to display different content based on conditions. **Dynamic Classes** is applying CSS classes dynamically based on state or props.
-
-**Example in this project:**
-
-```99:101:src/App.js
-        {(winner || hasDraw) && (
-          <GameOver winner={winner} onRestart={handleRestart} />
-        )}
-```
-
-```32:32:src/components/Player.js
-    <li className={isActive ? "active" : undefined}>
-```
-
-**Explanation:**
-
-- `{(winner || hasDraw) && <GameOver />}` - only displays `GameOver` when the game ends
-- `className={isActive ? "active" : undefined}` - adds `active` class when it's that player's turn
-- The `&&` operator and ternary operator are used for conditional rendering
-
-**Conditional rendering methods:**
-
-```jsx
-// Method 1: && operator
-{
-  condition && <Component />;
-}
-
-// Method 2: Ternary operator
-{
-  condition ? <ComponentA /> : <ComponentB />;
-}
-
-// Method 3: if-else in function
-function renderContent() {
-  if (condition) return <ComponentA />;
-  return <ComponentB />;
-}
-```
-
-### 2.2. Key Prop and Render Lists
+### 2.1. Key Prop and Render Lists
 
 **Key Prop** is a special property that helps React identify each element in a list. Keys must be unique and stable.
 
 **Example in this project:**
 
 ```4:8:src/components/Log.js
-      {turns.map((turn) => (
-        <li key={`${turn.square.row}${turn.square.col}`}>
-          {turn.player} select {turn.square.row},{turn.square.col}
-        </li>
-      ))}
+{turns.map((turn) => (
+  <li key={`${turn.square.row}${turn.square.col}`}>
+    {turn.player} select {turn.square.row},{turn.square.col}
+  </li>
+))}
 ```
 
 ```4:18:src/components/GameBoard.js
-      {board.map((row, rowIndex) => (
-        <li key={rowIndex}>
-          <ol>
-            {row.map((playerSymbol, colIndex) => (
-              <li key={colIndex}>
-                <button
-                  onClick={() => onSelectSquare(rowIndex, colIndex)}
-                  disabled={playerSymbol !== null}
-                >
-                  {playerSymbol}
-                </button>
-              </li>
-            ))}
-          </ol>
+{board.map((row, rowIndex) => (
+  <li key={rowIndex}>
+    <ol>
+      {row.map((playerSymbol, colIndex) => (
+        <li key={colIndex}>
+          <button
+            onClick={() => onSelectSquare(rowIndex, colIndex)}
+            disabled={playerSymbol !== null}
+          >
+            {playerSymbol}
+          </button>
         </li>
       ))}
+    </ol>
+  </li>
+))}
 ```
 
 **Explanation:**
@@ -341,15 +299,15 @@ function renderContent() {
 - Key must be unique within the same list
 - Key should not change between renders
 
-### 2.3. Event Handlers with Parameters
+### 2.2. Event Handlers with Parameters
 
 When you need to pass parameters to an event handler, we use arrow functions or bind.
 
 **Example in this project:**
 
 ```9:10:src/components/GameBoard.js
-                  onClick={() => onSelectSquare(rowIndex, colIndex)}
-                  disabled={playerSymbol !== null}
+onClick={() => onSelectSquare(rowIndex, colIndex)}
+disabled={playerSymbol !== null}
 ```
 
 **Explanation:**
@@ -372,23 +330,7 @@ const handleClickWrapper = () => handleClick(id);
 <button onClick={handleClickWrapper}>Click</button>
 ```
 
-### 2.4. Disabled State
-
-**Disabled State** is an HTML attribute that disables an element, commonly used for buttons and inputs.
-
-**Example in this project:**
-
-```11:11:src/components/GameBoard.js
-                  disabled={playerSymbol !== null}
-```
-
-**Explanation:**
-
-- Button is disabled when `playerSymbol !== null` (square already selected)
-- Prevents players from selecting squares that already have a symbol
-- Disabled buttons cannot be clicked and have different styling (usually dimmed)
-
-### 2.5. Separating Domain Logic
+### 2.3. Separating Domain Logic
 
 **Separation of Concerns** is the principle of separating business logic (domain logic) from components for easier maintenance and testing.
 
@@ -442,22 +384,22 @@ export const WINNING_COMBINATIONS = [
 ```
 
 ```38:53:src/App.js
-  for (const combination of WINNING_COMBINATIONS) {
-    const firstSquareSymbol =
-      gameBoard[combination[0].row][combination[0].column];
-    const secondSquareSymbol =
-      gameBoard[combination[1].row][combination[1].column];
-    const thirdSquareSymbol =
-      gameBoard[combination[2].row][combination[2].column];
+for (const combination of WINNING_COMBINATIONS) {
+  const firstSquareSymbol =
+    gameBoard[combination[0].row][combination[0].column];
+  const secondSquareSymbol =
+    gameBoard[combination[1].row][combination[1].column];
+  const thirdSquareSymbol =
+    gameBoard[combination[2].row][combination[2].column];
 
-    if (
-      firstSquareSymbol &&
-      firstSquareSymbol === secondSquareSymbol &&
-      firstSquareSymbol === thirdSquareSymbol
-    ) {
-      winner = players[firstSquareSymbol];
-    }
+  if (
+    firstSquareSymbol &&
+    firstSquareSymbol === secondSquareSymbol &&
+    firstSquareSymbol === thirdSquareSymbol
+  ) {
+    winner = players[firstSquareSymbol];
   }
+}
 ```
 
 **Explanation:**
@@ -472,31 +414,31 @@ export const WINNING_COMBINATIONS = [
 - Logic can be tested independently
 - Can be reused elsewhere
 
-### 2.6. Win Detection Algorithm and Draw Handling
+### 2.4. Win Detection Algorithm and Draw Handling
 
 **Game Logic** includes checking win conditions and handling draw cases.
 
 **Example in this project:**
 
 ```38:55:src/App.js
-  for (const combination of WINNING_COMBINATIONS) {
-    const firstSquareSymbol =
-      gameBoard[combination[0].row][combination[0].column];
-    const secondSquareSymbol =
-      gameBoard[combination[1].row][combination[1].column];
-    const thirdSquareSymbol =
-      gameBoard[combination[2].row][combination[2].column];
+for (const combination of WINNING_COMBINATIONS) {
+  const firstSquareSymbol =
+    gameBoard[combination[0].row][combination[0].column];
+  const secondSquareSymbol =
+    gameBoard[combination[1].row][combination[1].column];
+  const thirdSquareSymbol =
+    gameBoard[combination[2].row][combination[2].column];
 
-    if (
-      firstSquareSymbol &&
-      firstSquareSymbol === secondSquareSymbol &&
-      firstSquareSymbol === thirdSquareSymbol
-    ) {
-      winner = players[firstSquareSymbol];
-    }
+  if (
+    firstSquareSymbol &&
+    firstSquareSymbol === secondSquareSymbol &&
+    firstSquareSymbol === thirdSquareSymbol
+  ) {
+    winner = players[firstSquareSymbol];
   }
+}
 
-  const hasDraw = gameTurns.length === 9 && !winner;
+const hasDraw = gameTurns.length === 9 && !winner;
 ```
 
 **Explanation:**
@@ -638,8 +580,8 @@ export default function GameBoard({ onSelectSquare, board }) {
 #### Step 1: Initialization
 
 ```23:25:src/App.js
-  const [players, setPlayers] = useState({ X: "Player 1", O: "Player 2" });
-  const [gameTurns, setGameTurns] = useState([]);
+const [players, setPlayers] = useState({ X: "Player 1", O: "Player 2" });
+const [gameTurns, setGameTurns] = useState([]);
 ```
 
 - `players` is initialized with default names
@@ -654,17 +596,17 @@ export default function GameBoard({ onSelectSquare, board }) {
 3. `handleSelectSquare` is executed:
 
 ```57:67:src/App.js
-  function handleSelectSquare(rowIndex, colIndex) {
-    setGameTurns((preGameTurns) => {
-      const currentPlayer = deriveActivePlayer(preGameTurns);
+function handleSelectSquare(rowIndex, colIndex) {
+  setGameTurns((preGameTurns) => {
+    const currentPlayer = deriveActivePlayer(preGameTurns);
 
-      const updatedGameTurns = [
-        { square: { row: rowIndex, col: colIndex }, player: currentPlayer },
-        ...preGameTurns,
-      ];
-      return updatedGameTurns;
-    });
-  }
+    const updatedGameTurns = [
+      { square: { row: rowIndex, col: colIndex }, player: currentPlayer },
+      ...preGameTurns,
+    ];
+    return updatedGameTurns;
+  });
+}
 ```
 
 4. `gameTurns` state is updated with the new turn
