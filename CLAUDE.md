@@ -18,7 +18,7 @@ npm run build    # Production build
 npm run preview  # Preview production build
 ```
 
-Projects with code: `01_React_Essentials`, `02_useEffect`, `03_useRef_Portal`, `04_React_Performance_Rendering`, `05_Custom_Hooks`, `06_ContextAPI_useReducer`, `07_Fetching_Data`, `08_Axios_Tanstack_Query`, `09_React_Hook_Form`, `10_React_Router`, `12_Authentication`, `Unit_Testing`.
+Projects with code: `01_React_Essentials`, `02_useEffect`, `03_useRef_Portal`, `04_React_Performance_Rendering`, `05_Custom_Hooks`, `06_ContextAPI_useReducer`, `07_Fetching_Data`, `08_Axios_Tanstack_Query`, `09_React_Hook_Form`, `10_React_Router`, `12_Authentication`, `14_Unit_Testing`.
 
 The `11_Redux_Redux_Toolkit` folder contains two separate sub-projects:
 - `11_Redux_Redux_Toolkit/Redux/` — traditional Redux
@@ -27,7 +27,7 @@ The `11_Redux_Redux_Toolkit` folder contains two separate sub-projects:
 ## Running Tests
 
 ```bash
-cd Unit_Testing
+cd 14_Unit_Testing
 npm install
 npm run test      # Run Vitest test suite
 ```
@@ -51,7 +51,7 @@ npm run test      # Run Vitest test suite
 | `13_Styling/` | Docs | CSS Modules, Styled Components comparison |
 | `Tailwind_CSS/` | Code | Tailwind utility class examples |
 | `TypeScript/` | Docs | TypeScript type system for React |
-| `Unit_Testing/` | Docs + Code | Vitest + React Testing Library |
+| `14_Unit_Testing/` | Docs + Code | Vitest + React Testing Library |
 | `Javascript_Runtime/` | Docs only | V8 internals, event loop, closures, promises |
 
 ## Tech Stack
