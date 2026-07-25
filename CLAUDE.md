@@ -48,7 +48,7 @@ npm run test      # Run Vitest test suite
 | `09_React_Hook_Form/` | Docs + Code | Form handling with RHF + Zod validation |
 | `12_Authentication/` | Docs + Code | JWT, protected routes, RBAC |
 | `04_React_Performance_Rendering/` | Docs + Code | `memo`, `useMemo`, `useCallback`, lazy loading |
-| `Styling/` | Docs | CSS Modules, Styled Components comparison |
+| `13_Styling/` | Docs | CSS Modules, Styled Components comparison |
 | `Tailwind_CSS/` | Code | Tailwind utility class examples |
 | `TypeScript/` | Docs | TypeScript type system for React |
 | `Unit_Testing/` | Docs + Code | Vitest + React Testing Library |

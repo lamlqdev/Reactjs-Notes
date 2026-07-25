@@ -46,7 +46,7 @@ A comprehensive collection of React.js learning materials and practical examples
 
 ### 9. Styling
 
-- **[Styling React Components](./Styling/README.md)** - Comparison of styling approaches: Inline Styles, Vanilla CSS, CSS Modules, Styled Components, and Tailwind CSS
+- **[Styling React Components](./13_Styling/README.md)** - Comparison of styling approaches: Inline Styles, Vanilla CSS, CSS Modules, Styled Components, and Tailwind CSS
 
 ### 10. TypeScript
 
