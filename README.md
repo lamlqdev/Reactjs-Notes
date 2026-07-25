@@ -42,7 +42,7 @@ A comprehensive collection of React.js learning materials and practical examples
 
 ### 8. Performance & Optimization
 
-- **[React Performance & Rendering](./React_Performance_Rendering/README.md)** - Optimization techniques, memoization, and rendering performance
+- **[React Performance & Rendering](./04_React_Performance_Rendering/README.md)** - Optimization techniques, memoization, and rendering performance
 
 ### 9. Styling
 

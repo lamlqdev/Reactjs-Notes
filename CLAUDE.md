@@ -18,7 +18,7 @@ npm run build    # Production build
 npm run preview  # Preview production build
 ```
 
-Projects with code: `Authentication`, `Axios_Tanstack_Query`, `ContextAPI_useReducer`, `Custom_Hooks`, `Fetching_Data`, `React_Hook_Form`, `React_Performance_Rendering`, `React_Router`, `Unit_Testing`, `useEffect`, `useRef_Portal`.
+Projects with code: `01_React_Essentials`, `02_useEffect`, `03_useRef_Portal`, `04_React_Performance_Rendering`, `Authentication`, `Axios_Tanstack_Query`, `ContextAPI_useReducer`, `Custom_Hooks`, `Fetching_Data`, `React_Hook_Form`, `React_Router`, `Unit_Testing`.
 
 The `Redux_Redux_Toolkit` folder contains two separate sub-projects:
 - `Redux_Redux_Toolkit/Redux/` — traditional Redux
@@ -47,7 +47,7 @@ npm run test      # Run Vitest test suite
 | `Axios_Tanstack_Query/` | Docs + Code | Axios + TanStack Query (React Query) |
 | `React_Hook_Form/` | Docs + Code | Form handling with RHF + Zod validation |
 | `Authentication/` | Docs + Code | JWT, protected routes, RBAC |
-| `React_Performance_Rendering/` | Docs + Code | `memo`, `useMemo`, `useCallback`, lazy loading |
+| `04_React_Performance_Rendering/` | Docs + Code | `memo`, `useMemo`, `useCallback`, lazy loading |
 | `Styling/` | Docs | CSS Modules, Styled Components comparison |
 | `Tailwind_CSS/` | Code | Tailwind utility class examples |
 | `TypeScript/` | Docs | TypeScript type system for React |
