@@ -18,7 +18,7 @@ npm run build    # Production build
 npm run preview  # Preview production build
 ```
 
-Projects with code: `01_React_Essentials`, `02_useEffect`, `03_useRef_Portal`, `04_React_Performance_Rendering`, `05_Custom_Hooks`, `06_ContextAPI_useReducer`, `07_Fetching_Data`, `Authentication`, `Axios_Tanstack_Query`, `React_Hook_Form`, `React_Router`, `Unit_Testing`.
+Projects with code: `01_React_Essentials`, `02_useEffect`, `03_useRef_Portal`, `04_React_Performance_Rendering`, `05_Custom_Hooks`, `06_ContextAPI_useReducer`, `07_Fetching_Data`, `08_Axios_Tanstack_Query`, `Authentication`, `React_Hook_Form`, `React_Router`, `Unit_Testing`.
 
 The `Redux_Redux_Toolkit` folder contains two separate sub-projects:
 - `Redux_Redux_Toolkit/Redux/` — traditional Redux
@@ -44,7 +44,7 @@ npm run test      # Run Vitest test suite
 | `Redux_Redux_Toolkit/` | Docs + Code | Redux fundamentals and RTK patterns |
 | `React_Router/` | Docs + Code | React Router v6, loaders, actions |
 | `07_Fetching_Data/` | Docs + Code | Fetch API, HTTP patterns |
-| `Axios_Tanstack_Query/` | Docs + Code | Axios + TanStack Query (React Query) |
+| `08_Axios_Tanstack_Query/` | Docs + Code | Axios + TanStack Query (React Query) |
 | `React_Hook_Form/` | Docs + Code | Form handling with RHF + Zod validation |
 | `Authentication/` | Docs + Code | JWT, protected routes, RBAC |
 | `04_React_Performance_Rendering/` | Docs + Code | `memo`, `useMemo`, `useCallback`, lazy loading |

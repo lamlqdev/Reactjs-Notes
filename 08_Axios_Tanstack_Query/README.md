@@ -819,6 +819,145 @@ export function usePrefetchPost() {
 </li>
 ```
 
+### 4. Infinite Query
+
+`useInfiniteQuery` handles paginated data as an ever-growing list — perfect for "Load more" buttons or infinite scroll. Instead of `data`, it returns `data.pages` (each page from a separate fetch) plus helpers to trigger the next fetch.
+
+**Key differences vs `useQuery`**:
+
+| Concept              | `useQuery`               | `useInfiniteQuery`                                     |
+| -------------------- | ------------------------ | ------------------------------------------------------ |
+| **Return shape**     | `data: T`                | `data: { pages: T[]; pageParams: unknown[] }`          |
+| **Page param**       | N/A                      | Passed to `queryFn` via `{ pageParam }`                |
+| **Required in v5**   | —                        | `initialPageParam` + `getNextPageParam`                |
+| **Fetch next page**  | `refetch()`              | `fetchNextPage()` + `hasNextPage` + `isFetchingNextPage` |
+
+**API function** — accept a page param and return pagination metadata so the hook knows when to stop:
+
+```typescript
+// src/api/post.api.ts
+export interface PostsPage {
+  items: Post[];
+  nextCursor: number | null; // null when no more pages
+}
+
+export const postsApi = {
+  getPostsPage: async (cursor: number = 0, limit = 10): Promise<PostsPage> => {
+    const res = await axiosInstance.get<PostsPage>("/posts", {
+      params: { cursor, limit },
+    });
+    return res.data;
+  },
+};
+```
+
+**Hook**:
+
+```typescript
+// src/hooks/queries/usePostsInfinite.ts
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { postsApi } from "../../api/post.api";
+import { postKeys } from "../../constants/queryKeys";
+
+export function usePostsInfinite() {
+  return useInfiniteQuery({
+    queryKey: postKeys.infinite(),
+    queryFn: ({ pageParam }) => postsApi.getPostsPage(pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    // Optional: enable reverse pagination
+    // getPreviousPageParam: (firstPage) => firstPage.prevCursor ?? undefined,
+  });
+}
+```
+
+Add the corresponding key to the factory:
+
+```typescript
+// src/constants/queryKeys.ts
+posts: {
+  all: ["posts"] as const,
+  infinite: () => [...queryKeys.posts.all, "infinite"] as const,
+},
+```
+
+**Component — "Load more" button**:
+
+```typescript
+export function PostsFeed() {
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+  } = usePostsInfinite();
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Failed to load posts</div>;
+
+  return (
+    <>
+      <ul>
+        {data?.pages.flatMap((page) =>
+          page.items.map((post) => <li key={post.id}>{post.title}</li>)
+        )}
+      </ul>
+
+      <button
+        onClick={() => fetchNextPage()}
+        disabled={!hasNextPage || isFetchingNextPage}
+      >
+        {isFetchingNextPage ? "Loading more..." : hasNextPage ? "Load more" : "No more posts"}
+      </button>
+    </>
+  );
+}
+```
+
+**Component — infinite scroll with `IntersectionObserver`**:
+
+```typescript
+import { useEffect, useRef } from "react";
+
+export function PostsInfiniteScroll() {
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = usePostsInfinite();
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    });
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  return (
+    <>
+      {data?.pages.flatMap((page) =>
+        page.items.map((post) => <article key={post.id}>{post.title}</article>)
+      )}
+      <div ref={sentinelRef} style={{ height: 1 }} />
+      {isFetchingNextPage && <div>Loading more...</div>}
+    </>
+  );
+}
+```
+
+**Common pitfalls**:
+
+- Forgetting `initialPageParam` — required in v5, will throw at runtime.
+- Returning `null` vs `undefined` from `getNextPageParam` — **must** be `undefined` to mark "no more pages"; `null` is treated as a valid page param.
+- Flattening with `.map(page => page.items)` instead of `.flatMap(...)` — leaves nested arrays and breaks rendering.
+- Mutating a single item requires updating the correct page in `queryClient.setQueryData`, not the whole cache.
+
 ---
 
 ## References
