@@ -20,9 +20,9 @@ npm run preview  # Preview production build
 
 Projects with code: `01_React_Essentials`, `02_useEffect`, `03_useRef_Portal`, `04_React_Performance_Rendering`, `05_Custom_Hooks`, `06_ContextAPI_useReducer`, `07_Fetching_Data`, `08_Axios_Tanstack_Query`, `09_React_Hook_Form`, `10_React_Router`, `Authentication`, `Unit_Testing`.
 
-The `Redux_Redux_Toolkit` folder contains two separate sub-projects:
-- `Redux_Redux_Toolkit/Redux/` — traditional Redux
-- `Redux_Redux_Toolkit/Redux-Toolkit/` — modern RTK approach
+The `11_Redux_Redux_Toolkit` folder contains two separate sub-projects:
+- `11_Redux_Redux_Toolkit/Redux/` — traditional Redux
+- `11_Redux_Redux_Toolkit/Redux-Toolkit/` — modern RTK approach
 
 ## Running Tests
 
@@ -41,7 +41,7 @@ npm run test      # Run Vitest test suite
 | `useRef_Portal/` | Docs + Code | DOM refs, `useImperativeHandle`, portals |
 | `05_Custom_Hooks/` | Docs + Code | Extracting and composing custom hooks |
 | `06_ContextAPI_useReducer/` | Docs + Code | Global state without Redux |
-| `Redux_Redux_Toolkit/` | Docs + Code | Redux fundamentals and RTK patterns |
+| `11_Redux_Redux_Toolkit/` | Docs + Code | Redux fundamentals and RTK patterns |
 | `10_React_Router/` | Docs + Code | React Router v6, loaders, actions |
 | `07_Fetching_Data/` | Docs + Code | Fetch API, HTTP patterns |
 | `08_Axios_Tanstack_Query/` | Docs + Code | Axios + TanStack Query (React Query) |

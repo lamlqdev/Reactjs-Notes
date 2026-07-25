@@ -20,8 +20,8 @@ A comprehensive collection of React.js learning materials and practical examples
 ### 3. State Management
 
 - **[Context API & useReducer](./06_ContextAPI_useReducer/README.md)** - Global state management with Context API and reducer pattern
-- **[Redux](./Redux_Redux_Toolkit/Redux/README.md)** - Redux fundamentals: store, actions, reducers, and middleware
-- **[Redux Toolkit](./Redux_Redux_Toolkit/Redux-Toolkit/README.md)** - Modern Redux with Redux Toolkit and RTK Query
+- **[Redux](./11_Redux_Redux_Toolkit/Redux/README.md)** - Redux fundamentals: store, actions, reducers, and middleware
+- **[Redux Toolkit](./11_Redux_Redux_Toolkit/Redux-Toolkit/README.md)** - Modern Redux with Redux Toolkit and RTK Query
 
 ### 4. Routing & Navigation
 
