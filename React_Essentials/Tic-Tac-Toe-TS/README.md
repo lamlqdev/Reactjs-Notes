@@ -1,6 +1,6 @@
-# Tic-Tac-Toe — React useState Deep Dive
+# Tic-Tac-Toe — React useState Deep Dive (TypeScript)
 
-This project builds a classic Tic-Tac-Toe game to explore how React's `useState` actually works — the mental model, the common pitfalls, and the design decisions that follow from understanding state correctly.
+This project builds a classic Tic-Tac-Toe game to explore how React's `useState` actually works — the mental model, the common pitfalls, and the design decisions that follow from understanding state correctly. The project is written in **TypeScript + Vite**.
 
 ---
 
@@ -34,8 +34,13 @@ Before examining design decisions, it's important to build a correct mental mode
 - A **frozen value** for this specific render
 - A **setter function** to request a new render with a new value
 
-```jsx
-const [gameTurns, setGameTurns] = useState([]);
+```ts
+type GameTurn = {
+  square: { row: number; col: number };
+  player: 'X' | 'O';
+};
+
+const [gameTurns, setGameTurns] = useState<GameTurn[]>([]);
 ```
 
 `gameTurns` here is a local constant for this render — it does not change until the component renders again.
@@ -46,9 +51,9 @@ const [gameTurns, setGameTurns] = useState([]);
 
 Calling `setGameTurns(...)` does not change the current render's value. It tells React: "use this value for the *next* render." The current value stays unchanged until re-render.
 
-```jsx
-function handleSelectSquare(rowIndex, colIndex) {
-  setGameTurns((preGameTurns) => {
+```tsx
+function handleSelectSquare(rowIndex: number, colIndex: number) {
+  setGameTurns((prevGameTurns) => {
     // ...
     return updatedGameTurns;
   });
@@ -64,26 +69,26 @@ On every render, the function component runs from scratch — all local variable
 
 `useState([])` on subsequent renders does not re-initialize to `[]` — it asks React: *"what is the current value of hook N?"* and receives the stored value back, ignoring the initial argument entirely. This is why hooks cannot be called inside `if` statements or loops — React identifies which state belongs to which hook by position, not by variable name.
 
-**In this game:** `useState([])` for `gameTurns` does not reset the array on each render. React returns the accumulated turns from its internal storage — the component just reads it.
+**In this game:** `useState<GameTurn[]>([])` for `gameTurns` does not reset the array on each render. React returns the accumulated turns from its internal storage — the component just reads it.
 
 ### 2.4 Functional update — when the new value depends on the previous one
 
 When a state update depends on the previous value, use the callback form of the setter:
 
-```jsx
-setGameTurns((preGameTurns) => {
-  const currentPlayer = deriveActivePlayer(preGameTurns);
-  const updatedGameTurns = [
+```tsx
+setGameTurns((prevGameTurns) => {
+  const currentPlayer = deriveActivePlayer(prevGameTurns);
+  const updatedGameTurns: GameTurn[] = [
     { square: { row: rowIndex, col: colIndex }, player: currentPlayer },
-    ...preGameTurns,
+    ...prevGameTurns,
   ];
   return updatedGameTurns;
 });
 ```
 
-React guarantees that `preGameTurns` receives the **latest value from its update queue** — not whatever `gameTurns` the current closure holds. This prevents stale-value bugs when updates stack up.
+React guarantees that `prevGameTurns` receives the **latest value from its update queue** — not whatever `gameTurns` the current closure holds. This prevents stale-value bugs when updates stack up.
 
-**In this game:** `handleSelectSquare` uses `preGameTurns` (from React's queue) rather than `gameTurns` (from the closure), ensuring the new turn is always appended to the most recent state.
+**In this game:** `handleSelectSquare` uses `prevGameTurns` (from React's queue) rather than `gameTurns` (from the closure), ensuring the new turn is always appended to the most recent state.
 
 | Principle | What it means in practice |
 |---|---|
@@ -108,19 +113,26 @@ Because state is a snapshot per render, we only store `gameTurns` as the single 
 
 In the Tic-Tac-Toe project, we don't store `activePlayer` and `gameBoard` in state. Instead, they are calculated from `gameTurns` every time the component renders.
 
-```15:21:src/App.js
-function deriveActivePlayer(gameTurns) {
-  let currentPlayer = "X";
-  if (gameTurns.length > 0 && gameTurns[0].player === "X") {
-    currentPlayer = "O";
+```ts
+type PlayerSymbol = 'X' | 'O';
+type GameTurn = {
+  square: { row: number; col: number };
+  player: PlayerSymbol;
+};
+
+function deriveActivePlayer(gameTurns: GameTurn[]): PlayerSymbol {
+  if (gameTurns.length > 0 && gameTurns[0].player === 'X') {
+    return 'O';
   }
-  return currentPlayer;
+  return 'X';
 }
 ```
 
-```27:34:src/App.js
-let gameBoard = [...initialGameBoard.map((innerArray) => [...innerArray])];
-let winner;
+```ts
+type SquareValue = PlayerSymbol | null;
+type GameBoardState = SquareValue[][];
+
+const gameBoard: GameBoardState = initialGameBoard.map((row) => [...row]);
 
 for (const turn of gameTurns) {
   const { square, player } = turn;
@@ -147,30 +159,25 @@ React detects state changes by reference comparison. If you mutate an existing a
 
 **Example in this project:**
 
-```61:65:src/App.js
-const updatedGameTurns = [
+```ts
+const updatedGameTurns: GameTurn[] = [
   { square: { row: rowIndex, col: colIndex }, player: currentPlayer },
-  ...preGameTurns,
+  ...prevGameTurns,
 ];
 return updatedGameTurns;
 ```
 
-```73:80:src/App.js
-function handlePlayerNameChange(symbol, newName) {
-  setPlayers((prevPlayer) => {
-    return {
-      ...prevPlayer,
-      [symbol]: newName,
-    };
-  });
+```ts
+function handlePlayerNameChange(symbol: PlayerSymbol, newName: string) {
+  setPlayers((prev) => ({ ...prev, [symbol]: newName }));
 }
 ```
 
 **Explanation:**
 
-- `[...preGameTurns]` creates a new array using the spread operator
-- `{ ...prevPlayer, [symbol]: newName }` creates a new object with the updated property
-- Never mutate directly: `preGameTurns.push(...)` or `prevPlayer[symbol] = newName`
+- `[...prevGameTurns]` creates a new array using the spread operator
+- `{ ...prev, [symbol]: newName }` creates a new object with the updated property
+- Never mutate directly: `prevGameTurns.push(...)` or `prev[symbol] = newName`
 
 ### 3.3 Functional State Updates
 
@@ -182,14 +189,13 @@ This is where functional updates (see [2.4](#24-functional-update--when-the-new-
 
 **Example in this project:** When adding a new turn, we need to rely on the current `gameTurns` to determine the next player:
 
-```57:67:src/App.js
-function handleSelectSquare(rowIndex, colIndex) {
-  setGameTurns((preGameTurns) => {
-    const currentPlayer = deriveActivePlayer(preGameTurns);
-
-    const updatedGameTurns = [
+```ts
+function handleSelectSquare(rowIndex: number, colIndex: number) {
+  setGameTurns((prevGameTurns) => {
+    const currentPlayer = deriveActivePlayer(prevGameTurns);
+    const updatedGameTurns: GameTurn[] = [
       { square: { row: rowIndex, col: colIndex }, player: currentPlayer },
-      ...preGameTurns,
+      ...prevGameTurns,
     ];
     return updatedGameTurns;
   });
@@ -198,8 +204,8 @@ function handleSelectSquare(rowIndex, colIndex) {
 
 **Explanation:**
 
-- `setGameTurns((preGameTurns) => ...)` receives the previous state value as a parameter
-- `deriveActivePlayer(preGameTurns)` calculates the current player based on the old state
+- `setGameTurns((prevGameTurns) => ...)` receives the previous state value as a parameter
+- `deriveActivePlayer(prevGameTurns)` calculates the current player based on the old state
 - Ensures we always use the latest state value, avoiding stale closures
 
 **When to use:**
@@ -222,7 +228,7 @@ function handleSelectSquare(rowIndex, colIndex) {
 
 The `App` component manages all important state and passes it down to child components:
 
-```82:105:src/App.js
+```tsx
 return (
   <main>
     <div id="game-container">
@@ -230,13 +236,13 @@ return (
         <Player
           initialName="Player 1"
           symbol="X"
-          isActive={activePlayer === "X"}
+          isActive={activePlayer === 'X'}
           onChangeName={handlePlayerNameChange}
         />
         <Player
           initialName="Player 2"
           symbol="O"
-          isActive={activePlayer === "O"}
+          isActive={activePlayer === 'O'}
           onChangeName={handlePlayerNameChange}
         />
       </ol>
@@ -279,24 +285,24 @@ The player name input needs to display the current value and update state on eve
 
 The `Player` component uses a controlled input to edit player names:
 
-```9:29:src/components/Player.js
+```tsx
 const [playerName, setPlayerName] = useState(initialName);
-const [isEditting, setIsEditting] = useState(false);
+const [isEditing, setIsEditing] = useState(false);
 
 const handleClick = () => {
-  setIsEditting((prevIsEditting) => !prevIsEditting);
-  if (isEditting) {
+  setIsEditing((prev) => !prev);
+  if (isEditing) {
     onChangeName(symbol, playerName);
   }
 };
 
-const handleChange = (event) => {
+const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   setPlayerName(event.target.value);
 };
 
 let playerNameContainer = <span className="player-name">{playerName}</span>;
 
-if (isEditting) {
+if (isEditing) {
   playerNameContainer = (
     <input type="text" required value={playerName} onChange={handleChange} />
   );
@@ -309,10 +315,11 @@ if (isEditting) {
 - `onChange={handleChange}` - every time the user types, state is updated
 - `setPlayerName(event.target.value)` - updates state from input value
 - This is "two-way binding": state → UI (via `value`) and UI → state (via `onChange`)
+- `React.ChangeEvent<HTMLInputElement>` — TypeScript type for input change events
 
 **Flow:**
 
-1. User clicks "Edit" → `isEditting` becomes `true` → displays input
+1. User clicks "Edit" → `isEditing` becomes `true` → displays input
 2. User types → `onChange` triggers → `setPlayerName()` updates state
 3. State changes → React re-renders → input displays new value
 4. User clicks "Save" → `onChangeName()` is called → updates state in `App`
@@ -321,7 +328,7 @@ if (isEditting) {
 
 **Question from Section 1.2:** *How do we let a player edit their name without affecting the running game?*
 
-The `Player` component needs to manage whether it is in edit mode (`isEditting`) and what the draft name value is (`playerName`). These are purely UI concerns — no other component cares about them. They live as local state. Only when the user saves does the value get promoted to shared state in `App`.
+The `Player` component needs to manage whether it is in edit mode (`isEditing`) and what the draft name value is (`playerName`). These are purely UI concerns — no other component cares about them. They live as local state. Only when the user saves does the value get promoted to shared state in `App`.
 
 **Local State** is state that is only used within one component. **Shared State** is state shared between multiple components and managed in a parent component.
 
@@ -329,20 +336,20 @@ The `Player` component needs to manage whether it is in edit mode (`isEditting`)
 
 The `Player` component uses both local state and callbacks to sync with shared state:
 
-```9:10:src/components/Player.js
-const [playerName, setPlayerName] = useState(initialName);
-const [isEditting, setIsEditting] = useState(false);
+```ts
+const [playerName, setPlayerName] = useState<string>(initialName);
+const [isEditing, setIsEditing] = useState<boolean>(false);
 ```
 
 **Explanation:**
 
-- `playerName` and `isEditting` are **local state** - only used in the `Player` component
+- `playerName` and `isEditing` are **local state** - only used in the `Player` component
 - When pressing "Save", `onChangeName(symbol, playerName)` is called to update **shared state** in `App`
 - Local state manages UI (displaying input or span), shared state manages game data (player names)
 
 **When to use local state:**
 
-- State only related to that component's UI (like `isEditting`)
+- State only related to that component's UI (like `isEditing`)
 - Temporary state that doesn't need to be shared (like input value while editing)
 
 **When to use shared state:**
@@ -362,15 +369,17 @@ These are the practical React mechanics that make the Section 3 design decisions
 
 **Example in this project:**
 
-```4:8:src/components/Log.js
+```tsx
+// src/components/Log.tsx
 {turns.map((turn) => (
   <li key={`${turn.square.row}${turn.square.col}`}>
-    {turn.player} select {turn.square.row},{turn.square.col}
+    {turn.player} selected {turn.square.row},{turn.square.col}
   </li>
 ))}
 ```
 
-```4:18:src/components/GameBoard.js
+```tsx
+// src/components/GameBoard.tsx
 {board.map((row, rowIndex) => (
   <li key={rowIndex}>
     <ol>
@@ -407,7 +416,8 @@ When you need to pass parameters to an event handler, we use arrow functions or 
 
 **Example in this project:**
 
-```9:10:src/components/GameBoard.js
+```tsx
+// src/components/GameBoard.tsx
 onClick={() => onSelectSquare(rowIndex, colIndex)}
 disabled={playerSymbol !== null}
 ```
@@ -420,7 +430,7 @@ disabled={playerSymbol !== null}
 
 **Ways to pass parameters:**
 
-```jsx
+```tsx
 // Method 1: Arrow function (most common)
 <button onClick={() => handleClick(id)}>Click</button>
 
@@ -438,61 +448,31 @@ const handleClickWrapper = () => handleClick(id);
 
 **Example in this project:**
 
-Winning combinations are separated into a separate file:
+Winning combinations are separated into a separate file with explicit TypeScript types:
 
-```1:42:src/winning-combination.js
-export const WINNING_COMBINATIONS = [
-  [
-    { row: 0, column: 0 },
-    { row: 0, column: 1 },
-    { row: 0, column: 2 },
-  ],
-  [
-    { row: 1, column: 0 },
-    { row: 1, column: 1 },
-    { row: 1, column: 2 },
-  ],
-  [
-    { row: 2, column: 0 },
-    { row: 2, column: 1 },
-    { row: 2, column: 2 },
-  ],
-  [
-    { row: 0, column: 0 },
-    { row: 1, column: 0 },
-    { row: 2, column: 0 },
-  ],
-  [
-    { row: 0, column: 1 },
-    { row: 1, column: 1 },
-    { row: 2, column: 1 },
-  ],
-  [
-    { row: 0, column: 2 },
-    { row: 1, column: 2 },
-    { row: 2, column: 2 },
-  ],
-  [
-    { row: 0, column: 0 },
-    { row: 1, column: 1 },
-    { row: 2, column: 2 },
-  ],
-  [
-    { row: 0, column: 2 },
-    { row: 1, column: 1 },
-    { row: 2, column: 0 },
-  ],
+```ts
+// src/winning-combinations.ts
+type WinningSquare = { row: number; column: number };
+
+export const WINNING_COMBINATIONS: WinningSquare[][] = [
+  [{ row: 0, column: 0 }, { row: 0, column: 1 }, { row: 0, column: 2 }],
+  [{ row: 1, column: 0 }, { row: 1, column: 1 }, { row: 1, column: 2 }],
+  [{ row: 2, column: 0 }, { row: 2, column: 1 }, { row: 2, column: 2 }],
+  [{ row: 0, column: 0 }, { row: 1, column: 0 }, { row: 2, column: 0 }],
+  [{ row: 0, column: 1 }, { row: 1, column: 1 }, { row: 2, column: 1 }],
+  [{ row: 0, column: 2 }, { row: 1, column: 2 }, { row: 2, column: 2 }],
+  [{ row: 0, column: 0 }, { row: 1, column: 1 }, { row: 2, column: 2 }],
+  [{ row: 0, column: 2 }, { row: 1, column: 1 }, { row: 2, column: 0 }],
 ];
 ```
 
-```38:53:src/App.js
+```ts
+// src/App.tsx
+let winner: string | undefined;
 for (const combination of WINNING_COMBINATIONS) {
-  const firstSquareSymbol =
-    gameBoard[combination[0].row][combination[0].column];
-  const secondSquareSymbol =
-    gameBoard[combination[1].row][combination[1].column];
-  const thirdSquareSymbol =
-    gameBoard[combination[2].row][combination[2].column];
+  const firstSquareSymbol = gameBoard[combination[0].row][combination[0].column];
+  const secondSquareSymbol = gameBoard[combination[1].row][combination[1].column];
+  const thirdSquareSymbol = gameBoard[combination[2].row][combination[2].column];
 
   if (
     firstSquareSymbol &&
@@ -507,6 +487,7 @@ for (const combination of WINNING_COMBINATIONS) {
 **Explanation:**
 
 - `WINNING_COMBINATIONS` contains domain data (8 winning combinations)
+- `WinningSquare[][]` type makes the shape explicit and enforces correct usage
 - Win checking logic is separated from the component
 - Easy to test and reuse
 
@@ -518,16 +499,18 @@ This section shows how the system works end-to-end. Each flow references the men
 
 ### 5.1 Initialization
 
-```jsx
-const [players, setPlayers] = useState({ X: "Player 1", O: "Player 2" });
-const [gameTurns, setGameTurns] = useState([]);
+```ts
+type Players = Record<'X' | 'O', string>;
+
+const [players, setPlayers] = useState<Players>({ X: 'Player 1', O: 'Player 2' });
+const [gameTurns, setGameTurns] = useState<GameTurn[]>([]);
 ```
 
 On first render:
 - `players` holds default names
 - `gameTurns` is an empty array (snapshot: `[]`)
 - `gameBoard` is derived as all-null 3×3 grid
-- `activePlayer` is derived as `"X"` (no turns yet)
+- `activePlayer` is derived as `'X'` (no turns yet)
 - `winner` and `hasDraw` are both falsy — `GameOver` is not shown
 
 ### 5.2 Player Selects a Square (Main Flow)
@@ -540,7 +523,7 @@ On first render:
 5. Re-render: React returns updated gameTurns from Fiber      [see 2.3]
 6. gameBoard is re-derived from new gameTurns                 [see 3.1]
 7. activePlayer is re-derived from new gameTurns              [see 3.1]
-8. winner and hasDraw are re-computed from gameBoard          [see 4.4]
+8. winner and hasDraw are re-computed from gameBoard          [see 4.3]
 9. UI reflects new snapshot: board updates, active player switches  [see 2.1]
 ```
 
@@ -548,20 +531,20 @@ On first render:
 
 ```
 1. Player clicks "Edit" on Player component
-2. setIsEditting(true) — local state, only Player re-renders  [see 3.6]
+2. setIsEditing(true) — local state, only Player re-renders  [see 3.6]
 3. Input appears with value={playerName}                      [see 3.5]
 4. Player types — each keystroke: handleChange → setPlayerName(event.target.value)
 5. Player clicks "Save"
-6. setIsEditting(false) — hides input, shows span
+6. setIsEditing(false) — hides input, shows span
 7. onChangeName(symbol, playerName) — callback to App        [see 3.4]
-8. handlePlayerNameChange: setPlayers(prev => { ...prev, [symbol]: newName })
+8. handlePlayerNameChange: setPlayers(prev => ({ ...prev, [symbol]: newName }))
 9. App re-renders with updated player name                   [see 3.2]
 ```
 
 ### 5.4 Game End and Restart
 
 ```
-1. After a turn, winner or hasDraw is derived during render  [see 3.1, 4.4]
+1. After a turn, winner or hasDraw is derived during render  [see 3.1, 4.3]
 2. (winner || hasDraw) === true → GameOver component renders
 3. Player clicks "Restart"
 4. handleRestart calls setGameTurns([])
@@ -579,7 +562,7 @@ On first render:
 | State is a snapshot (2.1) | Derived State (3.1) | Key Prop (4.1) |
 | setState is a request (2.2) | Immutable Updates (3.2) | Event Handlers with params (4.2) |
 | React remembers state (2.3) | Functional Updates (3.3) | Domain Logic separation (4.3) |
-| Functional update (2.4) | Lifting State Up (3.4) | Win Detection algorithm (4.4) |
+| Functional update (2.4) | Lifting State Up (3.4) | |
 | | Controlled Components (3.5) | |
 | | Local vs Shared State (3.6) | |
 
