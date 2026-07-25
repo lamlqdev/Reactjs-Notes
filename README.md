@@ -25,7 +25,7 @@ A comprehensive collection of React.js learning materials and practical examples
 
 ### 4. Routing & Navigation
 
-- **[React Router](./React_Router/README.md)** - Client-side routing with React Router v6 and TypeScript
+- **[React Router](./10_React_Router/README.md)** - Client-side routing with React Router v6 and TypeScript
 
 ### 5. Data Fetching
 
