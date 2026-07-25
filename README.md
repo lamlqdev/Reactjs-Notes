@@ -50,7 +50,7 @@ A comprehensive collection of React.js learning materials and practical examples
 
 ### 10. TypeScript
 
-- **[TypeScript Fundamentals](./TypeScript/README.md)** - Basic types, narrowing, compiler configuration, generics, interfaces, utility types, functions, and classes
+- **[TypeScript Fundamentals](./15_TypeScript/README.md)** - Basic types, narrowing, compiler configuration, generics, interfaces, utility types, functions, and classes
 
 ### 11. Testing
 

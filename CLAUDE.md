@@ -50,7 +50,7 @@ npm run test      # Run Vitest test suite
 | `04_React_Performance_Rendering/` | Docs + Code | `memo`, `useMemo`, `useCallback`, lazy loading |
 | `13_Styling/` | Docs | CSS Modules, Styled Components comparison |
 | `Tailwind_CSS/` | Code | Tailwind utility class examples |
-| `TypeScript/` | Docs | TypeScript type system for React |
+| `15_TypeScript/` | Docs | TypeScript type system for React |
 | `14_Unit_Testing/` | Docs + Code | Vitest + React Testing Library |
 | `Javascript_Runtime/` | Docs only | V8 internals, event loop, closures, promises |
 
