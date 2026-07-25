@@ -62,7 +62,7 @@ Children props are used to pass content between components.
 
 ### 2.1. Basic Process
 
-![React Process](./public/react-process.png)
+![React Process](./public/how-react-works.png)
 
 ### 2.2. Component Tree
 

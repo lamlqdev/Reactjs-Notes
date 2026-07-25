@@ -13,18 +13,6 @@ Side effects are operations that occur outside the normal React rendering flow. 
 - **Timers**: `setTimeout`, `setInterval`
 - **DOM manipulation**: Direct DOM updates, focusing elements, scrolling
 - **Local storage**: Reading/writing to `localStorage` or `sessionStorage`
-- **Analytics**: Tracking user interactions, page views
-- **Third-party integrations**: Initializing libraries, widgets
-
-**Why side effects are problematic**:
-
-1. **Timing issues**: Must run after render, not during, to avoid bugs like infinite loops or race conditions.
-
-2. **Sync issues**: Effects use props/state—if dependencies aren’t accurate, they may run at the wrong time or with stale data.
-
-3. **Cleanup needed**: Effects often create resources (timers, subscriptions, listeners) that must be cleaned up to prevent leaks.
-
-4. **Testing harder**: Side effects rely on outside systems and timing, so they’re tougher to test reliably.
 
 ![How useEffect solves these problems](./public/usseEffect-solves-problems.png)
 
@@ -147,31 +135,6 @@ function ProgressBar() {
 - Cleanup function is returned from effect
 - Runs before effect re-runs (when dependency changes) or component unmounts
 - **Important**: Always cleanup timers, subscriptions to avoid memory leaks
-
-### Example 4: Effect runs after every render (no dependency array)
-
-**When to use**: Rarely needed. Usually only for logging or non-critical operations.
-
-**Example**:
-
-```javascript
-function Component() {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    // Runs after every render
-    console.log("Component rendered");
-  }); // No dependency array
-
-  return <button onClick={() => setCount(count + 1)}>Count: {count}</button>;
-}
-```
-
-**Explanation**:
-
-- No dependency array → effect runs after every render
-- **Warning**: Can cause performance issues if effect performs heavy operations
-- **Best practice**: Always have dependency array unless truly necessary
 
 ---
 
