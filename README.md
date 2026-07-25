@@ -34,7 +34,7 @@ A comprehensive collection of React.js learning materials and practical examples
 
 ### 6. Forms & Validation
 
-- **[React Hook Form](./React_Hook_Form/README.md)** - Form management, validation, and performance optimization
+- **[React Hook Form](./09_React_Hook_Form/README.md)** - Form management, validation, and performance optimization
 
 ### 7. Authentication & Security
 
