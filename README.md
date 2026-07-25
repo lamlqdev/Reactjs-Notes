@@ -38,7 +38,7 @@ A comprehensive collection of React.js learning materials and practical examples
 
 ### 7. Authentication & Security
 
-- **[Authentication](./Authentication/README.md)** - JWT tokens, protected routes, role-based access control, and security best practices
+- **[Authentication](./12_Authentication/README.md)** - JWT tokens, protected routes, role-based access control, and security best practices
 
 ### 8. Performance & Optimization
 
