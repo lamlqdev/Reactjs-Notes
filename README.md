@@ -29,7 +29,7 @@ A comprehensive collection of React.js learning materials and practical examples
 
 ### 5. Data Fetching
 
-- **[Fetching Data](./Fetching_Data/README.md)** - HTTP requests, REST APIs, and data fetching patterns
+- **[Fetching Data](./07_Fetching_Data/README.md)** - HTTP requests, REST APIs, and data fetching patterns
 - **[Axios & TanStack Query](./Axios_Tanstack_Query/README.md)** - HTTP client setup, interceptors, and React Query for data synchronization
 
 ### 6. Forms & Validation
