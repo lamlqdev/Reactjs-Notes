@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
-import UseLocalStorageDemo from "./pages/UseLocalStorageDemo";
 import UseDebounceDemo from "./pages/UseDebounceDemo";
 import UseToggleDemo from "./pages/UseToggleDemo";
 import UseWindowSizeDemo from "./pages/UseWindowSizeDemo";
@@ -10,7 +9,6 @@ import UsePreviousDemo from "./pages/UsePreviousDemo";
 
 type Page =
   | "home"
-  | "useLocalStorage"
   | "useDebounce"
   | "useToggle"
   | "useWindowSize"
@@ -24,8 +22,6 @@ function App() {
     switch (currentPage) {
       case "home":
         return <Home onNavigate={setCurrentPage} />;
-      case "useLocalStorage":
-        return <UseLocalStorageDemo />;
       case "useDebounce":
         return <UseDebounceDemo />;
       case "useToggle":

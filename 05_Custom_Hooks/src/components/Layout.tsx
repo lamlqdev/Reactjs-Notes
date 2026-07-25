@@ -1,8 +1,7 @@
 import { ReactNode } from 'react'
 
-type Page = 
+type Page =
   | 'home'
-  | 'useLocalStorage'
   | 'useDebounce'
   | 'useToggle'
   | 'useWindowSize'
@@ -16,7 +15,6 @@ interface LayoutProps {
 }
 
 const hooks = [
-  { id: 'useLocalStorage' as Page, name: 'useLocalStorage', icon: '💾' },
   { id: 'useDebounce' as Page, name: 'useDebounce', icon: '⏱️' },
   { id: 'useToggle' as Page, name: 'useToggle', icon: '🔄' },
   { id: 'useWindowSize' as Page, name: 'useWindowSize', icon: '📐' },

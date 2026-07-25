@@ -15,7 +15,7 @@ A comprehensive collection of React.js learning materials and practical examples
 
 - **[useEffect](./useEffect/README.md)** - Side effects, data fetching, subscriptions, and cleanup
 - **[useRef & Portal](./useRef_Portal/README.md)** - DOM references, imperative handles, and React portals
-- **[Custom Hooks](./Custom_Hooks/README.md)** - Creating reusable custom hooks with TypeScript
+- **[Custom Hooks](./05_Custom_Hooks/README.md)** - Creating reusable custom hooks with TypeScript
 
 ### 3. State Management
 

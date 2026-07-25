@@ -26,66 +26,7 @@ A comprehensive demo application demonstrating how to create and use **Custom Ho
 
 ## Common Custom Hooks
 
-### Example 1: useLocalStorage Hook
-
-**When to use**: When you need to persist state in localStorage and sync it with React state.
-
-**File: `src/hooks/useLocalStorage.ts`**
-
-```typescript
-import { useState, useEffect } from "react";
-
-function useLocalStorage<T>(
-  key: string,
-  initialValue: T
-): [T, (value: T | ((val: T) => T)) => void] {
-  // Initialize state from localStorage or use initialValue
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    try {
-      const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
-    } catch (error) {
-      console.error(`Error reading localStorage key "${key}":`, error);
-      return initialValue;
-    }
-  });
-
-  // Wrapper function that persists to localStorage
-  const setValue = (value: T | ((val: T) => T)) => {
-    try {
-      const valueToStore =
-        value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
-    } catch (error) {
-      console.error(`Error setting localStorage key "${key}":`, error);
-    }
-  };
-
-  return [storedValue, setValue];
-}
-```
-
-**Explanation**:
-
-- Generic type `<T>` allows the hook to work with any type
-- `useState` with function initializer reads from localStorage on first render
-- `setValue` function handles both direct values and updater functions (like `useState`)
-- Automatically saves to localStorage whenever value changes
-- Returns tuple `[value, setValue]` matching `useState` API
-
-**Usage**:
-
-```typescript
-const [name, setName] = useLocalStorage<string>("user-name", "");
-const [count, setCount] = useLocalStorage<number>("count", 0);
-
-// Use like useState
-setName("John");
-setCount((c) => c + 1);
-```
-
-### Example 2: useDebounce Hook
+### Example 1: useDebounce Hook
 
 **When to use**: When you want to delay updating a value until after a specified delay (e.g., search inputs, API calls).
 
@@ -133,7 +74,7 @@ useEffect(() => {
 }, [debouncedSearchTerm]);
 ```
 
-### Example 3: useToggle Hook
+### Example 2: useToggle Hook
 
 **When to use**: When you need to toggle a boolean value (modals, dropdowns, switches).
 
@@ -174,7 +115,7 @@ toggle();
 setIsOpen(true);
 ```
 
-### Example 4: useFetch Hook
+### Example 3: useFetch Hook
 
 **When to use**: When you need to fetch data from APIs with loading and error states.
 
@@ -251,7 +192,7 @@ if (error) return <Error message={error.message} />;
 return <div>{data.name}</div>;
 ```
 
-### Example 5: usePrevious Hook
+### Example 4: usePrevious Hook
 
 **When to use**: When you need to track the previous value of a state or prop.
 

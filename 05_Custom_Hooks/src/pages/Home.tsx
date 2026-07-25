@@ -1,6 +1,5 @@
-type Page = 
+type Page =
   | 'home'
-  | 'useLocalStorage'
   | 'useDebounce'
   | 'useToggle'
   | 'useWindowSize'
@@ -12,7 +11,6 @@ interface HomeProps {
 }
 
 const hooks = [
-  { id: 'useLocalStorage' as Page, name: 'useLocalStorage', icon: '💾', description: 'Sync state with localStorage' },
   { id: 'useDebounce' as Page, name: 'useDebounce', icon: '⏱️', description: 'Debounce values to reduce updates' },
   { id: 'useToggle' as Page, name: 'useToggle', icon: '🔄', description: 'Toggle boolean values easily' },
   { id: 'useWindowSize' as Page, name: 'useWindowSize', icon: '📐', description: 'Track window dimensions' },
