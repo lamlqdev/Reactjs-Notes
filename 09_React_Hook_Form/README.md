@@ -2,13 +2,9 @@
 
 ## Core terminology
 
-![React Hook Form and Zod](./public/rhf-zod.png)
+![React Hook Form and Zod](./public/RHF-and-Zod.png)
 
-**zodResolver**:
-
-- Adapter from `@hookform/resolvers` to integrate Zod with React Hook Form.
-- Converts Zod schema into format that React Hook Form understands.
-- Automatically maps Zod errors to React Hook Form errors.
+**zodResolver**: Adapter from `@hookform/resolvers` that integrates Zod with React Hook Form — passes values to the schema, maps errors back to fields.
 
 **Zod**:
 
@@ -17,7 +13,7 @@
 Some common Zod validation types:
 
 - `z.string()` – string type
-- `z.string().email()` – string must be a valid email
+- `z.email()` – valid email (Zod v4; `z.string().email()` is deprecated)
 - `z.number()` – number type
 - `z.object({ name: z.string() })` – object with fields (used for form schemas)
 - `z.string().optional()` – string or undefined (makes field optional)
@@ -28,17 +24,9 @@ Some common Zod validation types:
 
 **useForm Generic Type**:
 
-Type safety for form values, autocomplete for field names, compile-time error checking
-
 ![useForm Generic Type](./public/useForm-generic-type.png)
 
 **useForm Options**:
-
-- `resolver` (optional): Validation resolver function. Integrates external validation library (Zod, Yup, etc.) with React Hook Form. When validation fails, errors are automatically populated in `formState.errors`.
-
-- `defaultValues` (optional): Initial form values. Sets initial values for form fields when component mounts. `isDirty` in `formState` will be `false` if form hasn't changed from default values.
-
-- `mode` (optional): Validation mode - when validation should trigger.
 
 ![useForm Options](./public/useForm-options.png)
 
@@ -124,16 +112,6 @@ function BasicForm() {
 }
 ```
 
-**Explanation**:
-
-- `register("name")` returns `{ name: "name", onChange, onBlur, ref }` which is spread into the input element, connecting it to React Hook Form
-- `register("age", { valueAsNumber: true })` converts the input value from string to number automatically
-- `formState: { errors, isSubmitting }` destructures specific form state properties:
-  - `errors`: Used to display validation error messages (`errors.name?.message`)
-  - `isSubmitting`: Used to disable submit button and show loading state during submission
-- `handleSubmit(onSubmit)` wraps the submit handler, automatically validates form before calling `onSubmit`, and prevents default form submission
-- Error messages come from Zod schema validation and are automatically mapped to `formState.errors`
-
 ### Example 2: Form with Watch - Real-time Updates
 
 **When to use**: When you want to display field values in real-time or create conditional logic.
@@ -176,14 +154,6 @@ function FormWithWatch() {
 }
 ```
 
-**Explanation**:
-
-- `watch("firstName")` returns the current value of `firstName` field and subscribes component to changes, causing re-render when value changes
-- `watch(["firstName", "lastName"])` returns an array `[firstNameValue, lastNameValue]` and subscribes to both fields
-- The watched values (`firstName`, `fullName`) are used in JSX to display real-time preview
-- Component automatically re-renders whenever any watched field value changes
-- `register()` still works normally - watching doesn't interfere with form registration
-
 ### Example 3: Form with Nested Objects
 
 **When to use**: When form has complex data structure with nested objects.
@@ -195,7 +165,7 @@ const nestedFormSchema = z.object({
   personalInfo: z.object({
     firstName: z.string().min(2),
     lastName: z.string().min(2),
-    email: z.string().email(),
+    email: z.email(),
   }),
   address: z.object({
     street: z.string().min(5),
@@ -230,13 +200,6 @@ function NestedForm() {
 }
 ```
 
-**Explanation**:
-
-- `register("personalInfo.firstName")` uses dot notation to register nested field - the returned props still work the same way when spread into input
-- Error access uses optional chaining: `errors.personalInfo?.firstName?.message` to safely access nested error messages
-- The generic type `useForm<NestedFormData>` ensures type safety for nested structure - TypeScript knows about `personalInfo.firstName` path
-- Form data structure matches schema: `{ personalInfo: { firstName: "...", ... }, address: { street: "...", ... } }`
-
 ---
 
 ## Advanced: Advanced Form Usage
@@ -258,12 +221,7 @@ This section guides you through more complex patterns and advanced features.
 | **Example**          | `<input {...register("name")} />`                                        | `<CustomInput value={value} onChange={onChange} />`                           |
 | **Props**            | Spread `{...register("name")}` returns `{ name, onChange, onBlur, ref }` | Explicitly pass `value`, `onChange`, `onBlur` props                           |
 
-**What is `control`?**:
-
-- `control` is an object returned from `useForm()` that contains methods and state for managing form fields
-- It connects React Hook Form's internal state management with controlled components
-- Pass `control` to `Controller` component to register custom components with React Hook Form
-- `control` enables React Hook Form to track field values, validation, and errors for controlled components
+**What is `control`?**: An object returned from `useForm()` — pass it to `Controller` to connect controlled components to React Hook Form's state.
 
 **Example**:
 
@@ -363,20 +321,9 @@ function FormWithCustomInput() {
 
 **Explanation**:
 
-- `control` from `useForm()` is passed to `Controller` - it connects the custom component to React Hook Form's state management
-- `Controller` component wraps custom components and provides `field` and `fieldState` through render prop
-- `field` object contains:
-  - `value`: Current field value
-  - `onChange`: Handler to update field value
-  - `onBlur`: Handler for blur event
-  - `ref`: Ref for the input (if needed)
-- `fieldState` object contains:
-  - `error`: Validation error object
-  - `isTouched`: Whether field has been touched
-  - `isDirty`: Whether field value has changed
-- Spread `{...field}` into custom component props to connect `value`, `onChange`, `onBlur` automatically
-- `field.value || ""` ensures controlled component always has a value (prevents uncontrolled to controlled warning)
-- Custom components receive props explicitly, making them fully controlled by React Hook Form
+- `Controller` provides `field` (`value`, `onChange`, `onBlur`, `ref`) and `fieldState` (`error`, `isTouched`, `isDirty`) via render prop
+- Spread `{...field}` into the custom component to connect it automatically
+- `field.value || ""` prevents uncontrolled-to-controlled warning
 
 ### Example 2: Form with Dynamic Arrays (useFieldArray)
 
@@ -447,13 +394,9 @@ function ArrayForm() {
 
 **Explanation**:
 
-- `control` from `useForm` is passed to `useFieldArray` - it connects the field array to the form instance
-- `fields` array contains objects with unique `id` property (auto-generated) plus the field data
-- `register(\`addresses.${index}.street\`)` uses template literal to dynamically create field paths for array items
-- `key={field.id}` uses the unique `id` from `useFieldArray` (not array `index`) - this is important for React's reconciliation when items are added/removed/reordered
-- `append({ street: "", city: "", zipCode: "" })` adds a new address object - structure must match schema
-- `remove(index)` removes item at that index - form state automatically updates
-- `defaultValues` must include initial array structure: `addresses: [{ ... }]` so `useFieldArray` has initial data
+- `fields` contains auto-generated `id` per item — always use `key={field.id}`, not `key={index}`, for correct reconciliation when items are reordered
+- `register(\`addresses.${index}.street\`)` dynamically creates field paths for each array item
+- `defaultValues` must include the initial array structure so `useFieldArray` has data to work with
 
 ### Example 3: Form with Custom Validation
 
@@ -500,11 +443,8 @@ function CustomValidationForm() {
 
 **Explanation**:
 
-- `.refine()` receives entire form data object (not just single field) - allows comparing multiple fields like `password` and `confirmPassword`
-- The `path: ["confirmPassword"]` option assigns the error to `confirmPassword` field even though validation checks both fields
-- Error appears in `formState.errors.confirmPassword.message` when passwords don't match
-- Multiple `.refine()` calls can be chained for multiple cross-field validations
-- `register()` works normally - validation happens automatically on submit or when `trigger()` is called
+- `.refine()` receives the entire form object — use it for cross-field validation like password matching
+- `path: ["confirmPassword"]` assigns the error to a specific field even though the check spans multiple fields
 
 ### Example 4: Form with Async Validation
 
@@ -560,11 +500,8 @@ function AsyncValidationForm() {
 
 **Explanation**:
 
-- `trigger("username")` manually triggers validation for the `username` field - returns a Promise that resolves to `true` if valid, `false` if invalid
-- `onBlur={handleUsernameBlur}` custom handler calls `trigger()` when field loses focus - this gives control over when async validation runs
-- `mode: "onBlur"` prevents validation on every keystroke (which would cause too many API calls) - validation only happens on blur or submit
-- The async validation in `.refine()` runs when `trigger()` is called - the Promise is awaited, and error is set if validation fails
-- `formState.errors.username` will contain the error message if async validation fails
+- `mode: "onBlur"` prevents validation on every keystroke — avoids excessive API calls
+- `trigger("username")` manually runs validation for a specific field, useful when you need control over timing
 
 ### Example 5: Form with Conditional Fields
 
@@ -645,261 +582,14 @@ function ConditionalForm() {
 
 **Explanation**:
 
-- `watch("accountType")` subscribes to `accountType` field - component re-renders when this value changes
-- Conditional rendering `{accountType === "business" && ...}` shows/hides fields based on watched value
-- Fields are conditionally registered: `register("companyName")` only runs when `accountType === "business"` - React Hook Form handles this gracefully
-- Zod `.refine()` validation checks condition at submit time - if `accountType === "business"` but `companyName` is empty, error is set
-- The `path` option in `.refine()` assigns error to the correct field even though validation checks `accountType` first
-- `formState.errors` will contain errors for conditionally required fields if validation fails
+- `watch("accountType")` drives conditional rendering — fields only mount when relevant, RHF handles registration automatically
+- Each `.refine()` checks a condition at submit time and assigns the error to the correct field via `path`
 
 ---
 
 ## Summary
 
 ![Summary](./public/summary.png)
-
----
-
-## Learn More
-
-After mastering the basic and advanced concepts above, you can continue learning the following topics:
-
-### 1. Form Validation Modes
-
-**Validation modes** in React Hook Form:
-
-- **`onSubmit`** (default): Validate when submitting form
-- **`onBlur`**: Validate when blurring from field
-- **`onChange`**: Validate every time value changes
-- **`onTouched`**: Validate after first blur, then validate onChange
-- **`all`**: Validate on both blur and change
-
-**Example**:
-
-```typescript
-const { register, handleSubmit } = useForm({
-  resolver: zodResolver(schema),
-  mode: "onBlur", // Validate on blur
-  reValidateMode: "onChange", // Re-validate on change after first time
-});
-```
-
-**Documentation**: [React Hook Form Validation Modes](https://react-hook-form.com/get-started#Applyvalidation)
-
-### 2. Advanced Zod Features
-
-**Advanced Zod features**:
-
-- **`.transform()`**: Transform value after validation
-- **`.superRefine()`**: Custom validation with multiple errors
-- **`.parseAsync()`**: Async parsing
-- **`.safeParse()`**: Parse without throwing error, returns result object
-- **Discriminated unions**: Validation for complex union types
-
-**Example**:
-
-```typescript
-const schema = z.object({
-  age: z.string().transform((val) => parseInt(val)),
-  email: z
-    .string()
-    .email()
-    .transform((val) => val.toLowerCase()),
-});
-
-// Safe parse
-const result = schema.safeParse(data);
-if (result.success) {
-  console.log(result.data);
-} else {
-  console.log(result.error);
-}
-```
-
-**Documentation**: [Zod Documentation](https://zod.dev/)
-
-### 3. Form with File Upload
-
-**Handling file upload**:
-
-- Use `FileList` type in Zod
-- Validate file size, type, etc.
-- Preview file before upload
-
-**Example**:
-
-```typescript
-const fileSchema = z.object({
-  avatar: z
-    .instanceof(FileList)
-    .refine((files) => files.length > 0, "Please select a file")
-    .refine(
-      (files) => files[0]?.size <= 5 * 1024 * 1024,
-      "File must be smaller than 5MB"
-    )
-    .refine(
-      (files) => ["image/jpeg", "image/png"].includes(files[0]?.type),
-      "Only JPEG or PNG files are accepted"
-    ),
-});
-```
-
-### 4. Form with Multi-step/Wizard
-
-**Creating multi-step form**:
-
-- Manage step state
-- Validate each step before moving to next step
-- Save data from previous steps
-
-**Example**:
-
-```typescript
-function MultiStepForm() {
-  const [step, setStep] = useState(1);
-  const { register, handleSubmit, trigger, formState } = useForm({
-    resolver: zodResolver(schema),
-  });
-
-  const nextStep = async () => {
-    const isValid = await trigger(); // Validate current step
-    if (isValid) {
-      setStep(step + 1);
-    }
-  };
-
-  return (
-    <form>
-      {step === 1 && <Step1 register={register} />}
-      {step === 2 && <Step2 register={register} />}
-      {step === 3 && <Step3 register={register} />}
-      <button type="button" onClick={nextStep}>
-        Next
-      </button>
-    </form>
-  );
-}
-```
-
-### 5. Form with Dependent Fields
-
-**Fields dependent on each other**:
-
-- Use `watch()` to watch value of another field
-- Update field options based on value of another field
-- Dynamic validation rules
-
-**Example**:
-
-```typescript
-function DependentFieldsForm() {
-  const { register, watch } = useForm();
-  const country = watch("country");
-
-  return (
-    <form>
-      <select {...register("country")}>
-        <option value="vn">Vietnam</option>
-        <option value="us">United States</option>
-      </select>
-
-      {country === "vn" && (
-        <select {...register("city")}>
-          <option value="hanoi">Hanoi</option>
-          <option value="hcm">Ho Chi Minh</option>
-        </select>
-      )}
-
-      {country === "us" && (
-        <select {...register("state")}>
-          <option value="ny">New York</option>
-          <option value="ca">California</option>
-        </select>
-      )}
-    </form>
-  );
-}
-```
-
-### 6. Performance Optimization
-
-**Performance optimization**:
-
-- Use `React.memo` for form components
-- Avoid unnecessary re-renders with `shouldUnregister`
-- Use `useMemo` for expensive calculations
-- Debounce validation for async validation
-
-**Example**:
-
-```typescript
-const { register } = useForm({
-  resolver: zodResolver(schema),
-  shouldUnregister: true, // Unregister fields when unmount
-});
-
-// Debounce async validation
-const debouncedCheck = useMemo(
-  () =>
-    debounce(async (value) => {
-      return await checkUsername(value);
-    }, 500),
-  []
-);
-```
-
-### 7. Testing Forms
-
-**Testing** forms with React Hook Form:
-
-- Test validation errors
-- Test form submission
-- Test conditional fields
-- Mock async validation
-
-**Example**:
-
-```typescript
-import { render, screen, fireEvent } from "@testing-library/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-
-test("shows validation error", async () => {
-  render(<Form />);
-  const input = screen.getByLabelText("Email");
-  fireEvent.blur(input);
-  expect(await screen.findByText("Invalid email address")).toBeInTheDocument();
-});
-```
-
-**Documentation**: [Testing React Hook Form](https://react-hook-form.com/advanced-usage#TestingForm)
-
-### 8. Integration with UI Libraries
-
-**Integrating with UI libraries**:
-
-- Material-UI: Use `Controller` with MUI components
-- Ant Design: Integrate with Form.Item
-- Chakra UI: Use with FormControl
-- React Select: Controller with react-select
-
-**Example with Material-UI**:
-
-```typescript
-import { Controller } from "react-hook-form";
-import { TextField } from "@mui/material";
-
-<Controller
-  name="email"
-  control={control}
-  render={({ field, fieldState }) => (
-    <TextField
-      {...field}
-      error={!!fieldState.error}
-      helperText={fieldState.error?.message}
-    />
-  )}
-/>;
-```
 
 ---
 

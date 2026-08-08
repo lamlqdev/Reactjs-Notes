@@ -2,6 +2,8 @@
 
 A demo application for managing a shopping cart using **Context API** combined with **useReducer** in React + TypeScript.
 
+![Overview App](./public/overview.png)
+
 ### The problem: prop drilling
 
 When state lives in a top-level component, the only way to share it with deeply nested children is to pass it down as props through every layer in between — even layers that don't use it at all. This is called **prop drilling**.

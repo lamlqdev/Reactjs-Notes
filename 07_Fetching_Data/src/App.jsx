@@ -48,7 +48,7 @@ function App() {
       console.log(error);
       setUserPlaces(userPlaces);
       setErrorUpdatingPlaces({
-        mesage: error.mesage || "Failed to updating places",
+        message: error.message || "Failed to update places",
       });
     }
   }

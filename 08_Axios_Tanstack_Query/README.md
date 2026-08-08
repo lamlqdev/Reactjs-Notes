@@ -145,7 +145,7 @@ src/
 │   └── queryKeys.ts
 │
 └── types/
-    └── post.ts
+    ├── post.ts
     └── user.ts
 
 ```
@@ -189,82 +189,11 @@ export const clearTokens = (): void => {
 
 **File: `src/api/axios-instance.ts`**
 
-#### AppError — Normalized Error Class
+Three key concepts are implemented inside the interceptors — all explained via comments in the full instance below:
 
-Instead of catching raw `AxiosError` everywhere in the app, normalize all HTTP errors into a consistent `AppError` shape at the interceptor level. Every `catch` block then only needs to handle one type.
-
-```typescript
-export class AppError extends Error {
-  status: number;
-  code: string;
-
-  constructor(message: string, status: number, code = "UNKNOWN_ERROR") {
-    super(message);
-    this.name = "AppError";
-    this.status = status;
-    this.code = code;
-  }
-}
-
-const normalizeError = (error: AxiosError): AppError => {
-  const status = error.response?.status ?? 0;
-  const data = error.response?.data as Record<string, unknown> | undefined;
-  const message = (data?.message as string) || error.message || "Something went wrong";
-  const code = (data?.code as string) || `HTTP_${status}`;
-  return new AppError(message, status, code);
-};
-```
-
-#### Refresh Token Queue — Handling Concurrent 401s
-
-A common production bug: when the access token expires and multiple requests are in-flight simultaneously, all of them receive `401` at the same time. Without proper handling, the app calls the refresh endpoint multiple times in parallel — the backend may reject subsequent calls, causing the user to be logged out unexpectedly.
-
-**The fix**: use a queue + flag pattern. Only the first `401` triggers a refresh; all other concurrent requests wait in a queue and retry once the new token is ready.
-
-```typescript
-let isRefreshing = false;
-let failedQueue: QueueItem[] = [];
-
-// Flush the queue after refresh succeeds or fails
-const processQueue = (error: unknown, token: string | null): void => {
-  failedQueue.forEach(({ resolve, reject }) => {
-    error ? reject(error) : resolve(token!);
-  });
-  failedQueue = [];
-};
-```
-
-**Flow**:
-```
-Requests A, B, C all receive 401
-
-A → isRefreshing = false → starts refresh, sets isRefreshing = true
-B → isRefreshing = true  → pushed to failedQueue, waits...
-C → isRefreshing = true  → pushed to failedQueue, waits...
-
-Refresh succeeds → processQueue(null, newToken)
-  → B gets new token, retries
-  → C gets new token, retries
-  → isRefreshing = false
-```
-
-#### Session Expiry — Use Custom Event Instead of `window.location.href`
-
-In a React SPA, avoid `window.location.href` for navigation — it causes a full page reload and loses React state. Instead, dispatch a custom event and let the app-level router listener handle the redirect.
-
-```typescript
-const dispatchSessionExpired = (): void => {
-  clearTokens();
-  window.dispatchEvent(new Event("session:expired"));
-};
-
-// In App.tsx or a top-level component:
-// useEffect(() => {
-//   const handler = () => navigate("/login", { replace: true });
-//   window.addEventListener("session:expired", handler);
-//   return () => window.removeEventListener("session:expired", handler);
-// }, [navigate]);
-```
+- **AppError**: normalize all HTTP errors into one consistent shape so every `catch` block handles one type.
+- **Refresh Token Queue**: when multiple requests get `401` simultaneously, only the first triggers a refresh; the rest wait in a queue and retry with the new token.
+- **Session Expiry**: dispatch a custom event instead of `window.location.href` to avoid a full page reload in a React SPA.
 
 #### Full Instance
 
@@ -785,20 +714,7 @@ export function useUpdatePost() {
 }
 ```
 
-### 2. Polling
-
-```typescript
-export function usePostsWithPolling(interval = 5000) {
-  return useQuery({
-    queryKey: postKeys.lists(),
-    queryFn: postsApi.getPosts,
-    refetchInterval: interval,
-    refetchIntervalInBackground: false,
-  });
-}
-```
-
-### 3. Prefetching
+### 2. Prefetching
 
 ```typescript
 export function usePrefetchPost() {
@@ -819,7 +735,7 @@ export function usePrefetchPost() {
 </li>
 ```
 
-### 4. Infinite Query
+### 3. Infinite Query
 
 `useInfiniteQuery` handles paginated data as an ever-growing list — perfect for "Load more" buttons or infinite scroll. Instead of `data`, it returns `data.pages` (each page from a separate fetch) plus helpers to trigger the next fetch.
 
