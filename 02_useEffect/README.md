@@ -22,11 +22,9 @@ Common side effects in React apps:
 
 Running side effects directly inside the render body is problematic: they repeat on every render, can trigger more state updates, and can cause infinite loops.
 
-`useEffect` gives side effects a safe, controlled home:
+![Infinite loop](./public/useEffect-help.png)
 
-- Runs **after** React has finished rendering and painting the UI — not during render
-- Accepts a **dependency array** to control when it re-runs
-- Accepts a **cleanup function** to undo the effect before the next run or on unmount
+**Syntax**
 
 ![useEffect Syntax](./public/useEffectSyntax.png)
 
@@ -42,11 +40,10 @@ Users open the app, grant location access, and see a list of places sorted by di
 
 Building this app surfaces several concrete questions that require a correct mental model of `useEffect` to answer:
 
-- **How do we get the user's location without blocking the first render?** → [Synchronization mental model](#21-useeffect--synchronization-not-run-code-at-a-time) and [Geolocation design decision](#31-geolocation-effect-not-inline-render-code)
-- **How do we keep the `<dialog>` DOM state in sync with a React prop?** → [Modal DOM sync](#32-modal-bridging-react-state-and-a-dom-api)
-- **Why does the countdown timer need a cleanup function, but the modal's `showModal`/`close` does not?** → [Cleanup = undo sync](#24-cleanup--undo-the-synchronization) and [Timer cleanup](#33-countdown-timer-effect-with-cleanup)
-- **Can we sort places inside an effect and `setState` from it? What's wrong with that?** → [Anti-pattern: derived state](#34-anti-pattern-dont-use-effect-for-derived-state)
-- **Why must `onConfirm` appear in `DeleteConfirmation`'s dependency array?** → [Effect is a closure](#22-effect-function-captures-a-renders-values) and [Dependency array is honest](#23-dependency-array-is-an-honest-declaration)
+- How do we get the user's location without blocking the first render?
+- The confirmation modal is shown/hidden based on a prop — how do we reflect that in the browser's native `<dialog>` API?
+- The confirmation modal auto-closes after 3 seconds — why does the countdown timer need cleanup, but showing/hiding the modal does not?
+- The place list should be sorted by distance — can we do that sorting inside an effect? What goes wrong?
 
 ---
 
@@ -54,7 +51,7 @@ Building this app surfaces several concrete questions that require a correct men
 
 Before examining design decisions, build a correct mental model of `useEffect`. Every design decision in this project follows directly from these four principles.
 
-### 2.1 useEffect = Synchronization, not "run code at a time"
+### 2.1 useEffect = synchronization, not "run code at a time"
 
 The wrong mental model: *"this effect runs on mount"*, *"this effect runs when X changes."*
 
@@ -64,16 +61,9 @@ The right mental model:
 
 React decides when to re-run the effect to maintain that sync. You don't control the timing — you declare what the effect depends on.
 
-**In this app:**
-
-- The geolocation effect keeps `availablePlace` (sorted list) in sync with the user's current position. Position doesn't change during the session → sync once → `[]`.
-- The modal effect keeps the `<dialog>` DOM element in sync with the `open` prop. Whenever `open` changes → re-sync the DOM → `[open]`.
-
-Neither of these is "run code once on mount" or "run code when open changes" thinking. They are both synchronization declarations about an external system.
-
 ### 2.2 Effect function captures a render's values
 
-This connects directly to the `useState` mental model: state is a snapshot per render. The effect function works the same way — it is created fresh each render and captures all values (state, props, variables) from that specific render, exactly like event handlers do.
+This connects directly to the `useState` mental model: state is a snapshot per render. The effect function works the same way — it is created fresh each render and captures all values (state, props, variables) from that specific render.
 
 ```jsx
 // Each render creates a new version of this effect,
@@ -86,21 +76,6 @@ useEffect(() => {
   }
 }, [open]);
 ```
-
-**In this app:**
-
-The timer effect in `DeleteConfirmation` captures `onConfirm` from its render's closure:
-
-```jsx
-useEffect(() => {
-  const timer = setTimeout(() => {
-    onConfirm(); // reads onConfirm from this render's closure
-  }, TIMER);
-  return () => clearTimeout(timer);
-}, [onConfirm]);
-```
-
-If `onConfirm` were a different function reference on a subsequent render and was *missing* from the dependency array, the timer callback would call a stale, outdated version of `onConfirm`. Code runs without errors but produces wrong behavior — the hardest kind of bug to diagnose.
 
 ### 2.3 Dependency array is an honest declaration, not a trigger list
 
@@ -115,16 +90,38 @@ useEffect(() => {
 }, [onConfirm]); // honest: this effect reads onConfirm
 ```
 
-- **Missing a dependency** → the effect holds a stale value. Code runs, produces wrong results, no error. These bugs are invisible at the point of failure.
-- **Don't suppress the eslint exhaustive-deps warning** by removing items from the array. Fix the code so the effect doesn't need that dependency — for example, use a functional state update (`prev =>`) instead of reading state directly, or move a constant outside the component.
+- **Missing a dependency** → the effect holds a stale value. Code runs silently with wrong results — no error, no warning, nothing pointing back to the missing dep.
+- **Don't suppress the eslint exhaustive-deps warning** by removing items from the array. Fix the code so the effect doesn't need that dependency:
 
-**In this app:**
+  **Strategy 1 — functional state update:** if the effect reads state only to compute the next value, use `prev =>` so the effect no longer needs to read the state variable directly.
 
-| Effect | Dependency | Why honest |
-|---|---|---|
-| Geolocation | `[]` | Reads no render-scope values; `AVAILABLE_PLACES` is a module constant |
-| Modal | `[open]` | Reads `open` from props |
-| Timer | `[onConfirm]` | Reads `onConfirm` from props |
+  ```jsx
+  // ❌ reads `count` → must be in array → triggers infinite loop
+  useEffect(() => {
+    setCount(count + 1);
+  }, [count]);
+
+  // ✅ prev => means the effect never reads `count`
+  useEffect(() => {
+    setCount(prev => prev + 1);
+  }, []);
+  ```
+
+  **Strategy 2 — move constants outside the component:** objects/arrays defined inside a component get a new reference on every render, forcing the effect to re-run.
+
+  ```jsx
+  // ❌ new object reference every render → effect re-runs every render
+  function MyComponent() {
+    const options = { threshold: 0.5 };
+    useEffect(() => { observe(options); }, [options]);
+  }
+
+  // ✅ module-level constant → stable reference → not a render-scope value
+  const options = { threshold: 0.5 };
+  function MyComponent() {
+    useEffect(() => { observe(options); }, []);
+  }
+  ```
 
 ### 2.4 Cleanup = undo the synchronization
 
@@ -142,9 +139,9 @@ useEffect(() => {
 }, [onConfirm]);
 ```
 
-Mental model: each effect run *sets up* a synchronization. The cleanup *tears down* that exact setup before the effect runs again. Without cleanup, multiple timers would stack up across re-runs — each still holding a reference to a potentially stale `onConfirm`.
+Mental model: each effect run *sets up* a synchronization. The cleanup *tears down* that exact setup before the effect runs again. Without cleanup, multiple timers would stack up across re-runs — each still holding a reference to a potentially stale callback.
 
-**In this app:** The modal effect has no cleanup. `showModal()` and `close()` are stateless DOM calls — there is no ongoing resource to tear down between re-runs. Cleanup is only necessary when the effect creates something that persists: a timer, connection, subscription, or event listener.
+Cleanup is only necessary when the effect creates something that persists: a timer, connection, subscription, or event listener. Point-in-time calls (e.g., updating DOM state once) leave nothing to tear down.
 
 | Principle | What it means in practice |
 |---|---|
@@ -158,6 +155,8 @@ Mental model: each effect run *sets up* a synchronization. The cleanup *tears do
 ## 3. Design Decisions
 
 ### 3.1 Geolocation: effect, not inline render code
+
+*Principles: [2.1](#21-useeffect--synchronization-not-run-code-at-a-time) — synchronization, [2.3](#23-dependency-array-is-an-honest-declaration-not-a-trigger-list) — honest dependencies*
 
 **Question from Section 1.2:** *How do we get the user's location without blocking the first render?*
 
@@ -178,11 +177,11 @@ useEffect(() => {
 
 `[]` is honest here: this effect reads no values from the render scope. `AVAILABLE_PLACES` and `sortPlacesByDistance` are module-level constants — not render-scope values. The app syncs with the user's position once at startup; position doesn't change mid-session, so there is no dependency to re-run on.
 
-**Why not in an event handler?** Getting location is not triggered by user action — it needs to happen automatically as soon as the component is ready. Event handlers respond to user interactions; effects handle synchronization that should happen on their own.
-
 ### 3.2 Modal: bridging React state and a DOM API
 
-**Question from Section 1.2:** *How do we keep the `<dialog>` DOM state in sync with a React prop?*
+*Principles: [2.1](#21-useeffect--synchronization-not-run-code-at-a-time) — synchronization, [2.3](#23-dependency-array-is-an-honest-declaration-not-a-trigger-list) — honest dependencies, [2.4](#24-cleanup--undo-the-synchronization) — cleanup*
+
+**Question from Section 1.2:** *The confirmation modal is shown/hidden based on a prop — how do we reflect that in the browser's native `<dialog>` API?*
 
 The `<dialog>` element's visibility is controlled by the browser DOM via `.showModal()` / `.close()` — an external system. The `open` prop is React state. An effect bridges the two:
 
@@ -215,7 +214,9 @@ export default function Modal({ open, onClose, children }) {
 
 ### 3.3 Countdown timer: effect with cleanup
 
-**Question from Section 1.2:** *Why does the countdown timer need a cleanup function?*
+*Principles: [2.2](#22-effect-function-captures-a-renders-values) — closure, [2.3](#23-dependency-array-is-an-honest-declaration-not-a-trigger-list) — honest dependencies, [2.4](#24-cleanup--undo-the-synchronization) — cleanup*
+
+**Question from Section 1.2:** *The confirmation modal auto-closes after 3 seconds — why does the countdown timer need cleanup, but showing/hiding the modal does not?*
 
 `setTimeout` creates a timer in the browser's timer system — an external resource that outlives the render. If `DeleteConfirmation` unmounts before the timer fires (user clicks "No"), the callback would still call `onConfirm`.
 
@@ -253,7 +254,9 @@ The cleanup cancels the specific timer created in this effect run. If `onConfirm
 
 ### 3.4 Anti-pattern: don't use effect for derived state
 
-**Question from Section 1.2:** *Can we sort places inside an effect and `setState` from it? What's wrong with that?*
+*Principle: [2.1](#21-useeffect--synchronization-not-run-code-at-a-time) — synchronization*
+
+**Question from Section 1.2:** *The place list should be sorted by distance — can we do that sorting inside an effect? What goes wrong?*
 
 Sorting is a pure calculation from existing data. It does not touch any external system.
 

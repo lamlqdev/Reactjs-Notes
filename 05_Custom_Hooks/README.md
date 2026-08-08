@@ -1,26 +1,22 @@
-# Custom Hooks with TypeScript
+# Custom Hooks
 
-A comprehensive demo application demonstrating how to create and use **Custom Hooks** in React with **TypeScript** to extract and reuse stateful logic across components.
+**Custom Hooks** are JavaScript functions that start with `use` and can call other React Hooks inside. The purpose is to extract stateful logic out of components so it can be reused across multiple places without duplicating code. When logic using `useState`, `useEffect`, etc. appears in multiple components, that's a sign it should be extracted into a custom hook.
+
+Besides writing your own, you can use popular hook libraries like **react-use**, **ahooks**, **usehooks-ts** — they provide dozens of ready-made hooks for common tasks.
 
 ---
 
-## Core Terminology
-
-### Custom Hooks
-
-**Custom Hooks** are JavaScript functions that start with `use` and may call other React Hooks. They allow you to extract component logic into reusable functions.
-
-**Rules of Hooks**:
+## Rules of Hooks
 
 ![Rules of Hooks](./public/rules-of-hooks.png)
 
-### Benefits of Custom Hooks
+### Why do these rules exist?
 
-1. **Code Reusability**: Share logic between multiple components
-2. **Separation of Concerns**: Extract complex logic from components
-3. **Testability**: Test hooks independently from components
-4. **Readability**: Components become cleaner and easier to understand
-5. **Maintainability**: Update logic in one place
+React stores each hook's value in an internal structure called **Fiber** — every component has its own Fiber node, which holds a linked list of all hook states in **call order**.
+
+On every re-render, React does not reinitialize hook values from scratch. Instead, it walks the Fiber list and asks: *"what is hook #1? what is hook #2?"* — always in the same order as the initial render.
+
+If a hook is called inside an `if`, a loop, or a nested function, the call order can change between renders. React would then read the wrong value from Fiber, leading to bugs that are hard to trace.
 
 ---
 
@@ -241,144 +237,8 @@ Custom Hooks enable code reuse and logic extraction in React:
 
 ---
 
-## Learn More
-
-After mastering the basic and advanced concepts above, you can continue learning the following topics:
-
-### 1. Testing Custom Hooks
-
-**Testing Strategies**:
-
-- Use `@testing-library/react-hooks` (now part of `@testing-library/react`)
-- Test hook behavior independently
-- Test with different inputs and scenarios
-
-**Example**:
-
-```typescript
-import { renderHook, act } from "@testing-library/react";
-import useToggle from "./useToggle";
-
-test("toggles value", () => {
-  const { result } = renderHook(() => useToggle(false));
-
-  expect(result.current[0]).toBe(false);
-
-  act(() => {
-    result.current[1](); // toggle
-  });
-
-  expect(result.current[0]).toBe(true);
-});
-```
-
-**Documentation**: [Testing React Hooks](https://react.dev/reference/react/testing)
-
-### 2. Performance Optimization
-
-**Optimization Techniques**:
-
-- Use `useMemo` and `useCallback` in hooks
-- Memoize expensive calculations
-- Debounce/throttle expensive operations
-- Avoid unnecessary re-renders
-
-**Example**:
-
-```typescript
-function useExpensiveCalculation(data: Data[]) {
-  const result = useMemo(() => {
-    return expensiveCalculation(data);
-  }, [data]);
-
-  return result;
-}
-```
-
-### 3. Error Handling in Hooks
-
-**Error Handling Patterns**:
-
-- Try-catch blocks in async operations
-- Error state management
-- Error boundaries for hook errors
-- Graceful degradation
-
-**Example**:
-
-```typescript
-function useSafeLocalStorage<T>(key: string, initialValue: T) {
-  const [value, setValue] = useState<T>(initialValue);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    try {
-      const item = localStorage.getItem(key);
-      if (item) setValue(JSON.parse(item));
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error("Unknown error"));
-    }
-  }, [key]);
-
-  return [value, setValue, error] as const;
-}
-```
-
-### 4. Custom Hooks Libraries
-
-**Popular Libraries**:
-
-- **react-use**: Collection of essential React hooks
-- **ahooks**: High-quality React hooks library
-- **usehooks-ts**: TypeScript-first React hooks library
-- **swr**: Data fetching hook with caching
-
-**Example with react-use**:
-
-```typescript
-import { useLocalStorage, useDebounce } from "react-use";
-
-const [value, setValue] = useLocalStorage("key", "default");
-const debouncedValue = useDebounce(value, 500);
-```
-
-**Documentation**: [react-use](https://github.com/streamich/react-use) | [ahooks](https://ahooks.js.org/)
-
-### 5. Hook Lifecycle Management
-
-**Lifecycle Patterns**:
-
-- Cleanup in useEffect
-- Canceling requests
-- Managing subscriptions
-- Memory leak prevention
-
-**Example**:
-
-```typescript
-function useSubscription<T>(
-  subscribe: (callback: (data: T) => void) => () => void
-) {
-  const [data, setData] = useState<T | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = subscribe((newData) => {
-      setData(newData);
-    });
-
-    return unsubscribe; // Cleanup subscription
-  }, [subscribe]);
-
-  return data;
-}
-```
-
----
-
 ## References
 
 - [React Custom Hooks Documentation](https://react.dev/learn/reusing-logic-with-custom-hooks)
 - [Rules of Hooks](https://react.dev/reference/rules/rules-of-hooks)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [React Hooks API Reference](https://react.dev/reference/react)
-- [Testing React Hooks](https://react.dev/reference/react/testing)
+- [react-use](https://github.com/streamich/react-use) | [ahooks](https://ahooks.js.org/) | [usehooks-ts](https://usehooks-ts.com/)

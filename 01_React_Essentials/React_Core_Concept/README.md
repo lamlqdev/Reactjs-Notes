@@ -113,8 +113,7 @@ export default function Header() {
 
 **Explanation:**
 
-- `Header` is a function component
-- The component returns JSX (HTML-like code)
+- `Header` is a function component, returns JSX (HTML-like code)
 - Uses JavaScript variables in JSX: `{description}`
 - Components can contain JavaScript logic (the `genRandomInt` function)
 

@@ -160,13 +160,13 @@ The `isPrime` function is a complex calculation. `useMemo` ensures `isPrime(init
 
 ## 2. Virtual DOM
 
-### Observations When Working with React
+### Observations when working with React
 
 When working with React, you may notice:
 
 - Component functions are executed every time state or props change.
 - JSX is recreated every time a component re-renders.
-- But the real DOM is not updated entirely—only the parts that changed are updated.
+- But the real DOM is not updated entirely — only the parts that changed are updated.
 
 **Why this matters:** If React updated the entire real DOM every time a change occurred, this would cause poor performance, because the real DOM is a heavy structure, and manipulating it is very slow.
 
@@ -184,46 +184,44 @@ When working with React, you may notice:
 
 1. **React creates the component tree from JSX**
 
-   ![Create component tree from JSX](./public/initial-render-component-tree.png)
+![Create component tree from JSX](./public/initial-render-component-tree.png)
 
-2. **Creates a Virtual DOM snapshot**—representing the state of the DOM
+2. **Creates a Virtual DOM snapshot** — representing the state of the DOM
 
-   ![Create Virtual DOM snapshot](./public/initial-render-virtual-dom.png)
+![Create Virtual DOM snapshot](./public/initial-render-virtual-dom.png)
 
 3. **From Virtual DOM, compares the new snapshot with the old snapshot**
 
-   ![Compare snapshots](./public/initial-render-compare.png)
+![Compare snapshots](./public/initial-render-compare.png)
 
 4. **Then, identifies and performs necessary changes to the Real DOM**
 
-   ![Apply changes to Real DOM](./public/initial-render-real-dom.png)
+![Apply changes to Real DOM](./public/initial-render-real-dom.png)
 
 **Updates**: When users interact or state/props change:
 
 1. **React re-runs component functions to create new JSX**
 
-   ![Create component tree](./public/update-component-tree.png)
+![Create component tree](./public/update-component-tree.png)
 
 2. **Creates a new Virtual DOM snapshot from that JSX**
 
-   ![Create new Virtual DOM snapshot](./public/update-virtual-dom.png)
+![Create new Virtual DOM snapshot](./public/update-virtual-dom.png)
 
 3. **Compares the new Virtual DOM with the old snapshot**
 
-   ![Compare two snapshots](./public/update-compare.png)
+![Compare two snapshots](./public/update-compare.png)
 
 4. **Identifies what changed using the Diffing algorithm. Only changes the corresponding parts in the real DOM**
 
-   ![Apply changes to Real DOM](./public/update-real-dom.png)
+![Apply changes to Real DOM](./public/update-real-dom.png)
 
 ### Diffing Algorithm
 
 React uses the Diffing algorithm to efficiently compare Virtual DOM trees:
 
 1. **Compare by element type**: If types differ → Unmount old component, mount new component. If types are the same → Only update props/attributes.
-
 2. **Compare by key**: Key helps React identify which element corresponds to which element.
-
 3. **Compare by level**: React compares each level of the tree, doesn't compare the entire tree.
 
 ### Benefits of Virtual DOM
@@ -315,13 +313,6 @@ React maintains a queue for each component to process state updates.
 1. **When calling setState**: Update is added to queue
 2. **After event handler ends**: React processes all updates in queue
 3. **Re-render**: Component re-renders with new state
-
-### Functional Updates
-
-When state update depends on previous state, should use functional form:
-
-![Functional Updates](./public/functional-updates.png)
-
 ### Execution Order
 
 1. **Synchronous code**: Runs immediately
@@ -329,7 +320,7 @@ When state update depends on previous state, should use functional form:
 3. **Re-render**: Occurs after all updates are processed
 4. **Effects**: Run after render completes
 
-### Example illustrating execution order
+Example illustrating execution order
 
 ```javascript
 function Component() {

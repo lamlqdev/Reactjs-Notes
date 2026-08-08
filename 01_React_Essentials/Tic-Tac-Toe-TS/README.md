@@ -16,10 +16,10 @@ Two players take turns marking X or O on a 3×3 board. The first player to place
 
 Building this game surfaces several concrete questions that require a correct mental model of React state to answer:
 
-- **How do we know whose turn it is?** → [Derived State](#31-derived-state)
-- **How do we update the board without subtle bugs?** → [Immutable Updates](#32-immutable-updates-dont-mutate-directly) and [Functional Updates](#33-functional-state-updates)
-- **Which component owns the data, which ones just display it?** → [Lifting State Up](#34-lifting-state-up--callback-props)
-- **How do we let a player edit their name without affecting the running game?** → [Local vs Shared State](#36-local-state-vs-shared-state)
+- How do we know whose turn it is?
+- How do we update the board?
+- Which component owns the data, which ones just display it?
+- How do we let a player edit their name without affecting the running game?
 
 ---
 
@@ -27,7 +27,7 @@ Building this game surfaces several concrete questions that require a correct me
 
 Before examining design decisions, it's important to build a correct mental model of how `useState` works. Every design decision in this project follows directly from these four principles.
 
-### 2.1 State is a Snapshot of one render, not a live variable
+### 2.1 State is a snapshot of one render, not a live variable
 
 `useState` does not return a variable you can reassign — it returns:
 
@@ -44,8 +44,6 @@ const [gameTurns, setGameTurns] = useState<GameTurn[]>([]);
 ```
 
 `gameTurns` here is a local constant for this render — it does not change until the component renders again.
-
-**In this game:** On every render, `gameTurns` is a fixed snapshot. We uses it to compute `gameBoard`, `activePlayer`, `winner`, and `hasDraw`. Nothing modifies `gameTurns` mid-render — all derived values are calculated fresh from this one snapshot.
 
 ### 2.2 setState is a request, not an immediate update
 
@@ -87,8 +85,6 @@ setGameTurns((prevGameTurns) => {
 ```
 
 React guarantees that `prevGameTurns` receives the **latest value from its update queue** — not whatever `gameTurns` the current closure holds. This prevents stale-value bugs when updates stack up.
-
-**In this game:** `handleSelectSquare` uses `prevGameTurns` (from React's queue) rather than `gameTurns` (from the closure), ensuring the new turn is always appended to the most recent state.
 
 | Principle | What it means in practice |
 |---|---|
