@@ -1,70 +1,95 @@
-# CONTEXT API WITH useReducer
+# Context API with useReducer — Shopping Cart
 
-A demo application for managing UI preferences using **Context API** combined with **useReducer** in React + TypeScript.
+A demo application for managing a shopping cart using **Context API** combined with **useReducer** in React + TypeScript.
 
-## Basic: Implement Dashboard Preferences Feature
+### The problem: prop drilling
 
-This section guides you through implementing a simple feature with Context API and useReducer, managing UI preferences synchronously.
+When state lives in a top-level component, the only way to share it with deeply nested children is to pass it down as props through every layer in between — even layers that don't use it at all. This is called **prop drilling**.
 
-### Step 1: Define State Structure
-
-An **action** is an object describing "what happened". It has a `type` (required) and optional `payload`. Actions are dispatched to trigger state updates.
-
-**File: `src/context/appTypes.ts`**: Define the state structure and action types.
-
-```typescript
-// State structure
-export interface AppState {
-  theme: Theme;
-  primaryColor: string;
-  fontSize: FontSize;
-  sidebarCollapsed: boolean;
-  headerVisible: boolean;
-  language: Language;
-  animationsEnabled: boolean;
-}
-
-// Action types (enum or string literals)
-export enum AppActionType {
-  SET_THEME = 'SET_THEME',
-  SET_PRIMARY_COLOR = 'SET_PRIMARY_COLOR',
-  SET_FONT_SIZE = 'SET_FONT_SIZE',
-  TOGGLE_SIDEBAR = 'TOGGLE_SIDEBAR',
-  // ... other action types
-}
-
-// Action payloads
-export interface SetThemeAction {
-  type: AppActionType.SET_THEME;
-  payload: Theme;
-}
-
-// Union type for all actions
-export type AppAction = SetThemeAction | SetPrimaryColorAction | ...;
+```
+App (holds cartItems, dispatch)
+ └── Layout         ← receives cartItems, dispatch just to pass them down
+      └── Sidebar   ← receives cartItems, dispatch just to pass them down
+           └── CartSummary  ← finally uses them
 ```
 
-**Explanation**:
+Every intermediate component becomes coupled to data it doesn't care about. Renaming a prop or changing its shape means touching every layer. Adding a new consumer means threading the props through again.
 
-- Enum or string literals define action types
-- Union type combines all possible actions
-- **Benefit**: Prevents type errors and provides better IDE autocomplete
+**Context API** solves this by making state available to any component in the tree without manual prop passing. Combined with **useReducer**, it also consolidates all state update logic into a single, predictable function — rather than scattering multiple `useState` calls and their update handlers across components.
 
-### Step 2: Create Reducer Function
+---
 
-A **reducer** is a pure function that takes `(state, action)` and returns new state. It handles state updates based on action type and must be immutable (no mutations).
+## Basic: Shopping Cart with Single Context
+
+### Step 1: Define Types and State
+
+**File: `src/context/CartContext.tsx`**
+
+```typescript
+export interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+export interface CartState {
+  items: CartItem[];  // source of truth
+}
+
+export type CartAction =
+  | { type: "ADD_ITEM"; payload: Omit<CartItem, "quantity"> }
+  | { type: "REMOVE_ITEM"; payload: string }           // id
+  | { type: "UPDATE_QUANTITY"; payload: { id: string; quantity: number } }
+  | { type: "CLEAR_CART" };
+```
+
+**Explanation:**
+
+- `CartState` only stores `items`. The total price is **not stored** — it is always **derived** at render time.
+- `CartAction` is a discriminated union: each variant has a literal `type` and a typed `payload` (or no payload at all). TypeScript uses the `type` field to narrow the payload type inside the reducer's `switch` — you get full autocomplete and compile-time safety.
+- `Omit<CartItem, "quantity">` means the caller only provides `id`, `name`, and `price` when adding an item — the reducer always starts quantity at `1`.
+
+### Step 2: Create the Reducer Function
+
+A **reducer** is a pure function `(state, action) => newState`. It must never mutate the existing state — always return a new object.
 
 ![Reducer Function](./public/appReducer.png)
 
-**File: `src/context/appReducer.ts`**: Create reducer function to handle state updates.
+**File: `src/context/CartContext.tsx`**
 
 ```typescript
-export function appReducer(state: AppState, action: AppAction): AppState {
+function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
-    case AppActionType.SET_THEME:
-      return { ...state, theme: action.payload };
+    case "ADD_ITEM": {
+      const existing = state.items.find((i) => i.id === action.payload.id);
+      if (existing) {
+        // Item already in cart — increment quantity
+        return {
+          items: state.items.map((i) =>
+            i.id === action.payload.id
+              ? { ...i, quantity: i.quantity + 1 }
+              : i
+          ),
+        };
+      }
+      // New item — append with quantity 1
+      return { items: [...state.items, { ...action.payload, quantity: 1 }] };
+    }
+    case "REMOVE_ITEM":
+      return { items: state.items.filter((i) => i.id !== action.payload) };
 
-    case AppActionType.TOGGLE_SIDEBAR:
-      return { ...state, sidebarCollapsed: !state.sidebarCollapsed };
+    case "UPDATE_QUANTITY":
+      return {
+        items: state.items.map((i) =>
+          i.id === action.payload.id
+            ? { ...i, quantity: action.payload.quantity }
+            : i
+        ),
+      };
+
+    case "CLEAR_CART":
+      return { items: [] };
 
     default:
       return state;
@@ -72,305 +97,163 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 }
 ```
 
-**Explanation**:
+**Explanation:**
 
-- `appReducer` is a pure function: receives current `state` and `action`, returns new state
-- When `action.type` is `SET_THEME`, it returns a new state object with updated `theme` property using spread operator `{ ...state, theme: action.payload }`
-- When `action.type` is `TOGGLE_SIDEBAR`, it returns a new state object with toggled `sidebarCollapsed` property
-- The function never mutates the old state, always returns a new object
+- `ADD_ITEM` checks for an existing item first. This is business logic that would be messy to express with plain `useState` — in a reducer it is a self-contained case, easy to read and test.
+- Every case returns a new object using spread (`{ ...state, items: [...] }`).
+- The `default` case returns the existing `state`. This is important for two reasons: TypeScript exhaustiveness checking works correctly, and unrecognised actions are safely ignored.
 
 ### Step 3: Create Context and Provider
 
 #### 3.1. Create Context with `createContext`
 
-`createContext` is a function that creates a Context object for sharing state between components. It avoids prop drilling by providing a way to pass data through the component tree.
+`createContext` creates a Context object. Any component inside the matching `Provider` can read the current value using `useContext`.
 
 ![Create Context](./public/createContext.png)
 
-**File: `src/context/AppContext.tsx`**: Define Context value type and create Context object.
-
 ```typescript
-// 1. Define Context Value type
-export interface AppContextValue {
-  state: AppState;
-  dispatch: React.Dispatch<AppAction>;
+interface CartContextValue {
+  state: CartState;
+  dispatch: React.Dispatch<CartAction>;
 }
 
-// 2. Create Context
-export const AppContext = createContext<AppContextValue | undefined>(undefined);
+const CartContext = createContext<CartContextValue | undefined>(undefined);
 ```
 
-**Explanation**:
+**Explanation:**
 
-- `createContext<AppContextValue | undefined>(undefined)` creates a Context object for sharing state between components
-- The generic type `<AppContextValue | undefined>` ensures type safety - TypeScript knows the context value can be `AppContextValue` or `undefined`
-- `undefined` is passed as the default value, which will be returned by `useContext` if no Provider exists above a component
-- The Context object (`AppContext`) has `Provider` property that will be used to provide the context value
+- The generic `<CartContextValue | undefined>` makes the default value `undefined`. This forces the custom hook (Step 4) to verify the component is actually inside a Provider, rather than silently receiving a stale default.
 
 #### 3.2. Create Provider with `useReducer`
 
-`useReducer` is a hook for managing complex state, alternative to `useState`. It takes a reducer function and initial state, and returns current state and dispatch function.
+`useReducer` is the hook that wires the reducer to the component tree. It returns `[state, dispatch]` — the current state and a function to send actions to the reducer.
 
 ![useReducer](./public/useReducer.png)
 
-A **Provider** is a component that provides values to a Context. It wraps child components that need access to the Context and receives a `value` prop containing the data to share.
-
-**File: `src/context/AppContext.tsx`: Create Provider component with `useReducer` to manage state.**
-
 ```typescript
-// 3. Create Provider component
-export function AppProvider({ children }: AppProviderProps) {
-  const [state, dispatch] = useReducer(appReducer, initialState);
+export function CartProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(cartReducer, { items: [] });
 
-  const value: AppContextValue = {
-    state,
-    dispatch,
-  };
-
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return (
+    <CartContext.Provider value={{ state, dispatch }}>
+      {children}
+    </CartContext.Provider>
+  );
 }
 ```
 
-**Explanation**:
+**Explanation:**
 
-- `useReducer(appReducer, initialState)` manages state with the reducer function. It returns `[state, dispatch]` where `state` is the current state and `dispatch` is a function to update state by dispatching actions
-- The `value` object contains both `state` and `dispatch`, which will be provided to all child components via the Context
-- `<AppContext.Provider value={value}>` wraps child components and makes the context value accessible to all descendants through `useContext`
+- `useReducer(cartReducer, { items: [] })` passes the reducer and initial state. React calls `cartReducer(state, action)` whenever `dispatch` is called and updates the state returned by the hook.
+- `<CartContext.Provider value={{ state, dispatch }}>` makes both `state` and `dispatch` available to any descendant that calls `useContext(CartContext)`.
 
-### Step 4: Create Custom Hook
+### Step 4: Create a Custom Hook
 
-`useContext` is a hook that consumes values from a Context. It returns the value provided by the nearest Provider.
+`useContext` reads the nearest Provider's value. Wrapping it in a custom hook adds the undefined guard and keeps component code clean.
 
 ![useContext](./public/useContext.png)
 
-**File: `src/hooks/useAppContext.ts`: Create custom hook to access Context value.**
-
 ```typescript
-export function useAppContext(): AppContextValue {
-  const context = useContext(AppContext);
+export function useCart(): CartContextValue {
+  const context = useContext(CartContext);
 
   if (context === undefined) {
-    throw new Error("useAppContext must be used within AppProvider");
+    throw new Error("useCart must be used within CartProvider");
   }
 
   return context;
 }
 ```
 
-**Explanation**:
+**Explanation:**
 
-- `useContext(AppContext)` reads the context value from the nearest `AppContext.Provider` above this component
-- If no Provider exists, it returns `undefined` (the default value from `createContext`)
-- The custom hook checks if `context` is `undefined` and throws a helpful error message. This ensures components can only use the hook when wrapped by a Provider
-- **Benefit**: Type-safe access, clearer error messages, cleaner component code
+- The `undefined` check ensures the hook is only called inside a Provider — if not, it throws a clear error immediately instead of a cryptic crash later.
+- From the component's perspective: `const { state, dispatch } = useCart()` — one line, fully typed, no boilerplate.
 
-### Step 5: Setup Provider in App
-
-**File: `src/App.tsx`**
+### Step 5: Set Up Provider in App
 
 ```typescript
-import { AppProvider } from "./context/AppContext";
-
 function App() {
   return (
-    <AppProvider>
-      <div className="app-container">
-        <Header />
-        <Sidebar />
-        <SettingsPanel />
-        <Preview />
-      </div>
-    </AppProvider>
+    <CartProvider>
+      <AddItemForm />
+      <CartList />
+      <CartSummary />
+    </CartProvider>
   );
 }
 ```
 
-**Explanation**: Provider must wrap all components that need access to Context, typically at root level
+**Explanation:** The Provider must wrap every component that needs context. Placing it at the root of the feature (or the whole app) ensures all descendants can access it.
 
-### Step 6: Use in Component
+### Step 6: Consume Context in Components
 
-**File: `src/components/Header.tsx`**
+**`AddItemForm`** — only dispatches actions:
 
 ```typescript
-import { useAppContext } from "../hooks/useAppContext";
-import { AppActionType } from "../context/appTypes";
-
-export function Header() {
-  // 1. Get state and dispatch from Context
-  const { state, dispatch } = useAppContext();
-
-  // 2. Read state for rendering
-  const isVisible = state.headerVisible;
-  const theme = state.theme;
-
-  // 3. Dispatch actions to update state
-  const handleToggle = () => {
-    dispatch({ type: AppActionType.TOGGLE_HEADER });
-  };
-
-  const handleThemeChange = (newTheme: Theme) => {
-    dispatch({ type: AppActionType.SET_THEME, payload: newTheme });
-  };
+function AddItemForm() {
+  const { dispatch } = useCart();
 
   return (
-    <header>
-      <h1>Dashboard</h1>
-      <button onClick={handleToggle}>Toggle Header</button>
-      <button onClick={() => handleThemeChange("dark")}>Dark Mode</button>
-    </header>
+    <button onClick={() => dispatch({ type: "ADD_ITEM", payload: product })}>
+      Add to Cart
+    </button>
   );
 }
 ```
 
-**Explanation**:
+**`CartList`** — reads state and dispatches:
 
-- `useAppContext()` returns `{ state, dispatch }` from Context. The component automatically subscribes to context changes and re-renders when the context value changes
-- `dispatch({ type: AppActionType.TOGGLE_HEADER })` sends an action without payload to the reducer. The reducer handles this action and returns a new state
-- `dispatch({ type: AppActionType.SET_THEME, payload: newTheme })` sends an action with payload. The reducer uses `action.payload` to update the theme in the state
+```typescript
+function CartList() {
+  const { state, dispatch } = useCart();
+
+  return (
+    <ul>
+      {state.items.map((item) => (
+        <li key={item.id}>
+          {item.name}
+          <button onClick={() => dispatch({ type: "REMOVE_ITEM", payload: item.id })}>
+            Remove
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**`CartSummary`** — derives total from state:
+
+```typescript
+function CartSummary() {
+  const { state, dispatch } = useCart();
+
+  // Derived value — computed at render, not stored in state
+  const total = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+  return (
+    <div>
+      <p>Total: ${total.toFixed(2)}</p>
+      <button onClick={() => dispatch({ type: "CLEAR_CART" })}>
+        Clear Cart
+      </button>
+    </div>
+  );
+}
+```
+
+**Explanation:** All three components avoid prop drilling entirely. `CartSummary` is three levels away from the state — with props, every component in between would need to receive and forward `items` and `dispatch`. With Context, each component takes exactly what it needs.
 
 ---
 
-## Advanced: Performance Optimization and Multiple Contexts
-
-This section covers advanced patterns for optimizing performance and managing multiple contexts.
-
-### Example 1: Split Contexts for Performance
-
-**Problem**: When Context value changes, all consumers re-render, even if they only use part of the state.
-
-**Solution**: Split into multiple contexts:
-
-**Example**:
-
-```typescript
-// Theme context (changes less frequently)
-export const ThemeContext = createContext<ThemeContextValue | undefined>(
-  undefined
-);
-
-// UI state context (changes more frequently)
-export const UIStateContext = createContext<UIStateContextValue | undefined>(
-  undefined
-);
-
-// Usage: Components only subscribe to contexts they need
-function Header() {
-  const { theme } = useContext(ThemeContext); // Only re-renders when theme changes
-  // Doesn't re-render when sidebar state changes
-}
-```
-
-**Explanation**:
-
-- `createContext<ThemeContextValue | undefined>(undefined)` creates separate Context objects for different domains. Each context has its own Provider and consumers
-- `useContext(ThemeContext)` reads only from `ThemeContext`, so the component only subscribes to theme-related state changes, not UI state changes
-- By splitting contexts by update frequency, components only re-render when the specific context they use changes
-- **Benefit**: Reduces unnecessary re-renders, improves performance
-
-### Example 2: Memoize Context Value
-
-**Problem**: Creating new object in Provider causes all consumers to re-render.
-
-**Solution**: Memoize the context value:
-
-**Example**:
-
-```typescript
-export function AppProvider({ children }: AppProviderProps) {
-  const [state, dispatch] = useReducer(appReducer, initialState);
-
-  // Memoize context value
-  const value = useMemo(() => ({ state, dispatch }), [state, dispatch]);
-
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-}
-```
-
-**Explanation**:
-
-- `useMemo(() => ({ state, dispatch }), [state, dispatch])` memoizes the context value object
-- The factory function `() => ({ state, dispatch })` creates a new object, but it only runs when `state` or `dispatch` changes
-- `dispatch` from `useReducer` is stable (doesn't change between renders), so the value only changes when `state` changes
-- Without `useMemo`, a new object would be created on every render, causing all consumers to re-render
-- **Benefit**: Prevents unnecessary re-renders of consumer components
-
-### Example 3: Create Selector Hooks
-
-**Problem**: Components re-render when any part of state changes, even unused parts.
-
-**Solution**: Create selector hooks that only subscribe to specific state slices:
-
-```typescript
-// Selector hook for theme
-export function useTheme() {
-  const { state } = useAppContext();
-  return state.theme;
-}
-
-// Selector hook for sidebar state
-export function useSidebarState() {
-  const { state, dispatch } = useAppContext();
-  return {
-    collapsed: state.sidebarCollapsed,
-    toggle: () => dispatch({ type: AppActionType.TOGGLE_SIDEBAR }),
-  };
-}
-
-// Usage in component
-function Header() {
-  const theme = useTheme(); // Only re-renders when theme changes
-  // Doesn't re-render when other state changes
-}
-```
-
-**Explanation**:
-
-- Selector hooks extract specific parts of state
-- Components only re-render when selected state changes
-- **Benefit**: Granular control over re-renders, better performance
-
-### Example 4: Combine Multiple Contexts
-
-**Example**: Managing both theme and user preferences:
-
-```typescript
-// Theme context
-export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState("light");
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-};
-
-// User preferences context
-export const PreferencesProvider = ({ children }) => {
-  const [preferences, dispatch] = useReducer(preferencesReducer, initialState);
-  return (
-    <PreferencesContext.Provider value={{ preferences, dispatch }}>
-      {children}
-    </PreferencesContext.Provider>
-  );
-};
-
-// Wrap app with multiple providers
-function App() {
-  return (
-    <ThemeProvider>
-      <PreferencesProvider>
-        <Dashboard />
-      </PreferencesProvider>
-    </ThemeProvider>
-  );
-}
-```
-
-**Explanation**:
-
-- Multiple contexts can be nested
-- Each context manages its own domain
-- **Benefit**: Separation of concerns, easier to maintain and test
+> **Note — Split State and Dispatch Contexts**
+>
+> `dispatch` from `useReducer` is referentially stable — React guarantees the same function reference across all renders. However, when `state` and `dispatch` are wrapped together in one context object (`{ state, dispatch }`), that object is recreated on every state change, causing all consumers to re-render — even components that only call `dispatch` and never read state.
+>
+> The workaround is to split into two contexts: one for `state`, one for `dispatch`. Components that only dispatch subscribe to the dispatch context only and are never re-rendered by state changes.
+>
+> In practice this rarely matters — the extra re-renders are negligible for most apps. If you find yourself needing this level of optimisation, it's usually a sign the app has outgrown Context API and should use a dedicated state library like **Zustand** or **Redux Toolkit** instead.
 
 ---
 
@@ -378,11 +261,28 @@ function App() {
 
 ![Context API + useReducer](./public/summary.png)
 
+### useState vs useReducer
+
+| | `useState` | `useReducer` |
+|---|---|---|
+| **State shape** | Single value or simple object | Object with multiple fields that change together |
+| **Number of actions** | 1–2 (`setX`, `toggleX`) | 3+ distinct action types |
+| **Update logic** | Inline in event handler | Centralised in reducer function |
+| **Next state depends on previous** | `setState(prev => ...)` works fine | Natural fit — reducer always receives current state |
+| **Multiple fields update together** | Multiple `setState` calls, easy to miss one | One action updates all fields atomically |
+| **Testability** | Test by rendering the component | Test the reducer function directly, no rendering needed |
+| **Readability at scale** | Handlers scatter across the file | All transitions in one place, easy to audit |
+
+**Rule of thumb:** start with `useState`. Switch to `useReducer` when you notice any of these:
+- You have 3 or more related `useState` calls that often update together
+- Event handlers are growing complex because they need to read current state before updating
+- You want to unit-test state logic without a component harness
+- A new team member asks "what can happen to this state?" and the answer is spread across multiple files
+
 ---
 
-**References**:
-
-- [React Context API](https://react.dev/reference/react/createContext)
-- [useReducer Hook](https://react.dev/reference/react/useReducer)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [React State Management Guide](https://react.dev/learn/managing-state)
+**References:**
+- [createContext](https://react.dev/reference/react/createContext)
+- [useReducer](https://react.dev/reference/react/useReducer)
+- [useContext](https://react.dev/reference/react/useContext)
+- [TypeScript Handbook — Discriminated Unions](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions)

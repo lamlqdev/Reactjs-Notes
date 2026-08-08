@@ -1,23 +1,24 @@
-import { AppProvider } from "./context/AppContext";
-import { Header } from "./components/Header";
-import { Sidebar } from "./components/Sidebar";
-import { SettingsPanel } from "./components/SettingsPanel";
-import { Preview } from "./components/Preview";
+import { CartProvider } from "./context/CartContext";
+import { AddItemForm } from "./components/AddItemForm";
+import { CartList } from "./components/CartList";
+import { CartSummary } from "./components/CartSummary";
+import "./index.css";
 
 function App() {
   return (
-    <AppProvider>
-      <div className="app-container">
-        <Header />
-        <div className="app-content">
-          <Sidebar />
-          <main className="main-content">
-            <SettingsPanel />
-            <Preview />
-          </main>
-        </div>
+    <CartProvider>
+      <div className="app">
+        <header className="app-header">
+          <h1>Shopping Cart</h1>
+          <p className="subtitle">Context API + useReducer Demo</p>
+        </header>
+        <main className="app-grid">
+          <AddItemForm />
+          <CartList />
+          <CartSummary />
+        </main>
       </div>
-    </AppProvider>
+    </CartProvider>
   );
 }
 
