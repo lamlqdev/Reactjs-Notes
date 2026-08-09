@@ -1,217 +1,99 @@
-# Frontend Authentication with TypeScript
+# Frontend Authentication
 
-A comprehensive demo application demonstrating **Frontend Authentication** patterns and best practices in React with **TypeScript**, including token management, protected routes, role-based access control, and secure authentication flows.
+## Authentication vs Authorization
+
+- **Authentication**: Verifying who the user is — "Who are you?" (login, verify identity)
+- **Authorization**: Verifying what the user can access — "What can you do?" (permissions, roles)
 
 ---
 
-## Core Terminology
-
-### Authentication vs Authorization
-
-![Authentication vs Authorization](./public/authentication-authorization.png)
+## Authentication Strategies
 
 ### Session-based Authentication
 
 ![Session-based Authentication](./public/session-based-authentication.png)
 
-**When to use**: Traditional web applications where server controls session lifecycle and security is critical.
+The server creates a session after login and stores it in a session store (e.g., Redis). The session ID is sent to the client via a cookie and included in every subsequent request.
+
+**When to use**: Traditional server-rendered apps where the server controls the full session lifecycle.
 
 ### JWT-based Authentication
 
 ![JWT-based Authentication](./public/jwt-based-authentication.png)
 
-**When to use**: Token-based authentication is ideal for stateless APIs, SPAs, and mobile apps. It allows scalability without server-side session storage.
+The server issues a signed JWT after login. The client stores it and attaches it to every API request. The server verifies the signature without needing a session store — making it stateless and scalable.
+
+A JWT has three parts: `header.payload.signature`. The payload carries user claims (id, role, expiry). The signature is created with a secret key (HMAC, RSA, or ECDSA) so it cannot be tampered with.
+
+**When to use**: Stateless APIs, SPAs, and mobile apps where horizontal scaling is important.
+
+### Access Token vs Refresh Token
 
 ![Refresh Token vs Access Token](./public/refresh-token-vs-access-token.png)
 
----
+| | Access Token | Refresh Token |
+|---|---|---|
+| **Expiry** | Short (~15 min) | Long (days / weeks) |
+| **Purpose** | Authorize API requests | Obtain a new access token |
+| **Storage** | In-memory (recommended) | httpOnly Cookie (recommended) |
 
-## Learning Objectives
-
-Now that you have a high-level understanding of how Authentication works, we can clearly define the objectives of Authentication from a frontend perspective.
-
-![Learning Objectives](./public/learning-objectives.png)
-
----
-
-## Basic: Authentication Implementation
-
-### Step 1: Create Login Form
-
-**File: `src/components/Login.tsx`**
-
-```typescript
-function Login() {
-  const navigate = useNavigate();
-  const { login, error, isLoading } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    try {
-      await login({ email, password });
-      navigate("/dashboard");
-    } catch (err) {
-      console.error("Login failed:", err);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      {error && <div className="error">{error}</div>}
-      <button type="submit" disabled={isLoading}>
-        {isLoading ? "Logging in..." : "Login"}
-      </button>
-    </form>
-  );
-}
-```
-
-**Explanation**: Form collects credentials, calls `login` from `useAuth` hook, handles loading/error states, and navigates to dashboard on success.
-
-### Step 2: Store Token
-
-This project is a demo, so it uses `localStorage` to store tokens. Although `localStorage` has security risks (vulnerable to XSS attacks), it's suitable for learning and demo purposes because it's easy to use and debug.
-
-**File: `src/utils/tokenStorage.ts`**
-
-```typescript
-export const tokenStorage = {
-  getAccessToken: (): string | null => localStorage.getItem("access_token"),
-  setAccessToken: (token: string): void =>
-    localStorage.setItem("access_token", token),
-  getRefreshToken: (): string | null => localStorage.getItem("refresh_token"),
-  setRefreshToken: (token: string): void =>
-    localStorage.setItem("refresh_token", token),
-  getUser: (): any => {
-    const user = localStorage.getItem("user");
-    return user ? JSON.parse(user) : null;
-  },
-  setUser: (user: any): void =>
-    localStorage.setItem("user", JSON.stringify(user)),
-  clearAll: (): void => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
-  },
-};
-```
-
-**Storage Comparison**:
-
-| Storage Type         | Pros                                     | Cons                                   | Best For                        |
-| -------------------- | ---------------------------------------- | -------------------------------------- | ------------------------------- |
-| **localStorage**     | Persists across tabs, easy to use        | Vulnerable to XSS, accessible to JS    | Development, non-sensitive data |
-| **sessionStorage**   | Cleared on tab close, easy to use        | Vulnerable to XSS, accessible to JS    | Temporary data, single session  |
-| **httpOnly Cookies** | Protected from XSS, not accessible to JS | Requires CSRF protection, server setup | Production, sensitive tokens    |
-
-**Best Practice**: For production apps, use httpOnly cookies for refresh tokens and short-lived access tokens in memory or secure storage.
-
-Understand more about [**XSS Attacks**](https://vercel.com/kb/guide/understanding-xss-attacks)
-
-### Step 3: Protected Routes
-
-**File: `src/components/ProtectedRoute.tsx`**
-
-```typescript
-import { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-
-interface ProtectedRouteProps {
-  children: ReactNode;
-}
-
-export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  return <>{children}</>;
-};
-```
-
-**Usage**: Wrap protected routes with `<ProtectedRoute><Dashboard /></ProtectedRoute>`
-
-**Explanation**: Checks authentication status, shows loading state, redirects to login if not authenticated, and preserves attempted location for redirect after login.
+When the access token expires, the client silently uses the refresh token to get a new one. If the refresh token is also expired or invalid, the user is redirected to login.
 
 ---
 
-## Advanced: Advanced Authentication Patterns
+## Client-side Token Storage Strategies
 
-This section covers more complex authentication patterns and features.
+Choosing where to store tokens is the most important security decision on the frontend. The core tradeoff is between **XSS** and **CSRF**:
 
-### Step 1: Context API + useReducer for Auth State
+- **XSS** (Cross-Site Scripting): malicious JS reads data from browser storage
+- **CSRF** (Cross-Site Request Forgery): malicious site triggers requests using the browser's cookies
 
-**File: `src/context/AuthContext.tsx`**
+| | `localStorage` | `sessionStorage` | In-memory | `httpOnly` Cookie |
+|---|---|---|---|---|
+| **XSS risk** | High | High | None | None |
+| **CSRF risk** | None | None | None | Requires protection |
+| **Persists on refresh** | Yes | No | No | Yes |
+| **Accessible to JS** | Yes | Yes | Yes | No |
+| **Use for** | Dev / demo | Temporary data | Access token | Refresh token |
+
+**Recommended production pattern**: store the **access token in-memory** (React state or a module-level variable) and the **refresh token in an httpOnly cookie** set by the server.
+
+- Access token in-memory → invisible to XSS, lost on page refresh (intentional — short-lived anyway)
+- Refresh token in httpOnly cookie → invisible to JS, used only to silently re-issue the access token on refresh
+- Cookie must have `SameSite=Strict` or `SameSite=Lax` + CSRF token to mitigate CSRF
+
+Understand more: [XSS Attacks](https://vercel.com/kb/guide/understanding-xss-attacks) · [CSRF Attacks](https://owasp.org/www-community/attacks/csrf)
+
+---
+
+## Frontend Auth Patterns
+
+### Auth State Management
+
+Manage auth state globally using **Context API + useReducer** (or Redux). Initialize from storage on mount, expose `login` / `logout` methods, and share state via `useAuth()` hook.
 
 ```typescript
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
     case "LOGIN_SUCCESS":
-      return {
-        ...state,
-        user: action.payload.user,
-        isAuthenticated: true,
-        isLoading: false,
-      };
-    case "LOGIN_FAILURE":
-      return {
-        ...state,
-        isAuthenticated: false,
-        isLoading: false,
-        error: action.payload,
-      };
+      return { ...state, user: action.payload.user, isAuthenticated: true, isLoading: false };
     case "LOGOUT":
       return { ...state, user: null, isAuthenticated: false };
-    // ... other cases
+    default:
+      return state;
   }
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  useEffect(() => {
-    const token = tokenStorage.getAccessToken();
-    const user = tokenStorage.getUser();
-    if (token && user) {
-      dispatch({ type: "SET_USER", payload: user });
-    }
-    dispatch({ type: "SET_LOADING", payload: false });
-  }, []);
-
   const login = async (credentials: LoginCredentials) => {
-    dispatch({ type: "LOGIN_START" });
-    try {
-      const response = await authApi.login(credentials);
-      tokenStorage.setAccessToken(response.accessToken);
-      tokenStorage.setUser(response.user);
-      dispatch({ type: "LOGIN_SUCCESS", payload: { user: response.user } });
-    } catch (error) {
-      dispatch({ type: "LOGIN_FAILURE", payload: error.message });
-    }
+    const response = await authApi.login(credentials);
+    // access token stored in-memory (module variable or state), not here
+    dispatch({ type: "LOGIN_SUCCESS", payload: { user: response.user } });
   };
 
-  const logout = async () => {
-    tokenStorage.clearAll();
+  const logout = () => {
     dispatch({ type: "LOGOUT" });
   };
 
@@ -223,23 +105,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 ```
 
-**Explanation**: Centralized auth state with Context API and useReducer. Initializes from localStorage on mount, handles login/logout, and persists tokens. Use `useAuth()` hook to access auth state and methods.
+### Axios Interceptors for Token Lifecycle
 
-### Step 2: Axios Interceptors for Token Management
-
-**File: `src/api/axiosInstance.ts`**
+Attach the access token to every request automatically, and handle silent refresh when a 401 is returned:
 
 ```typescript
-// Request interceptor - Attach token
+// Request interceptor — attach access token
 axiosInstance.interceptors.request.use((config) => {
-  const token = tokenStorage.getAccessToken();
-  if (token && !isTokenExpired(token)) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  const token = getAccessToken(); // read from in-memory store
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Response interceptor - Handle 401 and refresh token
+// Response interceptor — silent refresh on 401
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -247,15 +125,13 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const response = await axios.post("/auth/refresh", {
-          refreshToken: tokenStorage.getRefreshToken(),
-        });
-        tokenStorage.setAccessToken(response.data.accessToken);
-        originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+        const { accessToken } = await axios.post("/auth/refresh");
+        // refresh token is sent automatically via httpOnly cookie
+        setAccessToken(accessToken); // store new token in-memory
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return axiosInstance(originalRequest);
       } catch {
-        tokenStorage.clearAll();
-        window.location.href = "/login";
+        logout(); // refresh failed → force re-login
       }
     }
     return Promise.reject(error);
@@ -263,42 +139,52 @@ axiosInstance.interceptors.response.use(
 );
 ```
 
-**Explanation**: Request interceptor attaches access token automatically. Response interceptor handles 401 errors by refreshing token on-demand (only when needed), retries failed request, and logs out if refresh fails. This is the recommended approach for production.
+The `_retry` flag prevents infinite loops if the refresh itself returns a 401.
 
-### Step 3: Role-Based Access Control (RBAC)
+### Protected Routes
 
-**File: `src/components/RoleGuard.tsx`**
+Wrap routes that require authentication with a `ProtectedRoute` component. See [React Router module](../10_React_Router/README.md) for the full pattern.
 
 ```typescript
-import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
 
-interface RoleGuardProps {
-  children: ReactNode;
-  allowedRoles: ("admin" | "user" | "guest")[];
-  fallbackPath?: string;
-}
+  if (isLoading) return <div>Loading...</div>;
+  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
+  return <>{children}</>;
+};
+```
 
+### Role-Based Access Control (RBAC)
+
+Layer a `RoleGuard` on top of `ProtectedRoute` to restrict access by role:
+
+```typescript
 export const RoleGuard = ({
   children,
   allowedRoles,
   fallbackPath = "/dashboard",
-}: RoleGuardProps) => {
+}: {
+  children: ReactNode;
+  allowedRoles: string[];
+  fallbackPath?: string;
+}) => {
   const { user, isAuthenticated } = useAuth();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (user && !allowedRoles.includes(user.role)) {
-    return <Navigate to={fallbackPath} replace />;
-  }
-
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!allowedRoles.includes(user?.role ?? "")) return <Navigate to={fallbackPath} replace />;
   return <>{children}</>;
 };
 ```
 
 **Usage**: `<RoleGuard allowedRoles={["admin"]}><AdminPanel /></RoleGuard>`
 
-**Explanation**: Checks authentication first, verifies user role against allowed roles, and redirects unauthorized users. Can be combined with ProtectedRoute for layered protection.
+---
+
+## References
+
+- [JWT Introduction](https://jwt.io/introduction)
+- [OWASP: Auth Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
+- [XSS Attacks](https://vercel.com/kb/guide/understanding-xss-attacks)
+- [CSRF Attacks](https://owasp.org/www-community/attacks/csrf)

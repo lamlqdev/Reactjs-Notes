@@ -10,31 +10,29 @@ The diagram below illustrates the one-way data flow in Redux:
 
 In Redux, data flows in one direction only: **Action → Reducer → State → Component**.
 
+### Key Terms
+
+| Term | Description |
+|------|-------------|
+| **Action** | Plain object describing what happened. Must have a `type` property; may include a `payload`. |
+| **Action Creator** | Function that creates and returns an action object. |
+| **Reducer** | Pure function `(state, action) => newState`. Same input always produces same output, no side effects. |
+| **Store** | Single container that holds the entire application state. Only one store per application. |
+| **Dispatch** | Function that sends an action to the store. |
+| **Selector** | Function that extracts or derives a specific piece of data from state. |
+| **Middleware** | Extension layer that intercepts dispatched actions before they reach the reducer. |
+| **Provider** | React context component that makes the store available to the component tree. |
+
+### Flow Steps
+
 1. **User Interaction** → Component receives user input (e.g., button click)
+2. **Dispatch Action** → Component calls `dispatch(actionCreator())` to send an action to the store
+3. **Middleware** (optional) → Action passes through middleware (e.g., Redux Thunk for async, logging) before reaching the reducer
+4. **Reducer** → Receives current state + action, computes and returns a new state object — must not mutate the original
+5. **Store Update** → Store saves the new state returned by the reducer
+6. **Component Re-render** → Subscribed components re-read their selected state via selectors and re-render automatically
 
-2. **Dispatch Action** → Component uses **dispatch** (function that sends an action to update state) to send an **action** object (object describing what happened, must have a `type` property, may include `payload`). Actions are typically created by **action creators** (functions that create and return action objects, reducing boilerplate).
-
-3. **Middleware Processing** (optional) → Action passes through **middleware** chain (extension mechanism for Redux. Examples: Redux Thunk, Redux Saga), which can:
-
-   - Handle asynchronous operations (API calls, timers)
-   - Log actions for debugging
-   - Transform or filter actions
-   - Dispatch additional actions based on conditions
-
-4. **Reducer Processing** → Action reaches the **reducer** (pure function - no side effects, same input = same output), which:
-
-   - Takes the current **state** (application data stored in a single Javascript object) and action as inputs
-   - Computes and returns a new state object (**immutability**: must not mutate existing state, must return a new state object)
-
-5. **State Update** → **Store** (container that holds the entire application state, only one store per application) updates with the new state returned by the reducer. The store is made available to all components via **Provider** (React context provider).
-
-6. **Component Subscription** → Components subscribed to the store receive the updated state
-
-7. **State Access via Selectors** → Components use **selectors** (functions that extract and derive data from the state, used to create derived state for components) to extract specific pieces of state they need
-
-8. **Component Re-render** → Components automatically re-render with the new state
-
-**Important**: Components never directly modify the state. They can only dispatch actions, which then flow through the system to update state.
+**Important**: Components never directly modify state. They can only dispatch actions, which flow through the system to update state.
 
 ## Folder Structure
 
@@ -66,7 +64,7 @@ src/
 ├── types/             # TypeScript type definitions
 │   └── index.ts
 ├── App.tsx            # Root component
-└── index.tsx          # Application entry point
+└── main.tsx           # Application entry point
 ```
 
 ## How to Use Redux
@@ -99,9 +97,9 @@ export interface RootState {
 }
 ```
 
-### Step 2: Create Action Type Constants
+### Step 2: Define Action Constants and Types
 
-Define action type constants to avoid typos and ensure consistency:
+Define string constants to avoid typos, then create matching TypeScript types for each action:
 
 ```typescript
 // constants/auth.ts
@@ -114,10 +112,6 @@ export const UPDATE_TODO = "UPDATE_TODO";
 export const DELETE_TODO = "DELETE_TODO";
 export const TOGGLE_TODO = "TOGGLE_TODO";
 ```
-
-### Step 3: Define Action Types
-
-Create TypeScript types for your actions:
 
 ```typescript
 // types/index.ts
@@ -132,7 +126,7 @@ export type TodoAction =
 export type AppAction = AuthAction | TodoAction;
 ```
 
-### Step 4: Create Action Creators
+### Step 3: Create Action Creators
 
 Write functions that create and return action objects:
 
@@ -169,7 +163,7 @@ export const toggleTodo = (id: number, isCompleted: boolean): TodoAction => {
 };
 ```
 
-### Step 5: Create Reducers
+### Step 4: Create Reducers
 
 Implement reducer functions that handle state updates. Remember: reducers must be pure functions and return new state objects:
 
@@ -240,7 +234,7 @@ export const todoReducer = (
 };
 ```
 
-### Step 6: Combine Reducers
+### Step 5: Combine Reducers
 
 Combine all reducers into a root reducer:
 
@@ -256,7 +250,7 @@ export const rootReducer = combineReducers({
 });
 ```
 
-### Step 7: Create the Store
+### Step 6: Create the Store
 
 Set up your Redux store with the root reducer:
 
@@ -265,20 +259,22 @@ Set up your Redux store with the root reducer:
 import { createStore } from "redux";
 import { rootReducer } from "../reducers/index";
 
+// Note: createStore is deprecated in Redux v5. Use Redux Toolkit's configureStore in new projects.
 export const store = createStore(rootReducer);
 export type AppDispatch = typeof store.dispatch;
 ```
 
-### Step 8: Provide the Store
+### Step 7: Provide the Store
 
 Wrap your root component with the Redux `Provider` to make the store available to all components:
 
 ```typescript
-// index.tsx
+// main.tsx
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
-import store from "./store";
+
+import { store } from "./store";
 import App from "./App";
 
 const root = ReactDOM.createRoot(
@@ -292,7 +288,7 @@ root.render(
 );
 ```
 
-### Step 9: Create Selectors (Recommended)
+### Step 8: Create Selectors
 
 Create selector functions to extract and derive data from state. This improves reusability and makes components cleaner:
 
@@ -312,7 +308,7 @@ export const selectCompletedTodos = (state: RootState): Todo[] =>
   state.todo.todos.filter((todo) => todo.isCompleted);
 ```
 
-### Step 10: Create Typed Hooks (TypeScript)
+### Step 9: Create Typed Hooks (TypeScript)
 
 For TypeScript projects, create typed versions of Redux hooks for better type safety:
 
@@ -326,7 +322,7 @@ export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 ```
 
-### Step 11: Connect Components to Redux
+### Step 10: Connect Components to Redux
 
 Use hooks in your components to access state and dispatch actions:
 
@@ -383,5 +379,14 @@ Redux Toolkit simplifies Redux development by:
 1. **Less Boilerplate**: Reduces the amount of code needed for common Redux patterns
 2. **Built-in Best Practices**: Includes Redux DevTools, immutability checks, and more
 3. **createSlice**: Combines actions and reducers in one place
-4. **configureStore**: Simplified store setup with good defaults
+4. **configureStore**: Simplified store setup with good defaults — replaces the deprecated `createStore`
 5. **RTK Query**: Built-in data fetching and caching solution
+
+See the [Redux Toolkit module](../Redux-Toolkit/README.md) for the modern approach.
+
+## References
+
+- [Redux Documentation](https://redux.js.org/)
+- [React Redux Documentation](https://react-redux.js.org/)
+- [Redux Style Guide](https://redux.js.org/style-guide/style-guide)
+- [Redux Toolkit (next module)](../Redux-Toolkit/README.md)

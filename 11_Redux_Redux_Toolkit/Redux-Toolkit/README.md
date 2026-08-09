@@ -1,4 +1,4 @@
-# REDUX TOOLKIT
+# Redux Toolkit
 
 ## Basic: Implement Auth Feature
 
@@ -77,6 +77,7 @@ export const rootReducer = combineReducers({
 - `combineReducers` combines multiple reducers into a single reducer
 - State will have the structure: `{ auth: {...} }`
 - Each reducer only manages its own part of the state
+- In simple cases you can skip this step and pass the reducers object directly to `configureStore` — see Step 2.2
 
 #### 2.2. Create Store with `configureStore`
 
@@ -92,6 +93,12 @@ import { rootReducer } from "./rootReducer";
 
 export const store = configureStore({
   reducer: rootReducer,
+  // Or skip combineReducers and pass the object directly:
+  // reducer: { auth: authReducer }
+
+  // Add custom middleware (thunk is always included by default):
+  // middleware: (getDefaultMiddleware) =>
+  //   getDefaultMiddleware().concat(logger, customMiddleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
@@ -100,9 +107,10 @@ export type AppDispatch = typeof store.dispatch;
 
 **Explanation**:
 
-- `configureStore` automatically sets up Redux DevTools and thunk middleware
-- `RootState` type helps TypeScript know the state structure
-- `AppDispatch` type helps TypeScript know which actions can be dispatched
+- `configureStore` includes **Redux Thunk** middleware by default — no extra setup needed for async thunks
+- **Redux DevTools** is enabled automatically in development — install the [browser extension](https://github.com/reduxjs/redux-devtools-extension) to inspect actions, time-travel debug, and view state history
+- Add custom middleware (e.g., `redux-logger`, `redux-persist`) via the `middleware` option using `getDefaultMiddleware().concat(...)` to preserve the defaults
+- `RootState` and `AppDispatch` are derived from the store — never write them manually
 
 #### 2.3. Setup Provider in App
 
@@ -112,7 +120,7 @@ export type AppDispatch = typeof store.dispatch;
 
 ```typescript
 import { Provider } from "react-redux";
-import { store } from "./store/index.ts";
+import { store } from "./store";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
@@ -142,31 +150,39 @@ export const useAppSelector = useSelector.withTypes<RootState>();
 - Helps TypeScript automatically suggest and check types when used
 - Prevents type errors when dispatching actions or selecting state
 
-### Step 3: Create Selectors with `createSelector`
+### Step 3: Create Selectors
 
 ![createSelector](./public/createSelector.png)
 
-**Example**:
+For simple state access, write plain selector functions — no need for `createSelector`:
+
+```typescript
+import { RootState } from "../../store";
+
+export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated;
+export const selectUser = (state: RootState) => state.auth.user;
+```
+
+Use `createSelector` when the result function does real computation (filtering, mapping, deriving new values). It memoizes the result and only recalculates when the inputs change:
 
 ```typescript
 import { createSelector } from "@reduxjs/toolkit";
-import { RootState } from "../../store/index.ts";
+import { RootState } from "../../store";
 
-export const selectIsAuthenticated = createSelector(
-  (state: RootState) => state.auth.isAuthenticated,
-  (isAuthenticated) => isAuthenticated
-);
+export const selectUser = (state: RootState) => state.auth.user;
 
-export const selectUser = createSelector(
-  (state: RootState) => state.auth.user,
-  (user) => user
+// Only recomputes when user changes
+export const selectDisplayName = createSelector(
+  [selectUser],
+  (user) => (user ? `${user.name} (${user.email})` : "Guest")
 );
 ```
 
 **Explanation**:
 
-- `createSelector` creates a memoized selector: only recalculates when input changes. The first parameter is a selector that gets a value from the state, the second parameter is a transform function (here it's an identity function, doesn't change the value).
-- **Benefit**: Optimizes performance, prevents unnecessary re-renders
+- Plain selectors are fine for direct property reads — `createSelector` adds no benefit there
+- `createSelector` is for derived state: only recalculates when input selectors return new values
+- **Benefit**: Prevents unnecessary re-renders when unrelated state changes
 
 ### Step 4: Use in Component
 
@@ -269,8 +285,9 @@ export const fetchArticles = createAsyncThunk(
         params.filters
       );
       return response; // Return data → will be action.payload in fulfilled
-    } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to fetch articles");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to fetch articles";
+      return rejectWithValue(message);
       // rejectWithValue → will be action.payload in rejected
     }
   }
@@ -371,6 +388,7 @@ export const selectArticlesByCategory = createSelector(
 - Selector can receive multiple inputs: `[selector1, selector2, ...]`
 - Selector can receive parameters: add function `(state, param) => param` to the inputs array
 - **Benefit**: Create complex selectors with automatic memoization
+- **Gotcha**: `createSelector` only caches the result of the last call. Calling `selectArticleById(state, 1)` then `selectArticleById(state, 2)` invalidates the cache. For selectors called with many different IDs (e.g., inside a list), consider using `weakMapMemoize` from RTK or creating a selector factory per ID.
 
 ### Step 4: Use Async Thunks in Component
 
@@ -420,152 +438,9 @@ const HomePage = () => {
 
 ![Redux Toolkit Benefits](./public/summary.png)
 
----
+Redux Toolkit eliminates the boilerplate of traditional Redux by bundling `createSlice` (combines actions + reducers), `configureStore` (store setup with DevTools and middleware out of the box), `createAsyncThunk` (async action lifecycle), and `createSelector` (memoized derived state) into a single package.
 
-## Learn More
-
-After mastering the basic and advanced concepts above, you can continue learning the following topics:
-
-### 1. RTK Query - Data Fetching and Caching
-
-**RTK Query** is a data fetching and caching solution built on Redux Toolkit that simplifies fetching data from APIs.
-
-**Key Features**:
-
-- Automatically generates API endpoints and hooks
-- Automatically caches and refetches data
-- Automatically manages loading and error states
-- Supports optimistic updates
-- Supports pagination, infinite scroll
-
-**When to Use**:
-
-- When you have many API calls
-- Need to cache and sync data between components
-- Want to reduce boilerplate code for data fetching
-
-**Documentation**: [RTK Query Documentation](https://redux-toolkit.js.org/rtk-query/overview)
-
-### 2. Middleware and Custom Middleware
-
-**Middleware** are functions that run between dispatching actions and reducers, allowing you to:
-
-- Log actions and state changes
-- Perform async operations
-- Transform actions before they reach the reducer
-- Cancel or delay actions
-
-**Common Middleware Examples**:
-
-- `redux-logger`: Logs all actions and state changes
-- `redux-persist`: Saves state to localStorage
-- Custom middleware for authentication, error handling
-
-**Documentation**: [Redux Middleware](https://redux.js.org/tutorials/fundamentals/part-4-store#middleware)
-
-### 3. Normalizing State Shape
-
-**Normalization** is a technique for organizing nested state into flat structure, helping to:
-
-- Avoid duplicate data
-- Easily update and delete items
-- Optimize performance when selecting data
-- Easily cache and sync data
-
-**Example**:
-
-```typescript
-// ❌ Not normalized (nested)
-{
-  articles: [
-    { id: 1, author: { id: 1, name: "John" } },
-    { id: 2, author: { id: 1, name: "John" } }
-  ]
-}
-
-// ✅ Normalized (flat)
-{
-  articles: {
-    byId: { 1: {...}, 2: {...} },
-    allIds: [1, 2]
-  },
-  authors: {
-    byId: { 1: { id: 1, name: "John" } },
-    allIds: [1]
-  }
-}
-```
-
-**Documentation**: [Normalizing State Shape](https://redux.js.org/usage/structuring-reducers/normalizing-state-shape)
-
-### 4. Redux DevTools Extension
-
-**Redux DevTools** is a browser extension that helps debug Redux applications:
-
-- View entire action history
-- Time-travel debugging (go back to previous state)
-- Inspect state at any point in time
-- Export/import state for testing
-- Monitor performance
-
-**Installation**: [Redux DevTools Extension](https://github.com/reduxjs/redux-devtools-extension)
-
-### 5. Testing Redux Code
-
-**Testing** Redux code includes:
-
-- **Unit test** for reducers: Test state handling logic
-- **Unit test** for selectors: Test calculations from state
-- **Integration test** for async thunks: Test API calls and error handling
-- **Component test**: Test components using Redux hooks
-
-**Supporting Tools**:
-
-- `@testing-library/react`: Test React components
-- `@reduxjs/toolkit/query/react`: Test RTK Query
-- Mock store for testing
-
-**Documentation**: [Testing Redux](https://redux.js.org/usage/writing-tests)
-
-### 6. Code Splitting and Lazy Loading
-
-**Code splitting** helps optimize bundle size by:
-
-- Splitting Redux code into small chunks
-- Loading reducer and middleware when needed
-- Using dynamic imports for large features
-
-**Example**:
-
-```typescript
-// Lazy load reducer
-const articlesReducer = await import("./features/articles/articlesSlice");
-```
-
-### 7. TypeScript Best Practices
-
-**TypeScript** with Redux Toolkit:
-
-- Use `PayloadAction<T>` for typed actions
-- Create typed hooks with `useAppDispatch` and `useAppSelector`
-- Use `ReturnType` to infer types from store
-- Create utility types for complex state shapes
-
-**Documentation**: [TypeScript Quick Start](https://redux-toolkit.js.org/usage/usage-with-typescript)
-
-### 8. Performance Optimization
-
-**Performance optimization** in Redux:
-
-- Use `createSelector` to memoize expensive calculations
-- Avoid unnecessary re-renders with `React.memo`
-- Use `useMemo` and `useCallback` when needed
-- Normalize state to avoid deep nesting
-- Use RTK Query for automatic caching
-
----
-
-**References**:
+## References
 
 - [Redux Toolkit Documentation](https://redux-toolkit.js.org/)
 - [Redux Essentials Tutorial](https://redux.js.org/tutorials/essentials/part-1-overview-concepts)
