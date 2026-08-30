@@ -30,7 +30,8 @@ A comprehensive collection of React.js learning materials and practical examples
 ### 5. Data Fetching
 
 - **[Fetching Data](./07_Fetching_Data/README.md)** - HTTP requests, REST APIs, and data fetching patterns
-- **[Axios & TanStack Query](./08_Axios_Tanstack_Query/README.md)** - HTTP client setup, interceptors, and React Query for data synchronization
+- **[Axios](./08_Axios_Tanstack_Query/AXIOS.md)** - HTTP client setup, instances, and interceptors
+- **[TanStack Query](./08_Axios_Tanstack_Query/TANSTACK_QUERY.md)** - React Query for caching, mutations, and data synchronization
 
 ### 6. Forms & Validation
 
@@ -46,7 +47,8 @@ A comprehensive collection of React.js learning materials and practical examples
 
 ### 9. Styling
 
-- **[Styling React Components](./13_Styling/README.md)** - Comparison of styling approaches: Inline Styles, Vanilla CSS, CSS Modules, Styled Components, and Tailwind CSS
+- **[Styling React Components](./13_Styling/README.md)** - Comparison of styling approaches: Inline Styles, Vanilla CSS, CSS Modules, and Styled Components
+- **[Tailwind CSS](./16_Tailwind_CSS/README.md)** - Utility-first CSS with Tailwind
 
 ### 10. TypeScript
 
