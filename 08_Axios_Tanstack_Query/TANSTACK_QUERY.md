@@ -1,40 +1,22 @@
 # TanStack Query
 
-A guide to **TanStack Query** (React Query): caching, background sync, and mutations — built on top of an Axios instance.
-
-> Need the HTTP client / interceptor layer this relies on? See **[Axios](./AXIOS.md)**.
-
----
-
-## Core Terminology
-
-### Server State vs Client State
-
-| Aspect              | Server State                                        | Client/UI State                                         |
-| -------------------- | ----------------------------------------------------- | ----------------------------------------------------------- |
-| **Source**          | Data from server/API                                 | Data managed in component                                    |
-| **Managed by**      | TanStack Query                                       | React state (useState, useReducer)                            |
-| **Source of Truth** | Server is the source of truth                        | Component state is the source of truth                        |
-| **Synchronization** | Needs sync with server, caching, background updates  | No sync needed, local only                                     |
-| **Examples**        | Posts list, user profile, product data               | Form inputs, UI toggles, modal open/close, selected tab       |
-
 ### Query Fundamentals
 
 **Query**: `useQuery` binds an async read operation to a unique cache key, manages its lifecycle, and exposes the result to React components.
 
-> `queryFn` must **throw** (or return a rejected Promise) on failure, never `return` an error object — TanStack Query derives `isError`/`isSuccess` from whether the Promise rejects, not from what it resolves to. This is why the Axios interceptor in [Axios](./AXIOS.md) rejects with `AppError` instead of returning it.
-
 ![useQuery options](./public/useQuery-input.png)
+
+**`queryFn`** must **throw** (or return a rejected Promise) on failure, never `return` an error object — TanStack Query derives `isError`/`isSuccess` from whether the Promise rejects, not from what it resolves to.
 
 **`staleTime` vs `cacheTime` (`gcTime` in v5)**
 
-| Aspect | `staleTime` | `cacheTime` / `gcTime` |
-| --- | --- | --- |
-| **Question it answers** | How long is the data considered "fresh"? | How long does unused data stay in memory? |
-| **Controls** | Whether a background refetch is triggered | Whether the cached data is garbage-collected |
-| **Starts counting from** | The last successful fetch | The moment the query has zero active observers (all components unmount) |
-| **Default** | `0` (stale immediately) | `300000` ms (5 minutes) |
-| **When it expires** | Next remount/refocus triggers a silent background refetch | Cached data is deleted; next mount has nothing to show and must fetch from scratch |
+| Aspect                   | `staleTime`                                               | `cacheTime` / `gcTime`                                                             |
+| ------------------------ | --------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Question it answers**  | How long is the data considered "fresh"?                  | How long does unused data stay in memory?                                          |
+| **Controls**             | Whether a background refetch is triggered                 | Whether the cached data is garbage-collected                                       |
+| **Starts counting from** | The last successful fetch                                 | The moment the query has zero active observers (all components unmount)            |
+| **Default**              | `0` (stale immediately)                                   | `300000` ms (5 minutes)                                                            |
+| **When it expires**      | Next remount/refocus triggers a silent background refetch | Cached data is deleted; next mount has nothing to show and must fetch from scratch |
 
 Remounting the same query key behaves differently depending on where you are relative to both timers:
 
@@ -44,11 +26,7 @@ Remounting the same query key behaves differently depending on where you are rel
 | After `staleTime` but within `cacheTime` | Yes, from cache | Yes, refetches silently in the background |
 | After `cacheTime` (cache garbage-collected) | No — shows loading state | Yes, fetches from scratch |
 
-> `staleTime` only decides whether a background refetch happens — it never causes a loading spinner. What decides "instant data vs. loading spinner" is whether the cache entry still exists, i.e. whether `cacheTime`/`gcTime` has expired.
-
 ![useQuery result](./public/useQuery-output.png)
-
-**Window Focus Refetching** (`refetchOnWindowFocus`, default `true`) — when the browser tab regains focus, every mounted query refetches, but only if `staleTime` has already passed. Good default for data others might change (dashboards, notifications); worth disabling per-query for expensive calls, or while a form is being edited so a background refetch doesn't clobber input in progress.
 
 **`isPending` vs `isFetching` (v5)** — `isPending` means "no data yet" (`data === undefined`); `isFetching` means "a request is running right now." Caveats:
 
@@ -65,20 +43,6 @@ Remounting the same query key behaves differently depending on where you are rel
 | **Main risk** | Stale/incomplete data can be treated as "fresh" and never refetched | None — the real fetch always runs alongside it |
 | **Typical use** | Seeding a detail query from an item already present in a list query's cache | `keepPreviousData` while paging (see Recipes → Paginated Queries) |
 
-`placeholderData` also exposes `isPlaceholderData: true` while showing the stand-in, so it can be distinguished from real data (e.g. to disable a "Next" button until the real page has loaded).
-
-### Cache & Sync Terminology
-
-![Use Query Client](./public/useQueryClient.png)
-
-**Cache Invalidation**: Marking cached data as stale so TanStack Query refetches it.
-
-**Polling**: Automatically refetch data at regular intervals via `refetchInterval`.
-
-**Deduplication**: When multiple components request the same query key simultaneously, only one HTTP request is made.
-
-**Prefetch**: Fetch and cache data before the user navigates to it using `queryClient.prefetchQuery()`.
-
 ### Dependent & Parallel Queries
 
 **Dependent query** — one query needs the result of another before it can run. Gate it with `enabled`:
@@ -94,8 +58,6 @@ export function useUserOrders(userId?: number) {
   });
 }
 ```
-
-It stays `isPending: true` (not `isError`) while it waits — `enabled: false` means "hasn't run yet," not "failed."
 
 **Parallel — fixed number**: just call multiple `useQuery` hooks side by side; they fire concurrently, not sequentially.
 
@@ -141,35 +103,13 @@ const { data, refetch, isFetching } = useQuery({
 
 A disabled query is `isPending: true` for as long as it's never been fetched — that's expected, not an error state.
 
-### Query Cancellation
-
-TanStack Query passes an `AbortSignal` into `queryFn` as part of its context object. Forward it to Axios so an in-flight request is aborted when the query is cancelled — key changes, component unmounts, or a newer call to the same key supersedes it:
-
-```typescript
-export const postsApi = {
-  getPostById: async (id: number, signal?: AbortSignal): Promise<Post> => {
-    const res = await axiosInstance.get<Post>(`/posts/${id}`, { signal });
-    return res.data;
-  },
-};
-
-export function usePost(id: number) {
-  return useQuery({
-    queryKey: postKeys.detail(id),
-    queryFn: ({ signal }) => postsApi.getPostById(id, signal),
-  });
-}
-```
-
-Without this, switching between detail pages quickly leaves stale requests running in the background — one can still resolve after a newer one and overwrite fresher data with older data.
-
 ---
 
 ## Mutations & Cache Synchronization
 
 ### Mutations
 
-`useMutation` handles write operations — create, update, delete. Unlike `useQuery`, a mutation isn't identified by a `queryKey` and isn't cached by TanStack Query itself: it's a one-off action, not something to be re-fetched or deduplicated. There's no "stale" concept for a mutation, because nothing about it is stored to go stale.
+`useMutation` handles write operations — create, update, delete. Unlike `useQuery`, a mutation isn't identified by a `queryKey` and isn't cached by TanStack Query itself: it's a one-off action, not something to be re-fetched or deduplicated.
 
 ![useMutation input](./public/useMutation-input.png)
 
@@ -183,18 +123,13 @@ Without this, switching between detail pages quickly leaves stale requests runni
 | **Error handling** | Via `onError` callback | Via `try/catch` at the call site |
 | **Use case** | Simple "click and forget" actions | Caller needs to chain logic after success/failure (navigate, trigger a second mutation) |
 
-**Callback order**: `onMutate` / `onError` / `onSuccess` / `onSettled` can be declared both as hook-level defaults (inside `useMutation({...})`) and as per-call options (`mutate(variables, { onSuccess })`). Both run — the call-site callback does not replace the hook-level one. TanStack Query calls the hook-level callback first, then the call-site one.
-
 > A mutation never touches any query's cache on its own. Calling `updateUser.mutate(...)` does not make `useUser(id)` anywhere else in the app see the new data — that link has to be made explicit, which is exactly what invalidation is for.
 
 ### Query Invalidation
 
 `queryClient.invalidateQueries()` marks matching queries as stale and, for any that are currently **active** (mounted somewhere in the tree), triggers an immediate background refetch. **Inactive** queries are only marked stale — they refetch the next time a component mounts and reads that key.
 
-**Key matching is partial by default** — the part most often misunderstood. `invalidateQueries({ queryKey: ['users'] })` matches *every* query whose key starts with `'users'`, including `['users', 'list']` and `['users', 'detail', 5]`. Pass `exact: true` to match only that exact key.
-
-This is why a hierarchical query key — `users.all → users.lists() → users.detail(id)` — matters: it's what makes both "invalidate everything under `users`" and "invalidate just this one detail" possible through the same partial-match rule.
-
+**Key matching is partial by default**: `invalidateQueries({ queryKey: ['users'] })` matches *every* query whose key starts with `'users'`, including `['users', 'list']` and `['users', 'detail', 5]`. Pass `exact: true` to match only that exact key.
 ### Invalidation from Mutations
 
 The standard pattern: call `invalidateQueries` inside the mutation's `onSuccess`. The mutation doesn't try to guess the new server state — it just tells TanStack Query "something under this key changed, go get the truth again":
@@ -208,12 +143,6 @@ useMutation({
   },
 });
 ```
-
-**Where to put it**: inside the mutation hook itself, not at the component call site. A hook-level `onSuccess` runs every time the mutation is used anywhere in the app; a component-level one is easy to forget the next time the same mutation is reused on another screen.
-
-**How wide to invalidate**: same partial-match rule as above — invalidate `userKeys.all` for simplicity, or narrow to `userKeys.detail(id)` to skip unnecessary refetches, just remember to also invalidate any other query (e.g. the list) that embeds the same field you changed.
-
-**The trade-off this doesn't solve**: invalidation always means a network round-trip before the UI reflects the change. That unavoidable gap between "mutation succeeded" and "screen shows the new data" is what patterns like *Updates from Mutation Responses* and *Optimistic Updates* exist to close.
 
 ### Updates from Mutation Responses
 
@@ -251,7 +180,7 @@ onSuccess: (updatedUser) => {
 };
 ```
 
-**Caveat**: this only works when the response is genuinely authoritative for that cache shape — if the server response omits fields the list view needs, or the update has side effects on other resources (e.g. changing a user's role also affects a permissions query), fall back to `invalidateQueries` for those, or combine both: `setQueryData` for the instant update, plus an `invalidateQueries` right after as a correctness safety net.
+**Caveat**: this only works when the response is genuinely authoritative for that cache shape — if the server response omits fields the list view needs, or the update has side effects on other resources (e.g. changing a user's role also affects a permissions query).
 
 ### Optimistic Updates
 
@@ -295,6 +224,30 @@ Each callback exists for a reason: `onMutate` cancels in-flight fetches first (o
 ## Setup
 
 Setup follows the [official Quick Start](https://tanstack.com/query/latest/docs/framework/react/quick-start): create one `QueryClient`, wrap the app in `QueryClientProvider`, then call `useQuery`/`useMutation` anywhere underneath it. The `queryFn`/`mutationFn` passed to each is just a call into the Axios API layer described in **[Axios](./AXIOS.md)**.
+
+```typescript
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60, // 1 minute, overrides the default of 0
+      retry: 2,             // default is 3
+    },
+    mutations: {
+      retry: 0, // mutations default to 0 — retrying a POST/PATCH risks duplicating a write
+    },
+  },
+});
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Router />
+    </QueryClientProvider>
+  );
+}
+```
+
+**Retry behavior**: a failed **query** retries up to 3 times by default, with exponential backoff, before `isError` becomes `true`. `retry` also accepts a function `(failureCount, error) => boolean`, which is where the Axios interceptor's `normalizeError` (see [Axios](./AXIOS.md)) pays off — since every rejection is a consistently-shaped `AppError`, that function can check `error.status` and skip retrying things like 401/404 that will never succeed no matter how many times they're retried.
 
 ---
 
@@ -432,6 +385,45 @@ function PostsInfiniteScroll() {
 - Returning `null` instead of `undefined` from `getNextPageParam` — `null` is treated as a valid page param, not "no more pages."
 - Flattening with `.map(page => page.items)` instead of `.flatMap(...)` — leaves nested arrays and breaks rendering.
 
+### Debounced Search Query
+
+Typing into a search box shouldn't fire a request per keystroke. Debounce the value that actually goes into `queryKey`, not the query call itself — TanStack Query already skips fetching when the key doesn't change, so debouncing the input naturally throttles requests:
+
+```typescript
+function useDebouncedValue<T>(value: T, delay = 300): T {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timeout);
+  }, [value, delay]);
+
+  return debounced;
+}
+
+function SearchResults() {
+  const [term, setTerm] = useState("");
+  const debouncedTerm = useDebouncedValue(term);
+
+  const { data, isFetching } = useQuery({
+    queryKey: searchKeys.query(debouncedTerm),
+    queryFn: () => searchApi.search(debouncedTerm),
+    enabled: debouncedTerm.length > 0,
+    placeholderData: keepPreviousData, // keep old results visible while the new debounced term fetches
+  });
+
+  return (
+    <>
+      <input value={term} onChange={(e) => setTerm(e.target.value)} />
+      {isFetching && <span>Searching...</span>}
+      <ul>{data?.map((r) => <li key={r.id}>{r.title}</li>)}</ul>
+    </>
+  );
+}
+```
+
+`term` (raw input, updates every keystroke) drives the `<input>`'s value so typing feels instant; `debouncedTerm` (delayed) drives `queryKey` so the request only fires once typing pauses. `enabled: debouncedTerm.length > 0` skips fetching on an empty box, and `placeholderData: keepPreviousData` avoids a loading flash between one debounced fetch and the next — same mechanism as Paginated Queries above, just keyed by search term instead of page number.
+
 ### Prefetching
 
 Fetch and cache data *before* the user navigates to it — e.g. on hover, ahead of a route change:
@@ -463,4 +455,3 @@ Because `prefetchQuery` populates the cache with the same `staleTime` a normal `
 
 - [TanStack Query Documentation](https://tanstack.com/query/latest)
 - [TanStack Query Quick Start](https://tanstack.com/query/latest/docs/framework/react/quick-start)
-- [React Query DevTools](https://tanstack.com/query/latest/docs/react/devtools)
