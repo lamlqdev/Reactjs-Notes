@@ -1,6 +1,6 @@
 # Fetching Data
 
-A demo application demonstrating how to fetch data from a backend API, handle loading and error states, and create custom hooks for data fetching in React.
+Documentation-only notes on fetching data from a backend API in React: HTTP fundamentals, the `fetch()` patterns worth knowing, and loading/error state handling.
 
 ## Core Terminology
 
@@ -9,7 +9,7 @@ A demo application demonstrating how to fetch data from a backend API, handle lo
 ### Backend
 
 - The server-side part of an application that runs on a server (not in the browser) and processes requests from clients.
-- Responsibilities include storing and retrieving data from databases, processing business logic, handling authentication and authorization, and serving API endpoints for frontend applications.
+- Responsibilities include storing and retrieving data from databases, processing business logic, handling authentication and authorization, and serving API endpoints.
 
 ### Frontend
 
@@ -171,100 +171,7 @@ export async function updateUserPlace(places) {
 
 **When to use**: When you need to handle loading, error states, and reuse fetching logic across components.
 
-**File: `src/hooks/useFetch.js`**
-
-```javascript
-import { useEffect, useState } from "react";
-
-export function useFetch(fetchFunction, initialValue) {
-  const [isFetching, setIsFetching] = useState();
-  const [error, setError] = useState();
-  const [fetchedData, setFetchedData] = useState(initialValue);
-
-  useEffect(() => {
-    async function fetchingSelectedPlaces() {
-      setIsFetching(true);
-      try {
-        const data = await fetchFunction();
-        setFetchedData(data);
-      } catch (error) {
-        setError({
-          message: error.message || "Failed to fetch data",
-        });
-      }
-      setIsFetching(false);
-    }
-
-    fetchingSelectedPlaces();
-  }, [fetchFunction]);
-
-  return {
-    isFetching,
-    fetchedData,
-    setFetchedData,
-    error,
-  };
-}
-```
-
-**File: `src/components/AvailablePlaces.jsx`**
-
-```javascript
-export default function AvailablePlaces({ onSelectPlace }) {
-  const {
-    isFetching,
-    fetchedData: availablePlaces,
-    error,
-  } = useFetch(fetchSortedPlaces, []);
-
-  if (error) {
-    return <ErrorPage title="An error occurred!" message={error.message} />;
-  }
-
-  return (
-    <Places
-      title="Available Places"
-      places={availablePlaces}
-      isLoading={isFetching}
-      loadingText="Fetching place data..."
-      fallbackText="No places available."
-      onSelectPlace={onSelectPlace}
-    />
-  );
-}
-```
-
-**File: `src/components/Places.jsx`**
-
-```javascript
-export default function Places({
-  title,
-  places,
-  fallbackText,
-  onSelectPlace,
-  isLoading,
-  loadingText,
-}) {
-  return (
-    <section className="places-category">
-      <h2>{title}</h2>
-      {isLoading && <p className="fallback-text">{loadingText}</p>}
-      {!isLoading && places.length === 0 && (
-        <p className="fallback-text">{fallbackText}</p>
-      )}
-      {!isLoading && places.length > 0 && (
-        <ul className="places">
-          {places.map((place) => (
-            <li key={place.id} className="place-item">
-              {/* Render place item */}
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-```
+The pattern is: track `isFetching`/`error`/`data` state around the `fetch()` call, then extract that into a reusable hook so components don't each reimplement the same three `useState` calls. See **[`05_Custom_Hooks` → Example 3: useFetch Hook](../05_Custom_Hooks/README.md)** for the full generic implementation.
 
 ---
 

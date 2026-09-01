@@ -56,8 +56,6 @@ export type CartAction =
 
 A **reducer** is a pure function `(state, action) => newState`. It must never mutate the existing state — always return a new object.
 
-![Reducer Function](./public/appReducer.png)
-
 **File: `src/context/CartContext.tsx`**
 
 ```typescript
@@ -111,8 +109,6 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
 `createContext` creates a Context object. Any component inside the matching `Provider` can read the current value using `useContext`.
 
-![Create Context](./public/createContext.png)
-
 ```typescript
 interface CartContextValue {
   state: CartState;
@@ -129,8 +125,6 @@ const CartContext = createContext<CartContextValue | undefined>(undefined);
 #### 3.2. Create Provider with `useReducer`
 
 `useReducer` is the hook that wires the reducer to the component tree. It returns `[state, dispatch]` — the current state and a function to send actions to the reducer.
-
-![useReducer](./public/useReducer.png)
 
 ```typescript
 export function CartProvider({ children }: { children: React.ReactNode }) {
@@ -152,8 +146,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 ### Step 4: Create a Custom Hook
 
 `useContext` reads the nearest Provider's value. Wrapping it in a custom hook adds the undefined guard and keeps component code clean.
-
-![useContext](./public/useContext.png)
 
 ```typescript
 export function useCart(): CartContextValue {
@@ -249,13 +241,22 @@ function CartSummary() {
 
 ---
 
-> **Note — Split State and Dispatch Contexts**
->
-> `dispatch` from `useReducer` is referentially stable — React guarantees the same function reference across all renders. However, when `state` and `dispatch` are wrapped together in one context object (`{ state, dispatch }`), that object is recreated on every state change, causing all consumers to re-render — even components that only call `dispatch` and never read state.
->
-> The workaround is to split into two contexts: one for `state`, one for `dispatch`. Components that only dispatch subscribe to the dispatch context only and are never re-rendered by state changes.
->
-> In practice this rarely matters — the extra re-renders are negligible for most apps. If you find yourself needing this level of optimisation, it's usually a sign the app has outgrown Context API and should use a dedicated state library like **Zustand** or **Redux Toolkit** instead.
+**Note — Split State and Dispatch Contexts**
+
+`dispatch` never changes — React always hands back the exact same function. `state` does change. The catch: grouping them into one object (`{ state, dispatch }`) creates a *brand new object* every time state changes — so even a component that only calls `dispatch` (and never reads `state`) re-renders, simply because it's holding onto half of an object that changed.
+
+```tsx
+// ❌ One object → any state change re-renders every consumer, dispatch-only or not
+<MyContext.Provider value={{ state, dispatch }}>
+
+// ✅ Two contexts → a dispatch-only component never re-renders
+<StateContext.Provider value={state}>
+  <DispatchContext.Provider value={dispatch}>
+```
+
+A component reading only `DispatchContext` skips re-renders entirely — what it's holding onto genuinely never changes.
+
+In practice this rarely matters — the wasted re-renders are usually tiny. Needing this trick is often a sign to reach for **Zustand** or **Redux Toolkit** instead of stretching Context further.
 
 ---
 

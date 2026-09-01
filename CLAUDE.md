@@ -18,7 +18,7 @@ npm run build    # Production build
 npm run preview  # Preview production build
 ```
 
-Projects with code: `01_React_Essentials`, `02_useEffect`, `03_useRef_Portal`, `04_React_Performance_Rendering`, `05_Custom_Hooks`, `06_ContextAPI_useReducer`, `07_Fetching_Data`, `09_React_Hook_Form`, `10_React_Router`, `12_Authentication`, `14_Unit_Testing`.
+Projects with code: `01_React_Essentials`, `03_useRef_Portal`, `04_React_Performance_Rendering`, `05_Custom_Hooks`, `06_ContextAPI_useReducer`, `09_React_Hook_Form`, `10_React_Router`, `12_Authentication`, `14_Unit_Testing`.
 
 The `11_Redux_Redux_Toolkit` folder contains two separate sub-projects:
 - `11_Redux_Redux_Toolkit/Redux/` — traditional Redux
@@ -37,13 +37,13 @@ npm run test      # Run Vitest test suite
 | Folder | Type | What it covers |
 |--------|------|----------------|
 | `React_Essentials/` | Docs + Code | Core React concepts, JSX, props, state |
-| `useEffect/` | Docs + Code | Side effects, cleanup, dependency arrays |
+| `useEffect/` | Docs | Side effects, cleanup, dependency arrays |
 | `useRef_Portal/` | Docs + Code | DOM refs, `useImperativeHandle`, portals |
 | `05_Custom_Hooks/` | Docs + Code | Extracting and composing custom hooks |
 | `06_ContextAPI_useReducer/` | Docs + Code | Global state without Redux |
 | `11_Redux_Redux_Toolkit/` | Docs + Code | Redux fundamentals and RTK patterns |
 | `10_React_Router/` | Docs + Code | React Router v6, loaders, actions |
-| `07_Fetching_Data/` | Docs + Code | Fetch API, HTTP patterns |
+| `07_Fetching_Data/` | Docs | Fetch API, HTTP patterns |
 | `08_Axios_Tanstack_Query/` | Docs | Axios (`AXIOS.md`) + TanStack Query (`TANSTACK_QUERY.md`), no demo project |
 | `09_React_Hook_Form/` | Docs + Code | Form handling with RHF + Zod validation |
 | `12_Authentication/` | Docs + Code | JWT, protected routes, RBAC |

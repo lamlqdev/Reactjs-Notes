@@ -351,9 +351,3 @@ function Component() {
 1. Render: 1
 3. Effect: 1
 ```
-
----
-
-## Summary
-
-![Summary](./public/summary.png)

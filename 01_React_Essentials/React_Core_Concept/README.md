@@ -153,11 +153,8 @@ export default function CoreConcept({ image, title, description }) {
 ```
 
 **Explanation:**
-
-- `CORE_CONCEPTS` is an array containing data (see `data.js`)
-- `.map()` iterates through each element and creates a component
 - `{...conceptItem}` is the spread operator, passing all properties of `conceptItem` as props
-- `key={conceptItem.title}` helps React identify each element (required when using `.map()`)
+- `key={conceptItem.title}` helps React identify each element, required when using `.map()`
 
 **Data in `data.js`:**
 
@@ -235,8 +232,7 @@ if (selectedTopic) {
 **Explanation:**
 
 - **Conditional Rendering** is a way to display different content based on conditions
-- Initially `tabContent` is a default text paragraph
-- If `selectedTopic` has a value (truthy), `tabContent` is assigned new JSX
+- Initially `tabContent` is a default text paragraph. If `selectedTopic` has a value (truthy), `tabContent` is assigned new JSX
 - The new JSX retrieves data from the `EXAMPLES` object based on `selectedTopic`
 
 **Other conditional rendering methods:**
@@ -298,7 +294,6 @@ if (condition) {
 - Each `TabButton` receives 2 props:
   - `isSelected`: boolean to determine which tab is selected
   - `onSelect`: callback function called when clicking the button
-- `selectedTopic === "components"` compares state with string, returns `true` or `false`
 - `() => handleSelect("components")` is an arrow function, when clicked it calls `handleSelect` with parameter `"components"`
 
 #### TabButton Component handling the event
@@ -322,23 +317,6 @@ export default function TabButton({ children, onSelect, isSelected }) {
 - `children` is a special prop containing content between opening and closing tags: `<TabButton>Components</TabButton>`
 - `className={isSelected ? 'active' : undefined}` applies CSS class if the tab is selected
 
-**Event handling flow:**
-
-1. User clicks the "Components" button
-2. `onClick` triggers, calling `onSelect()` (which is `handleSelect("components")`)
-3. `handleSelect` calls `setSelectedTopic("components")`
-4. State changes → React re-renders
-5. `selectedTopic === "components"` returns `true`
-6. TabButton receives `isSelected={true}` → button has `active` class
-7. `tabContent` is updated with new content
-
 ## 📝 Summary
 
 ![Summary](./public/summary.png)
-
-### Important Notes
-
-1. **Props are read-only**: Cannot change props from child components
-2. **State only changes with setter**: Always use setter functions (like `setSelectedTopic`) to change state
-3. **Key prop**: Always need `key` when rendering lists with `.map()`
-4. **Event handlers**: Pass function, don't call function (don't use `onClick={handleSelect()}`)

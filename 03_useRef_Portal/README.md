@@ -9,6 +9,9 @@ This project builds a reaction time challenge game to explore how `useRef` actua
 ### What is a ref?
 
 Sometimes a component needs to hold a value across renders without that value triggering a re-render. Or it needs to reach out and directly manipulate a DOM element. `useState` handles the first case but re-renders on every change. Direct DOM access isn't possible in React's declarative model. `useRef` handles both.
+
+![Why refs are useful](./public/refs-useful.png)
+
 ### What is a Portal?
 
 By default, a component renders into the DOM at the position it appears in the JSX tree. A Portal lets you render output into a *different* DOM node — useful for modals and overlays that need to escape their parent's CSS constraints (`overflow: hidden`, `z-index` stacking contexts, transforms).
@@ -55,6 +58,8 @@ console.log(countRef.current); // 1, always the latest value
 
 ![useRef vs useState](./public/ref-vs-state.png)
 
+**StrictMode double-invocation:** in development, React calls a component function twice on mount to surface impurities — this means the `useRef()` call itself runs twice too, and one of the two ref objects is discarded. This is exactly why the lazy-initialization guard below checks `.current === null` instead of assuming the constructor only ever runs once.
+
 ### 2.2 Two main use cases
 
 **a) Reference to a real DOM node**
@@ -80,6 +85,16 @@ const wsRef = useRef<WebSocket | null>(null);         // external object instanc
 ```
 
 Use when the value is purely behind the scenes and the UI does not need to reflect changes to it.
+
+**Lazy initialization for expensive values:** React only keeps the *first* value ever assigned to a ref — but if that value comes from an expensive constructor call (e.g. `new WebSocket(...)`), calling it as the `useRef(new WebSocket(...))` argument would still run it on every render, only to be thrown away. Guard it instead:
+
+```tsx
+const wsRef = useRef<WebSocket | null>(null);
+
+if (wsRef.current === null) {
+  wsRef.current = new WebSocket(URL); // runs once, ever
+}
+```
 
 ### 2.3 Never read or write ref.current during render
 
@@ -233,13 +248,9 @@ TypeScript requires knowing what type of value a ref holds in order to type-chec
 Always initialize with `null` — React sets `.current` to the DOM node after mount, and back to `null` on unmount.
 
 ```tsx
-const inputRef    = useRef<HTMLInputElement>(null);
-const dialogRef   = useRef<HTMLDialogElement>(null);
-const divRef      = useRef<HTMLDivElement>(null);
-const videoRef    = useRef<HTMLVideoElement>(null);
-const formRef     = useRef<HTMLFormElement>(null);
-const buttonRef   = useRef<HTMLButtonElement>(null);
-const textareaRef = useRef<HTMLTextAreaElement>(null);
+const inputRef  = useRef<HTMLInputElement>(null);
+const dialogRef = useRef<HTMLDialogElement>(null);
+// same pattern for any HTML element: HTMLDivElement, HTMLVideoElement, HTMLFormElement, ...
 ```
 
 Because the initial value is `null`, TypeScript types `.current` as `HTMLInputElement | null`. Always guard before access:
@@ -263,16 +274,6 @@ const timer     = useRef<number | undefined>(undefined); // interval / timeout I
 const countRef  = useRef<number>(0);
 const prevValue = useRef<string>("");
 const wsRef     = useRef<WebSocket | null>(null);
-```
-
-**In this game:**
-
-```tsx
-// Player.tsx
-const name = useRef<HTMLInputElement>(null);         // DOM ref — input element
-
-// TimeChallenge.tsx
-const timer = useRef<number | undefined>(undefined); // value ref — interval ID
 ```
 
 ### Passing ref to a child component (React 19)
