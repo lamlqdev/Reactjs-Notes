@@ -109,7 +109,7 @@ export const clearTokens = (): void => {
 Three key concepts are implemented inside the interceptors — all explained via comments in the full instance below:
 
 - **AppError**: normalize all HTTP errors into one consistent shape so every `catch` block handles one type.
-- **Refresh Token Queue**: when multiple requests get `401` simultaneously, only the first triggers a refresh; the rest wait in a queue and retry with the new token.
+- **Single In-flight Refresh Promise**: All requests hitting a `401` share one refresh promise — first one triggers it, the rest just wait and reuse the result.
 - **Session Expiry**: dispatch a custom event instead of `window.location.href` to avoid a full page reload in a React SPA.
 
 #### Full Instance
@@ -124,11 +124,6 @@ import axios, {
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "./token";
 
 // --- Types ---
-
-interface QueueItem {
-  resolve: (token: string) => void;
-  reject: (error: unknown) => void;
-}
 
 interface RefreshTokenResponse {
   access_token: string;
@@ -161,18 +156,6 @@ const normalizeError = (error: AxiosError): AppError => {
   return new AppError(message, status, code);
 };
 
-// --- Refresh token queue ---
-
-let isRefreshing = false;
-let failedQueue: QueueItem[] = [];
-
-const processQueue = (error: unknown, token: string | null): void => {
-  failedQueue.forEach(({ resolve, reject }) => {
-    error ? reject(error) : resolve(token!);
-  });
-  failedQueue = [];
-};
-
 // --- Refresh token API call ---
 // Use base axios (not the instance) to avoid interceptor loop
 
@@ -190,6 +173,19 @@ const callRefreshToken = async (): Promise<string> => {
   const { access_token, refresh_token } = response.data;
   setTokens(access_token, refresh_token);
   return access_token;
+};
+
+// --- Single in-flight refresh promise ---
+
+let refreshPromise: Promise<string> | null = null;
+
+const getRefreshedToken = (): Promise<string> => {
+  if (!refreshPromise) {
+    refreshPromise = callRefreshToken().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
 };
 
 // --- Session expiry ---
@@ -217,54 +213,53 @@ axiosInstance.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 );
 
-// Response interceptor — handle 401 + refresh queue
+// Response interceptor — handle 401 + token refresh
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as CustomAxiosRequestConfig;
+    const status = error.response?.status;
+    const data = error.response?.data as Record<string, unknown> | undefined;
+    const code = data?.code as string | undefined;
 
-    // Non-401: normalize and reject
-    if (error.response?.status !== 401) {
+    // Only a 401 with code === "TOKEN_EXPIRED" means "access token expired,
+    // safe to refresh". A bare 401 (wrong credentials, revoked session,
+    // insufficient scope, ...) must NOT trigger a refresh attempt.
+    const isTokenExpired = status === 401 && code === "TOKEN_EXPIRED";
+
+    if (!isTokenExpired) {
       return Promise.reject(normalizeError(error));
     }
 
-    // Already retried → refresh token is also expired
+    // Already retried once → the refreshed token is also invalid
     if (originalRequest._retry) {
       dispatchSessionExpired();
       return Promise.reject(normalizeError(error));
     }
 
-    // Refresh in progress → queue this request
-    if (isRefreshing) {
-      return new Promise<string>((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      }).then((token) => {
-        originalRequest.headers!.Authorization = `Bearer ${token}`;
-        return axiosInstance(originalRequest);
-      });
-    }
-
-    // First 401 → start refresh
     originalRequest._retry = true;
-    isRefreshing = true;
 
     try {
-      const newToken = await callRefreshToken();
-      processQueue(null, newToken);
+      // Concurrent 401s all await the same in-flight promise here —
+      // no manual queue bookkeeping needed.
+      const newToken = await getRefreshedToken();
       originalRequest.headers!.Authorization = `Bearer ${newToken}`;
       return axiosInstance(originalRequest);
     } catch (refreshError) {
-      processQueue(refreshError, null);
       dispatchSessionExpired();
       return Promise.reject(refreshError);
-    } finally {
-      isRefreshing = false;
     }
   }
 );
 
 export default axiosInstance;
 ```
+
+**Token Refresh Flow**:
+
+![Deciding whether a 401 is refreshable](./public/refresh-token-1.png)
+
+![One shared refresh promise](./public/refresh-token-2.png)
 
 ---
 

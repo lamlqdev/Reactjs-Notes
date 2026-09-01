@@ -105,42 +105,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 ```
 
-### Axios Interceptors for Token Lifecycle
-
-Attach the access token to every request automatically, and handle silent refresh when a 401 is returned:
-
-```typescript
-// Request interceptor — attach access token
-axiosInstance.interceptors.request.use((config) => {
-  const token = getAccessToken(); // read from in-memory store
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-// Response interceptor — silent refresh on 401
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      try {
-        const { accessToken } = await axios.post("/auth/refresh");
-        // refresh token is sent automatically via httpOnly cookie
-        setAccessToken(accessToken); // store new token in-memory
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return axiosInstance(originalRequest);
-      } catch {
-        logout(); // refresh failed → force re-login
-      }
-    }
-    return Promise.reject(error);
-  }
-);
-```
-
-The `_retry` flag prevents infinite loops if the refresh itself returns a 401.
-
 ### Protected Routes
 
 Wrap routes that require authentication with a `ProtectedRoute` component. See [React Router module](../10_React_Router/README.md) for the full pattern.

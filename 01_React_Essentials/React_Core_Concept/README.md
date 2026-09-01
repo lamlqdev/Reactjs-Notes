@@ -14,7 +14,7 @@ React is built on 4 core concepts:
 
 ![Components](./public/components.png)
 
-**Examples in this project:**
+**Examples:**
 
 - `Header.jsx` - Component that displays the header
 - `CoreConcept.jsx` - Component that displays a concept
@@ -35,7 +35,7 @@ React is built on 4 core concepts:
 
 ![Props](./public/props.png)
 
-**Examples in this project:**
+**Examples:**
 
 - `CoreConcept` receives props: `image`, `title`, `description`
 - `TabButton` receives props: `children`, `onSelect`, `isSelected`
@@ -211,15 +211,6 @@ function App() {
 - `selectedTopic` is the current value of state (can be `undefined`, `"components"`, `"jsx"`, `"props"`, or `"state"`)
 - `setSelectedTopic` is a function to change the state value
 - When calling `setSelectedTopic("components")`, state changes and the component automatically re-renders
-
-**How it works:**
-
-1. Initially `selectedTopic = undefined`
-2. User clicks on the "Components" tab
-3. `handleSelect("components")` is called
-4. `setSelectedTopic("components")` updates the state
-5. React re-renders the `App` component
-6. UI updates to display the corresponding content
 
 ### 3.4. Conditional Rendering
 
