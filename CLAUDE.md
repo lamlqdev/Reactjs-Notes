@@ -52,6 +52,10 @@ npm run test      # Run Vitest test suite
 | `16_Tailwind_CSS/` | Code | Tailwind utility class examples |
 | `15_TypeScript/` | Docs | TypeScript type system for React |
 | `14_Unit_Testing/` | Docs + Code | Vitest + React Testing Library |
+| `17_Server_Components_Actions/` | Docs | React Server Components (`SERVER_COMPONENTS.md`) + Server Actions (`SERVER_ACTIONS.md`), no demo project |
+| `18_Suspense_Concurrent_Rendering/` | Docs | `Suspense`, `useTransition`, `useDeferredValue`, concurrent rendering |
+| `19_Zustand/` | Docs | Lightweight state management: stores, selectors, slices, `persist`/`devtools` middleware |
+| `20_Error_Boundaries/` | Docs | Error Boundary lifecycle methods, `react-error-boundary`, React 19 root error handlers |
 | `Javascript_Runtime/` | Docs only | V8 internals, event loop, closures, promises |
 
 ## Tech Stack

@@ -2,6 +2,8 @@
 
 Notes on the mental model behind React Hook Form (RHF) + Zod
 
+- **[React 19 Form Actions](./REACT_19_FORM_ACTIONS.md)** — the native alternative to RHF: `useActionState`, `useFormStatus`, `useOptimistic`, and how they compare to the RHF model in this file
+
 ![React Hook Form and Zod overview](./public/RHF-and-Zod.png)
 
 ---
